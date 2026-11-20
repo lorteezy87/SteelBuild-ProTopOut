@@ -63,25 +63,10 @@ async function loadReport(id: number) {
   return r;
 }
 
-async function rateFor(userId: number) {
-  const d = await db();
-  const [u] = await d.select().from(users).where(eq(users.id, userId)).limit(1);
-  let cost = u?.costRate ?? null;
-  let bill = u?.billRate ?? null;
-  if ((cost == null || bill == null) && u?.jobRoleId) {
-    const [jr] = await d
-      .select()
-      .from(jobRoles)
-      .where(eq(jobRoles.id, u.jobRoleId))
-      .limit(1);
-    cost = cost ?? jr?.costRate ?? 0;
-    bill = bill ?? jr?.billRate ?? 0;
-  }
-  return { cost: cost ?? 0, bill: bill ?? 0 };
-}
 
 import { assertFinalizable, assertReopenable, crewTimeLines, progressByTask } from "@shared/dailyPosting";
 import { crewInsertValues } from "../services/crew";
+import { rateFor } from "../services/rates";
 import { STAGE_KEYS, stageColumns, type Stage } from "@shared/stages";
 import { productionSeries } from "@shared/production";
 import { missingGateReasons } from "@shared/gate";

@@ -27,6 +27,7 @@ const DashboardView = lazy(() => import("./pages/DashboardView"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const Account = lazy(() => import("./pages/Account"));
 const LiftPlan = lazy(() => import("./pages/print/LiftPlan"));
+const TmTicket = lazy(() => import("./pages/print/TmTicket"));
 
 function Routes() {
   return (
@@ -67,6 +68,7 @@ function PrintRoutes() {
     <Suspense fallback={<Loading />}>
       <Switch>
         <Route path="/print/lift/:pickId">{p => <LiftPlan params={p} />}</Route>
+        <Route path="/print/tm/:ticketId">{p => <TmTicket params={p} />}</Route>
         <Route component={NotFound} />
       </Switch>
     </Suspense>

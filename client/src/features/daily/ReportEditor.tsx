@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
+import { NewTicket } from "@/features/tm/NewTicket";
 import { isStage } from "@shared/stages";
 import { toast } from "sonner";
 import { withGate } from "@/features/tasks/gatePrompt";
@@ -106,6 +108,8 @@ function ReportForm({
   const utils = trpc.useUtils();
   const report = data?.report;
   const editable = data ? data.canEdit : canCreate;
+  const [ticketFor, setTicketFor] = useState(false);
+  const [, navigate] = useLocation();
   const [head, setHead] = useState({
     reportDate: report?.reportDate ?? today,
     foremanId: report?.foremanId ?? ref?.me.id ?? null,
@@ -201,6 +205,15 @@ function ReportForm({
   const status = report?.status ?? "draft";
   return (
     <div className="space-y-4">
+      {ticketFor && report && (
+        <NewTicket
+          projectId={projectId}
+          fromDailyReportId={report.id}
+          defaultDate={report.reportDate}
+          onClose={() => setTicketFor(false)}
+          onCreated={id => navigate(`/jobs/${projectId}/tickets?ticket=${id}`)}
+        />
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <Pill tone={reportTone(status)}>
           {status[0].toUpperCase() + status.slice(1)}
@@ -234,6 +247,11 @@ function ReportForm({
                 Finalize
               </ConfirmButton>
             </>
+          )}
+          {status === "final" && report && canCreate && (
+            <Button size="sm" variant="outline" onClick={() => setTicketFor(true)}>
+              Create T&M ticket
+            </Button>
           )}
           {status === "final" && (
             <ConfirmButton

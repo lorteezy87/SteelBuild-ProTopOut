@@ -376,6 +376,54 @@ export const liftPicks = mysqlTable(
   t => [index("lp_project").on(t.projectId), index("lp_setup").on(t.setupId)]
 );
 
+/* ------------------------------------------------------------------ */
+/* T&M / extra-work tickets (shared/tm.ts)                             */
+/* ------------------------------------------------------------------ */
+
+export const tmTickets = mysqlTable(
+  "tm_tickets",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    number: int("number").notNull(),
+    ticketDate: day("ticketDate").notNull(),
+    description: text("description"),
+    /** Change order (wf item of app "co") this work is priced under. */
+    coItemId: int("coItemId"),
+    dailyReportId: int("dailyReportId"),
+    /** draft | signed | void */
+    status: varchar("status", { length: 8 }).default("draft").notNull(),
+    markup: json("markup").$type<{ labor: number; equipment: number; material: number }>().notNull(),
+    signedName: varchar("signedName", { length: 120 }),
+    signedTitle: varchar("signedTitle", { length: 120 }),
+    signedAt: timestamp("signedAt"),
+    signatureKey: varchar("signatureKey", { length: 255 }),
+    voidReason: varchar("voidReason", { length: 500 }),
+    createdBy: int("createdBy"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [uniqueIndex("tmt_project_number").on(t.projectId, t.number)]
+);
+
+export const tmTicketLines = mysqlTable(
+  "tm_ticket_lines",
+  {
+    id: id(),
+    ticketId: int("ticketId").notNull(),
+    sortOrder: int("sortOrder").default(0).notNull(),
+    /** labor | equipment | material */
+    kind: varchar("kind", { length: 16 }).notNull(),
+    description: varchar("description", { length: 300 }).notNull(),
+    qty: double("qty").default(0).notNull(),
+    unit: varchar("unit", { length: 16 }).default("hr").notNull(),
+    rate: double("rate").default(0).notNull(),
+    otQty: double("otQty"),
+    otRate: double("otRate"),
+  },
+  t => [index("tml_ticket").on(t.ticketId)]
+);
+
 export type BaselineTaskSnapshot = {
   taskId: number;
   name: string;

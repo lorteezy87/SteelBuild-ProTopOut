@@ -10,6 +10,7 @@ import { customFieldsRouter } from "./routers/customFields";
 import { dailyReportsRouter } from "./routers/dailyReports";
 import { gatesRouter } from "./routers/gates";
 import { cranesRouter } from "./routers/cranes";
+import { tmRouter } from "./routers/tm";
 import { dashboardRouter } from "./routers/dashboard";
 import { deliveriesRouter } from "./routers/deliveries";
 import { drawingsRouter } from "./routers/drawings";
@@ -51,6 +52,7 @@ export const appRouter = router({
   daily: dailyReportsRouter,
   gates: gatesRouter,
   cranes: cranesRouter,
+  tm: tmRouter,
   resources: resourcesRouter,
   time: timeRouter,
   expenses: expensesRouter,
