@@ -43,9 +43,7 @@ describe("platform", () => {
   });
 
   it("no Manus platform code remains", () => {
-    // Storage moves to R2-only in Phase 1 Task 7, which removes this exemption.
-    const PENDING = ["server/storage.ts", "server/storageR2.ts", "scripts/drawings-e2e.ts"];
-    const hits = walk(ROOT).filter(f => /MANUS_|__MANUS_CONFIG__|manus-storage|manuscdn|webdev\.v1/.test(fs.readFileSync(f, "utf8"))).map(f => path.relative(ROOT, f)).filter(f => !PENDING.includes(f));
+    const hits = walk(ROOT).filter(f => /MANUS_|__MANUS_CONFIG__|manus-storage|manuscdn|webdev\.v1/.test(fs.readFileSync(f, "utf8"))).map(f => path.relative(ROOT, f));
     expect(hits).toEqual([]);
   });
 });

@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1788785580464,
-      "tag": "0000_initial_users",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1793912796643,
-      "tag": "0001_brainy_obadiah_stane",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1793913219601,
-      "tag": "0002_swift_thunderbolts",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1793918690841,
-      "tag": "0003_absent_leech",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1793927821018,
-      "tag": "0004_drawing_register",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "5",
-      "when": 1793944843404,
-      "tag": "0005_drawing_viewer_model",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "5",
-      "when": 1794277490699,
-      "tag": "0006_local_credentials",
+      "when": 1795181216994,
+      "tag": "0000_baseline",
       "breakpoints": true
     }
   ]

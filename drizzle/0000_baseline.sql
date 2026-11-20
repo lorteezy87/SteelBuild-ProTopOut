@@ -10,20 +10,6 @@ CREATE TABLE `activities` (
 	CONSTRAINT `activities_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
-CREATE TABLE `api_tokens` (
-	`id` int AUTO_INCREMENT NOT NULL,
-	`userId` int NOT NULL,
-	`name` varchar(128) NOT NULL,
-	`tokenHash` varchar(128) NOT NULL,
-	`last4` varchar(8) NOT NULL,
-	`windowStart` timestamp,
-	`windowCount` int NOT NULL DEFAULT 0,
-	`lastUsedAt` timestamp,
-	`createdAt` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `api_tokens_id` PRIMARY KEY(`id`),
-	CONSTRAINT `api_tokens_tokenHash_unique` UNIQUE(`tokenHash`)
-);
---> statement-breakpoint
 CREATE TABLE `baselines` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`projectId` int NOT NULL,
@@ -62,17 +48,6 @@ CREATE TABLE `checklist_items` (
 	`done` boolean NOT NULL DEFAULT false,
 	`sortOrder` int NOT NULL DEFAULT 0,
 	CONSTRAINT `checklist_items_id` PRIMARY KEY(`id`)
-);
---> statement-breakpoint
-CREATE TABLE `comments` (
-	`id` int AUTO_INCREMENT NOT NULL,
-	`entityType` varchar(32) NOT NULL,
-	`entityId` int NOT NULL,
-	`projectId` int,
-	`userId` int NOT NULL,
-	`body` text NOT NULL,
-	`createdAt` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `comments_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `companies` (
@@ -250,6 +225,125 @@ CREATE TABLE `documents` (
 	CONSTRAINT `documents_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
+CREATE TABLE `drawing_marks` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`projectId` int NOT NULL,
+	`sheetId` int NOT NULL,
+	`rev` int NOT NULL,
+	`page` int NOT NULL DEFAULT 1,
+	`kind` varchar(16) NOT NULL,
+	`points` json NOT NULL,
+	`color` varchar(16) NOT NULL DEFAULT '#E8590C',
+	`note` varchar(500),
+	`label` varchar(12),
+	`createdBy` int,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `drawing_marks_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `drawing_revisions` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`sheetId` int NOT NULL,
+	`number` int NOT NULL,
+	`state` varchar(12) NOT NULL DEFAULT 'draft',
+	`notes` varchar(500),
+	`fileKey` varchar(500),
+	`url` varchar(1000),
+	`fileName` varchar(255),
+	`size` int,
+	`mimeType` varchar(128),
+	`createdBy` int,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`checkedBy` int,
+	`checkedAt` timestamp,
+	`issuedBy` int,
+	`issuedAt` date,
+	`previewKey` varchar(500),
+	`previewUrl` varchar(1000),
+	`description` varchar(600),
+	`revDate` date,
+	`source` varchar(300),
+	`readVia` varchar(8),
+	CONSTRAINT `drawing_revisions_id` PRIMARY KEY(`id`),
+	CONSTRAINT `drev_sheet_number` UNIQUE(`sheetId`,`number`)
+);
+--> statement-breakpoint
+CREATE TABLE `drawing_scales` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`sheetId` int NOT NULL,
+	`rev` int NOT NULL,
+	`page` int NOT NULL DEFAULT 1,
+	`feetPerWidth` double NOT NULL,
+	`label` varchar(60),
+	`createdBy` int,
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `drawing_scales_id` PRIMARY KEY(`id`),
+	CONSTRAINT `dsc_sheet_rev_page` UNIQUE(`sheetId`,`rev`,`page`)
+);
+--> statement-breakpoint
+CREATE TABLE `drawing_set_issues` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`setId` int NOT NULL,
+	`projectId` int NOT NULL,
+	`number` int NOT NULL,
+	`purpose` varchar(32) NOT NULL,
+	`issueDate` date NOT NULL,
+	`note` varchar(1000),
+	`sheets` json NOT NULL,
+	`skipped` json NOT NULL,
+	`issuedBy` int,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	CONSTRAINT `drawing_set_issues_id` PRIMARY KEY(`id`),
+	CONSTRAINT `dsi_set_number` UNIQUE(`setId`,`number`)
+);
+--> statement-breakpoint
+CREATE TABLE `drawing_sets` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`projectId` int NOT NULL,
+	`number` varchar(32) NOT NULL,
+	`name` varchar(255) NOT NULL,
+	`kind` varchar(16) NOT NULL DEFAULT 'erection',
+	`description` text,
+	`createdBy` int,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `drawing_sets_id` PRIMARY KEY(`id`),
+	CONSTRAINT `dset_project_number` UNIQUE(`projectId`,`number`)
+);
+--> statement-breakpoint
+CREATE TABLE `drawing_sheets` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`projectId` int NOT NULL,
+	`setId` int,
+	`sheetNumber` varchar(64) NOT NULL,
+	`sheetKey` varchar(64) NOT NULL,
+	`title` varchar(255) NOT NULL,
+	`description` text,
+	`sequenceTaskId` int,
+	`status` varchar(8) NOT NULL DEFAULT 'DET',
+	`holdFrom` varchar(8),
+	`holdReason` varchar(500),
+	`holdRfiId` int,
+	`ballInCourt` varchar(32) NOT NULL DEFAULT 'Detailer',
+	`sentDate` date,
+	`returnedDate` date,
+	`currentRev` int,
+	`createdBy` int,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `drawing_sheets_id` PRIMARY KEY(`id`),
+	CONSTRAINT `dsh_project_key` UNIQUE(`projectId`,`sheetKey`)
+);
+--> statement-breakpoint
+CREATE TABLE `drawing_title_blocks` (
+	`projectId` int NOT NULL,
+	`boxes` json NOT NULL,
+	`updatedBy` int,
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `drawing_title_blocks_projectId` PRIMARY KEY(`projectId`)
+);
+--> statement-breakpoint
 CREATE TABLE `equipment` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`name` varchar(200) NOT NULL,
@@ -293,15 +387,6 @@ CREATE TABLE `expenses` (
 	CONSTRAINT `expenses_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
-CREATE TABLE `followers` (
-	`id` int AUTO_INCREMENT NOT NULL,
-	`entityType` varchar(32) NOT NULL,
-	`entityId` int NOT NULL,
-	`userId` int NOT NULL,
-	CONSTRAINT `followers_id` PRIMARY KEY(`id`),
-	CONSTRAINT `fl_uq` UNIQUE(`entityType`,`entityId`,`userId`)
-);
---> statement-breakpoint
 CREATE TABLE `job_roles` (
 	`id` int AUTO_INCREMENT NOT NULL,
 	`name` varchar(128) NOT NULL,
@@ -311,15 +396,40 @@ CREATE TABLE `job_roles` (
 	CONSTRAINT `job_roles_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
-CREATE TABLE `notifications` (
-	`id` int AUTO_INCREMENT NOT NULL,
+CREATE TABLE `local_credentials` (
 	`userId` int NOT NULL,
-	`title` varchar(255) NOT NULL,
-	`body` text,
-	`link` varchar(500),
-	`isRead` boolean NOT NULL DEFAULT false,
+	`email` varchar(320) NOT NULL,
+	`passwordHash` varchar(255) NOT NULL,
 	`createdAt` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `notifications_id` PRIMARY KEY(`id`)
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `local_credentials_userId` PRIMARY KEY(`userId`),
+	CONSTRAINT `local_credentials_email_unique` UNIQUE(`email`)
+);
+--> statement-breakpoint
+CREATE TABLE `model_jobs` (
+	`projectId` int NOT NULL,
+	`data` json NOT NULL,
+	`version` int NOT NULL DEFAULT 1,
+	`updatedBy` int,
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `model_jobs_projectId` PRIMARY KEY(`projectId`)
+);
+--> statement-breakpoint
+CREATE TABLE `model_reads` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`projectId` int NOT NULL,
+	`sheetId` int NOT NULL,
+	`rev` int NOT NULL,
+	`page` int NOT NULL DEFAULT 1,
+	`readerVersion` int NOT NULL DEFAULT 0,
+	`data` json NOT NULL,
+	`version` int NOT NULL DEFAULT 1,
+	`readBy` int,
+	`readAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedBy` int,
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `model_reads_id` PRIMARY KEY(`id`),
+	CONSTRAINT `mrd_sheet_rev_page` UNIQUE(`sheetId`,`rev`,`page`)
 );
 --> statement-breakpoint
 CREATE TABLE `project_companies` (
@@ -346,7 +456,6 @@ CREATE TABLE `project_snapshots` (
 --> statement-breakpoint
 CREATE TABLE `projects` (
 	`id` int AUTO_INCREMENT NOT NULL,
-	`workspaceId` int,
 	`code` varchar(32),
 	`name` varchar(255) NOT NULL,
 	`description` text,
@@ -402,35 +511,6 @@ CREATE TABLE `reports` (
 	`createdAt` timestamp NOT NULL DEFAULT (now()),
 	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `reports_id` PRIMARY KEY(`id`)
-);
---> statement-breakpoint
-CREATE TABLE `role_assignments` (
-	`id` int AUTO_INCREMENT NOT NULL,
-	`userId` int NOT NULL,
-	`roleId` int NOT NULL,
-	`scopeType` varchar(16) NOT NULL,
-	`scopeId` int,
-	`createdAt` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `role_assignments_id` PRIMARY KEY(`id`)
-);
---> statement-breakpoint
-CREATE TABLE `role_privileges` (
-	`id` int AUTO_INCREMENT NOT NULL,
-	`roleId` int NOT NULL,
-	`privilege` varchar(64) NOT NULL,
-	`effect` varchar(8) NOT NULL DEFAULT 'grant',
-	CONSTRAINT `role_privileges_id` PRIMARY KEY(`id`),
-	CONSTRAINT `role_priv_uq` UNIQUE(`roleId`,`privilege`)
-);
---> statement-breakpoint
-CREATE TABLE `security_roles` (
-	`id` int AUTO_INCREMENT NOT NULL,
-	`key` varchar(64) NOT NULL,
-	`name` varchar(128) NOT NULL,
-	`description` text,
-	`isSystem` boolean NOT NULL DEFAULT false,
-	CONSTRAINT `security_roles_id` PRIMARY KEY(`id`),
-	CONSTRAINT `security_roles_key_unique` UNIQUE(`key`)
 );
 --> statement-breakpoint
 CREATE TABLE `settings` (
@@ -524,6 +604,7 @@ CREATE TABLE `time_entries` (
 	`costAmount` double NOT NULL DEFAULT 0,
 	`billAmount` double NOT NULL DEFAULT 0,
 	`approvedBy` int,
+	`approvals` json,
 	`approvedAt` timestamp,
 	`rejectReason` varchar(500),
 	`createdAt` timestamp NOT NULL DEFAULT (now()),
@@ -531,31 +612,27 @@ CREATE TABLE `time_entries` (
 	CONSTRAINT `time_entries_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
-CREATE TABLE `webhook_deliveries` (
+CREATE TABLE `users` (
 	`id` int AUTO_INCREMENT NOT NULL,
-	`webhookId` int NOT NULL,
-	`deliveryId` varchar(64) NOT NULL,
-	`event` varchar(64) NOT NULL,
-	`payload` json NOT NULL,
-	`status` varchar(16) NOT NULL DEFAULT 'pending',
-	`attempts` int NOT NULL DEFAULT 0,
-	`responseCode` int,
-	`responseBody` varchar(1000),
-	`nextAttemptAt` timestamp,
-	`createdAt` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `webhook_deliveries_id` PRIMARY KEY(`id`)
-);
---> statement-breakpoint
-CREATE TABLE `webhooks` (
-	`id` int AUTO_INCREMENT NOT NULL,
-	`name` varchar(128) NOT NULL,
-	`url` varchar(1000) NOT NULL,
-	`secret` varchar(128) NOT NULL,
-	`events` json NOT NULL,
+	`openId` varchar(64) NOT NULL,
+	`name` text,
+	`email` varchar(320),
+	`loginMethod` varchar(64),
+	`role` enum('user','admin') NOT NULL DEFAULT 'user',
+	`accessType` varchar(32) NOT NULL DEFAULT 'team_member',
+	`title` varchar(128),
+	`phone` varchar(64),
+	`supervisorId` int,
+	`jobRoleId` int,
+	`costRate` double,
+	`billRate` double,
+	`calendarId` int,
 	`isActive` boolean NOT NULL DEFAULT true,
-	`createdBy` int,
 	`createdAt` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `webhooks_id` PRIMARY KEY(`id`)
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	`lastSignedIn` timestamp NOT NULL DEFAULT (now()),
+	CONSTRAINT `users_id` PRIMARY KEY(`id`),
+	CONSTRAINT `users_openId_unique` UNIQUE(`openId`)
 );
 --> statement-breakpoint
 CREATE TABLE `wf_apps` (
@@ -570,6 +647,8 @@ CREATE TABLE `wf_apps` (
 	`scope` varchar(16) NOT NULL DEFAULT 'project',
 	`allowTimeLogging` boolean NOT NULL DEFAULT false,
 	`scoreFormula` text,
+	`dueDateLabel` varchar(64) NOT NULL DEFAULT 'Due Date',
+	`config` json,
 	`sortOrder` int NOT NULL DEFAULT 0,
 	`isActive` boolean NOT NULL DEFAULT true,
 	`createdAt` timestamp NOT NULL DEFAULT (now()),
@@ -601,6 +680,7 @@ CREATE TABLE `wf_items` (
 	`assigneeId` int,
 	`requestorId` int,
 	`responsibleParty` varchar(32),
+	`ballInCourt` varchar(16) NOT NULL DEFAULT 'us',
 	`dueDate` date,
 	`stateEnteredAt` timestamp NOT NULL DEFAULT (now()),
 	`slaDueAt` timestamp,
@@ -651,29 +731,10 @@ CREATE TABLE `wf_transitions` (
 	CONSTRAINT `wf_transitions_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
-CREATE TABLE `workspaces` (
-	`id` int AUTO_INCREMENT NOT NULL,
-	`name` varchar(128) NOT NULL,
-	`description` text,
-	`createdAt` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `workspaces_id` PRIMARY KEY(`id`)
-);
---> statement-breakpoint
-ALTER TABLE `users` ADD `accessType` varchar(32) DEFAULT 'team_member' NOT NULL;--> statement-breakpoint
-ALTER TABLE `users` ADD `title` varchar(128);--> statement-breakpoint
-ALTER TABLE `users` ADD `phone` varchar(64);--> statement-breakpoint
-ALTER TABLE `users` ADD `supervisorId` int;--> statement-breakpoint
-ALTER TABLE `users` ADD `jobRoleId` int;--> statement-breakpoint
-ALTER TABLE `users` ADD `costRate` double;--> statement-breakpoint
-ALTER TABLE `users` ADD `billRate` double;--> statement-breakpoint
-ALTER TABLE `users` ADD `calendarId` int;--> statement-breakpoint
-ALTER TABLE `users` ADD `isActive` boolean DEFAULT true NOT NULL;--> statement-breakpoint
 CREATE INDEX `act_project` ON `activities` (`projectId`,`createdAt`);--> statement-breakpoint
-CREATE INDEX `tok_user` ON `api_tokens` (`userId`);--> statement-breakpoint
 CREATE INDEX `bl_project` ON `baselines` (`projectId`);--> statement-breakpoint
 CREATE INDEX `cal_exc_cal` ON `calendar_exceptions` (`calendarId`);--> statement-breakpoint
 CREATE INDEX `cl_task` ON `checklist_items` (`taskId`);--> statement-breakpoint
-CREATE INDEX `cm_entity` ON `comments` (`entityType`,`entityId`);--> statement-breakpoint
 CREATE INDEX `contacts_company` ON `contacts` (`companyId`);--> statement-breakpoint
 CREATE INDEX `cfv_entity` ON `custom_field_values` (`entityType`,`entityId`);--> statement-breakpoint
 CREATE INDEX `drc_report` ON `daily_report_crew` (`reportId`);--> statement-breakpoint
@@ -684,13 +745,12 @@ CREATE INDEX `dr_project` ON `daily_reports` (`projectId`,`reportDate`);--> stat
 CREATE INDEX `del_project` ON `deliveries` (`projectId`);--> statement-breakpoint
 CREATE INDEX `dv_doc` ON `document_versions` (`documentId`);--> statement-breakpoint
 CREATE INDEX `doc_project` ON `documents` (`projectId`);--> statement-breakpoint
+CREATE INDEX `dmk_sheet` ON `drawing_marks` (`sheetId`,`rev`);--> statement-breakpoint
+CREATE INDEX `dsh_set` ON `drawing_sheets` (`setId`);--> statement-breakpoint
 CREATE INDEX `exp_project` ON `expenses` (`projectId`);--> statement-breakpoint
 CREATE INDEX `exp_user` ON `expenses` (`userId`);--> statement-breakpoint
-CREATE INDEX `nt_user` ON `notifications` (`userId`,`isRead`);--> statement-breakpoint
+CREATE INDEX `mrd_project` ON `model_reads` (`projectId`);--> statement-breakpoint
 CREATE INDEX `pc_project` ON `project_companies` (`projectId`);--> statement-breakpoint
-CREATE INDEX `projects_ws` ON `projects` (`workspaceId`);--> statement-breakpoint
-CREATE INDEX `ra_user` ON `role_assignments` (`userId`);--> statement-breakpoint
-CREATE INDEX `ra_scope` ON `role_assignments` (`scopeType`,`scopeId`);--> statement-breakpoint
 CREATE INDEX `ta_task` ON `task_assignments` (`taskId`);--> statement-breakpoint
 CREATE INDEX `ta_user` ON `task_assignments` (`userId`);--> statement-breakpoint
 CREATE INDEX `dep_succ` ON `task_dependencies` (`successorId`);--> statement-breakpoint
@@ -698,8 +758,6 @@ CREATE INDEX `tasks_project` ON `tasks` (`projectId`);--> statement-breakpoint
 CREATE INDEX `tasks_parent` ON `tasks` (`parentId`);--> statement-breakpoint
 CREATE INDEX `te_user_date` ON `time_entries` (`userId`,`entryDate`);--> statement-breakpoint
 CREATE INDEX `te_project` ON `time_entries` (`projectId`);--> statement-breakpoint
-CREATE INDEX `wd_hook` ON `webhook_deliveries` (`webhookId`);--> statement-breakpoint
-CREATE INDEX `wd_status` ON `webhook_deliveries` (`status`,`nextAttemptAt`);--> statement-breakpoint
 CREATE INDEX `wfe_item` ON `wf_events` (`itemId`);--> statement-breakpoint
 CREATE INDEX `wfi_app_project` ON `wf_items` (`appId`,`projectId`);--> statement-breakpoint
 CREATE INDEX `wfi_assignee` ON `wf_items` (`assigneeId`);--> statement-breakpoint
