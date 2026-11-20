@@ -1,0 +1,57 @@
+/* Printable documents (lift plan, T&M ticket, look-ahead, GC report): letter, 0.5in margins, ink on white. */
+@page {
+  size: letter;
+  margin: 0.5in;
+}
+.tp-print {
+  background: #fff;
+  color: #111;
+  font-size: 12px;
+  max-width: 7.5in;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+.tp-print.landscape {
+  max-width: 10in;
+}
+.tp-print table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tp-print th,
+.tp-print td {
+  border: 1px solid #c8c8c8;
+  padding: 4px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+.tp-print th {
+  background: #f1f1f1;
+  font-weight: 600;
+}
+.tp-print .right {
+  text-align: right;
+}
+.tp-print h2 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 16px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tp-print .avoid-break {
+  break-inside: avoid;
+}
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+  .tp-no-print {
+    display: none !important;
+  }
+  .tp-print {
+    padding: 0;
+    max-width: none;
+  }
+}

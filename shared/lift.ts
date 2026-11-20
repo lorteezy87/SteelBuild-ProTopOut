@@ -87,3 +87,51 @@ export function pieceRadiusFt(setupPt: { x: number; y: number }, offsetFt: { x: 
   const [x1, y1, x2, y2] = piece.a;
   return round1(Math.hypot((x1 + x2) / 2 - cx, (y1 + y2) / 2 - cy) / ppf);
 }
+
+/* ---------- lift plan document ---------- */
+
+export const LIFT_SIGNOFFS = [
+  { key: "supervisor", label: "Lift supervisor" },
+  { key: "operator", label: "Crane operator" },
+  { key: "rigger", label: "Rigger" },
+  { key: "signal", label: "Signal person" },
+] as const;
+
+const NOT = "Not entered";
+const lbText = (n: number | null | undefined) => (n == null ? NOT : `${Math.round(n).toLocaleString("en-US")} lb`);
+const ftText = (n: number | null | undefined) => (n == null ? NOT : `${n.toFixed(1)} ft`);
+
+function locationText(s: { grid1: string | null; grid2: string | null; offsetXFt: number; offsetYFt: number }): string {
+  if (!s.grid1 || !s.grid2) return NOT;
+  const parts = [`${s.grid1}/${s.grid2}`];
+  if (s.offsetXFt) parts.push(`${Math.abs(s.offsetXFt)} ft ${s.offsetXFt > 0 ? "E" : "W"}`);
+  if (s.offsetYFt) parts.push(`${Math.abs(s.offsetYFt)} ft ${s.offsetYFt > 0 ? "S" : "N"}`);
+  return parts.join(" + ");
+}
+
+/** Rows of the printed lift plan. Unknowns read "Not entered" — never 0. */
+export function liftPlanFields(
+  pick: { mark: string; description: string | null; pieceLb: number | null; riggingLb: number | null; radiusFt: number | null; radiusSource: string },
+  setup: { name: string; grid1: string | null; grid2: string | null; offsetXFt: number; offsetYFt: number; boomFt: number | null; counterweight: string | null },
+  model: { name: string } | null,
+  check: LiftCheck,
+): { label: string; value: string }[] {
+  const radius = pick.radiusFt == null ? NOT : `${ftText(pick.radiusFt)} (${pick.radiusSource === "model" ? "from model — confirm in field" : "entered"})`;
+  const status =
+    check.pct == null ? `${LIFT_STATUS_LABELS[check.status]} — ${check.reason}` : `${LIFT_STATUS_LABELS[check.status]} — ${check.pct.toFixed(1)} % of chart`;
+  return [
+    { label: "Crane", value: model?.name ?? NOT },
+    { label: "Setup", value: setup.name },
+    { label: "Setup location", value: locationText(setup) },
+    { label: "Boom", value: ftText(setup.boomFt) },
+    { label: "Counterweight", value: setup.counterweight?.trim() || NOT },
+    { label: "Piece mark", value: pick.mark + (pick.description ? ` — ${pick.description}` : "") },
+    { label: "Piece weight", value: lbText(pick.pieceLb) },
+    { label: "Rigging weight", value: lbText(pick.riggingLb) },
+    { label: "Total load", value: check.totalLb == null ? NOT : lbText(check.totalLb) },
+    { label: "Radius", value: radius },
+    { label: "Chart capacity at radius", value: check.capacityLb == null ? (pick.radiusFt == null ? NOT : "Outside chart") : lbText(check.capacityLb) },
+    { label: "% of chart", value: check.pct == null ? "—" : `${check.pct.toFixed(1)} %` },
+    { label: "Status", value: status },
+  ];
+}

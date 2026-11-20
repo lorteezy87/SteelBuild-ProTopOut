@@ -141,6 +141,16 @@ export const cranesRouter = router({
   }),
 
   picks: router({
+    /** One pick with its setup, crane and check — for the printed lift plan. */
+    get: protectedProcedure.input(z.object({ id: zId })).query(async ({ ctx, input }) => {
+      const p = await pickOr404(input.id);
+      await requireJobModule(ctx, p.projectId, "project.view");
+      const setup = await setupOr404(p.setupId);
+      const d = await db();
+      const [model] = await d.select().from(craneModels).where(eq(craneModels.id, setup.craneModelId)).limit(1);
+      const [seq] = p.sequenceTaskId ? await d.select({ name: tasks.name }).from(tasks).where(eq(tasks.id, p.sequenceTaskId)).limit(1) : [];
+      return { pick: p, setup, model: model ?? null, sequence: seq?.name ?? null, check: liftCheck(p, model?.chart ?? []) };
+    }),
     /** Picks with their capacity check against the setup's crane chart (computed here, never stored). */
     list: protectedProcedure.input(z.object({ projectId: zId })).query(async ({ ctx, input }) => {
       await requireJobModule(ctx, input.projectId, "project.view");
