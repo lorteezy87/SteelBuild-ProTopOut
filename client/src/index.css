@@ -1,0 +1,494 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-xs: 4px;
+  --radius-sm: 5px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /*
+   * SteelBuild Pro: "Executive"
+   * Bright white work surfaces on a light canvas, a Foundry Black side menu
+   * that matches the logo field (#0B0E11), deep steel navy for actions and
+   * Signal Amber (#F5BB00) only on dark ground. Contrast on white (#FFFFFF):
+   * ink 17.7:1, ink-2 10.4:1, muted 5.5:1, accent-ink 11.6:1, accent 5.9:1,
+   * green 5.0:1, amber 5.3:1, red-strong 6.5:1, blue 6.7:1, brand-ink 5.6:1.
+   * Signal Amber on Foundry Black 11.4:1. Amber is never text on white.
+   */
+  --tp-graphite: #0b0e11;
+  --tp-graphite-2: #141920;
+  --tp-graphite-3: #1d242d;
+  --tp-bone: #f5f6f8;
+  --tp-paper: #ffffff;
+  --tp-rule: #e3e7ec;
+  --tp-rule-soft: #eef1f4;
+  --tp-ink: #101828;
+  --tp-ink-2: #344054;
+  --tp-muted: #5d6b7e;
+  --tp-accent: #3b6a9a;
+  --tp-accent-ink: #1f3a5f;
+  --tp-accent-deep: #162b47;
+  --tp-accent-soft: #eaf0f7;
+  --tp-brand: #f5bb00;
+  --tp-brand-ink: #875c00;
+  --tp-green: #147a3b;
+  --tp-green-soft: #e8f5ec;
+  --tp-amber: #a15c07;
+  --tp-amber-soft: #fef4e2;
+  --tp-red: #d92d20;
+  --tp-red-strong: #b42318;
+  --tp-red-soft: #fdecea;
+  --tp-blue: #1d4ed8;
+  --tp-blue-soft: #eaf1fd;
+  --tp-gray-soft: #f1f3f6;
+  --tp-hold: #344054;
+  --tp-raised: #ffffff;
+  --tp-surface: #f9fafb;
+  --tp-selection: #f2f6fb;
+  --tp-checked: #f5f8fc;
+  --tp-solid: #101828;
+  --tp-solid-ink: #ffffff;
+  --tp-red-fill: #b42318;
+  --tp-orange: #ad450e;
+  --tp-orange-soft: #fff0e5;
+  --tp-sidebar-muted: #aeb9c8;
+  --tp-sidebar-link: #9bc1ff;
+  --tp-sidebar-amber: #f6c76a;
+  --tp-sidebar-red: #ffaaa1;
+  --tp-sidebar-orange: #f3ad80;
+  --tp-sidebar-selected: #26394f;
+  --tp-gantt-fill: #344054;
+  --tp-drawing-paper: #ffffff;
+  --tp-drawing-ink: #1b1f23;
+
+  --primary: var(--tp-accent-ink);
+  --primary-foreground: #ffffff;
+  --sidebar-primary: var(--tp-brand);
+  --sidebar-primary-foreground: var(--tp-graphite);
+  --chart-1: #1f3a5f;
+  --chart-2: #3b6a9a;
+  --chart-3: #8fb0d3;
+  --chart-4: #157f3d;
+  --chart-5: #c98a00;
+  --radius: 8px;
+  --background: var(--tp-bone);
+  --foreground: var(--tp-ink);
+  --card: var(--tp-paper);
+  --card-foreground: var(--tp-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--tp-ink);
+  --secondary: var(--tp-gray-soft);
+  --secondary-foreground: var(--tp-ink);
+  --muted: var(--tp-gray-soft);
+  --muted-foreground: var(--tp-muted);
+  --accent: var(--tp-gray-soft);
+  --accent-foreground: var(--tp-ink);
+  --destructive: var(--tp-red-strong);
+  --destructive-foreground: #ffffff;
+  --border: var(--tp-rule);
+  --input: #cdd3db;
+  --ring: var(--tp-accent);
+  --sidebar: var(--tp-graphite);
+  --sidebar-foreground: #d0d6dd;
+  --sidebar-accent: var(--tp-graphite-3);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1d242d;
+  --sidebar-ring: var(--tp-brand);
+}
+
+.dark {
+  /* Executive dark. All text/fill contrast pairs are measured in docs/DARK_THEME.md.
+   * Ink >= 7:1; secondary, muted, links and every status label >= 4.5:1.
+   * Never use bright ink/link/status tokens as solid fills with white labels.
+   * Drawing/annotation pixels deliberately retain their white-paper palette.
+   */
+  color-scheme: dark;
+  --tp-graphite: #0b0e11;
+  --tp-graphite-2: #141920;
+  --tp-graphite-3: #1d242d;
+  --tp-bone: #0d1117;
+  --tp-paper: #161b22;
+  --tp-raised: #1c232c;
+  --tp-surface: #1c232c;
+  --tp-selection: #1c3047;
+  --tp-checked: #1c3047;
+  --tp-rule: #2d3540;
+  --tp-rule-soft: #252d37;
+  --tp-ink: #eef2f6;
+  --tp-ink-2: #c9d1db;
+  --tp-muted: #aeb9c8;
+  --tp-accent: #356da8;
+  --tp-accent-ink: #7fb0ea;
+  --tp-accent-deep: #2b5d93;
+  --tp-accent-soft: #1c3047;
+  --tp-brand: #f5bb00;
+  --tp-brand-ink: #f6c76a;
+  --tp-green: #86d9a0;
+  --tp-green-soft: #152b20;
+  --tp-amber: #f6c76a;
+  --tp-amber-soft: #322817;
+  --tp-red: #ffaaa1;
+  --tp-red-strong: #ffaaa1;
+  --tp-red-soft: #351f24;
+  --tp-red-fill: #b42318;
+  --tp-blue: #9bc1ff;
+  --tp-blue-soft: #1c2b44;
+  --tp-gray-soft: #232b36;
+  --tp-orange: #f3ad80;
+  --tp-orange-soft: #35281e;
+  --tp-hold: #344054;
+  --tp-solid: #26394f;
+  --tp-solid-ink: #ffffff;
+  --tp-sidebar-muted: #aeb9c8;
+  --tp-sidebar-link: #9bc1ff;
+  --tp-sidebar-amber: #f6c76a;
+  --tp-sidebar-red: #ffaaa1;
+  --tp-sidebar-orange: #f3ad80;
+  --tp-sidebar-selected: #26394f;
+  --tp-gantt-fill: #526e8d;
+  --tp-drawing-paper: #ffffff;
+  --tp-drawing-ink: #1b1f23;
+
+  --background: var(--tp-bone);
+  --foreground: var(--tp-ink);
+  --card: var(--tp-paper);
+  --card-foreground: var(--tp-ink);
+  --popover: var(--tp-raised);
+  --popover-foreground: var(--tp-ink);
+  --primary: var(--tp-accent);
+  --primary-foreground: var(--tp-solid-ink);
+  --secondary: var(--tp-gray-soft);
+  --secondary-foreground: var(--tp-ink);
+  --muted: var(--tp-gray-soft);
+  --muted-foreground: var(--tp-muted);
+  --accent: var(--tp-accent-soft);
+  --accent-foreground: var(--tp-ink);
+  --destructive: var(--tp-red-fill);
+  --destructive-foreground: var(--tp-solid-ink);
+  --border: var(--tp-rule);
+  --input: #607086;
+  --ring: var(--tp-accent-ink);
+  --chart-1: #7fb0ea;
+  --chart-2: #9bc1ff;
+  --chart-3: #a9c5df;
+  --chart-4: #86d9a0;
+  --chart-5: #f6c76a;
+  --sidebar: var(--tp-graphite);
+  --sidebar-foreground: var(--tp-ink-2);
+  --sidebar-primary: var(--tp-brand);
+  --sidebar-primary-foreground: var(--tp-graphite);
+  --sidebar-accent: var(--tp-graphite-3);
+  --sidebar-accent-foreground: var(--tp-solid-ink);
+  --sidebar-border: var(--tp-rule);
+  --sidebar-ring: var(--tp-brand);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    font-size: 14px;
+    color-scheme: light;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11" 1, "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  code,
+  kbd,
+  pre,
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.011em;
+  }
+  ::selection {
+    background: var(--tp-accent-soft);
+    color: var(--tp-ink);
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--tp-muted);
+    opacity: 1;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  /**
+   * Custom container utility that centers content and adds responsive padding.
+   * Usage: <div className="container">...</div>
+   */
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      max-width: 1280px;
+    }
+  }
+}
+
+@layer components {
+  /* Numbers line up: IDs, sheet numbers, dates, money, tons */
+  .num {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "cv11" 1;
+    letter-spacing: -0.005em;
+  }
+  /* Field labels and eyebrows: small, medium weight, sentence case */
+  .label-caps {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: var(--tp-muted);
+  }
+  /* Section and panel titles */
+  .tp-section-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    color: var(--tp-ink);
+  }
+  /* Display text: page titles, job names */
+  .tp-display {
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  /* Exception cells (delayed / overbudget / late): quiet red wash, no stripes */
+  .hazard {
+    background-color: color-mix(in srgb, var(--tp-red-strong) 8%, transparent);
+  }
+  .hazard-amber {
+    background-color: var(--tp-amber-soft);
+  }
+  /* Kept for older markup: a solid slate swatch, no tape */
+  .tp-tape {
+    background-color: var(--tp-hold);
+  }
+
+  /* Job header facts: one clean card, hairline dividers */
+  .title-block {
+    display: grid;
+    border: 1px solid var(--tp-rule);
+    border-radius: 10px;
+    background: var(--tp-paper);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  }
+  .title-block > * {
+    border-right: 1px solid var(--tp-rule-soft);
+    padding: 10px 16px;
+    min-width: 0;
+  }
+  .title-block > *:last-child {
+    border-right: 0;
+  }
+
+  /* Theme-aware card on the work canvas */
+  .tp-panel {
+    background: var(--tp-paper);
+    border: 1px solid var(--tp-rule);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  }
+  .tp-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 48px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--tp-rule-soft);
+  }
+
+  /* Tick-mark ruler for timelines */
+  .ruler-ticks {
+    background-image: linear-gradient(to right, var(--tp-rule) 1px, transparent 1px);
+  }
+
+  .recharts-cartesian-axis-tick-value {
+    fill: var(--tp-muted);
+  }
+  .recharts-cartesian-axis-line,
+  .recharts-cartesian-axis-tick-line {
+    stroke: var(--tp-rule);
+  }
+
+  /* Data tables: light header band, hairline rows, generous padding */
+  .tp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13.5px;
+  }
+  .tp-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--tp-surface);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--tp-muted);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--tp-rule);
+    white-space: nowrap;
+  }
+  .tp-table tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--tp-rule-soft);
+    vertical-align: middle;
+  }
+  .tp-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .tp-table tbody tr:hover td {
+    background: var(--tp-surface);
+  }
+  /* Open-in-drawer row: navy left bar on a faint steel tint */
+  .tp-table tbody tr.is-selected td {
+    background: var(--tp-selection);
+  }
+  .tp-table tbody tr.is-selected td:first-child {
+    box-shadow: inset 2px 0 0 var(--tp-accent-ink);
+  }
+  /* Multi-select (checkbox) rows, distinct from the open-in-drawer row. */
+  .tp-table tbody tr.is-checked td {
+    background: var(--tp-checked);
+  }
+  /* WBS drag-and-drop: drop line above/below, or nest-into highlight. */
+  .tp-table tbody tr.tp-drop-before td {
+    box-shadow: inset 0 2px 0 var(--tp-accent);
+  }
+  .tp-table tbody tr.tp-drop-after td {
+    box-shadow: inset 0 -2px 0 var(--tp-accent);
+  }
+  .tp-table tbody tr.tp-drop-into td {
+    background: var(--tp-accent-soft);
+    box-shadow:
+      inset 0 1px 0 var(--tp-accent),
+      inset 0 -1px 0 var(--tp-accent);
+  }
+  .tp-table tbody tr.tp-dragging td {
+    opacity: 0.45;
+  }
+  .tp-grip {
+    cursor: grab;
+    color: var(--tp-muted);
+  }
+  .tp-grip:hover {
+    color: var(--tp-accent-ink);
+  }
+  .tp-grip:active {
+    cursor: grabbing;
+  }
+  .tp-table td.right,
+  .tp-table th.right {
+    text-align: right;
+  }
+
+  /* Field screens: 48px tap targets below the md breakpoint */
+  @media (max-width: 767px) {
+    .tp-touch button,
+    .tp-touch [role="button"],
+    .tp-touch a[href],
+    .tp-touch input:not([type="checkbox"]):not([type="radio"]),
+    .tp-touch select,
+    .tp-touch textarea {
+      min-height: 48px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
