@@ -3,6 +3,7 @@ import { z } from "zod";
 import { BALL_IN_COURT_LABELS, isBallInCourt } from "@shared/ballInCourt";
 import { lookahead, plusDays, weekStartOf, weeklyTons } from "@shared/lookahead";
 import { dailyReportProgress, dailyReports, deliveries, tasks, wfApps, wfItems, wfStates } from "../../drizzle/schema";
+import { gcReportPhoto } from "@shared/photos";
 import { jobPhotos } from "./photos";
 import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
@@ -99,10 +100,9 @@ export const gcReportRouter = router({
       return x != null && x >= a && x <= b;
     };
     const loadRow = (l: (typeof loads)[number]) => ({ id: l.id, loadNumber: l.loadNumber, description: l.description, status: l.status, date: loadDate(l), tons: l.tons, pieces: l.pieces, sequenceTaskId: l.sequenceTaskId });
-    // Photo log: photos dated in the week, plus any uploaded to or attached to that week's final reports.
-    const isWeekReport = (e: { entityType: string; entityId: number } | null) => !!e && e.entityType === "dailyReport" && finalIds.includes(e.entityId);
+    // Job photos taken in the week plus that week's final reports — never photos on logs (incidents, punch, backcharges).
     const photos = (await jobPhotos(input.projectId))
-      .filter(p => (p.day >= weekStart && p.day <= weekEnd) || isWeekReport(p.owner) || p.links.some(isWeekReport))
+      .filter(p => gcReportPhoto(p, { weekStart, weekEnd, finalReportIds: finalIds }))
       .sort((a, b) => a.day.localeCompare(b.day) || a.id - b.id)
       .slice(0, MAX_PHOTOS)
       .map(p => ({ id: p.id, name: p.caption || p.name, url: p.url, reportDate: p.day, estimated: p.estimated }));

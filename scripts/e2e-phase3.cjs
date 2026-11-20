@@ -131,6 +131,8 @@ const PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwA
   ok(await visible(`/jobs/${job.id}/financials`, "1 rental unpriced"), "Financials shows 1 rental unpriced");
   const badOff = await call("rentals.offRent", { id: rent.id, offRentDate: plusDays(onRent, -1) });
   ok(!badOff.ok && badOff.error.includes("before the on-rent date"), "off-rent before on-rent is refused");
+  const futureOff = await call("rentals.offRent", { id: rent.id, offRentDate: plusDays(today, 3) });
+  ok(!futureOff.ok && futureOff.error.includes("Planned off rent"), "an actual off-rent date in the future is refused");
 
   // 5. Photo log.
   const tk = await must("tm.create", { projectId: job.id, ticketDate: today, description: "Extra bracing" });

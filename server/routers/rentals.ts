@@ -7,6 +7,7 @@ import { db } from "../db";
 import { hasPriv, requireJobModule } from "../security/guard";
 import { orgToday } from "../services/calendars";
 import { logActivity } from "../services/events";
+import { recomputeProject } from "../services/recompute";
 import { bad, defined, partialFields, zDay, zDayOpt, zId, zText } from "./_util";
 
 const money = z.number().min(0).max(10_000_000).nullable().optional();
@@ -49,8 +50,10 @@ async function assertRefs(v: { equipmentId?: number | null; vendorCompanyId?: nu
   }
 }
 
-function checkDates(r: { onRentDate: string; offRentDate?: string | null; plannedOffRentDate?: string | null; calledOffOn?: string | null }) {
+function checkDates(r: { onRentDate: string; offRentDate?: string | null; plannedOffRentDate?: string | null; calledOffOn?: string | null }, today: string) {
   if (r.offRentDate && r.offRentDate < r.onRentDate) bad("Off-rent date is before the on-rent date");
+  if (r.offRentDate && r.offRentDate > today) bad("Off rent is the actual pickup date — use Planned off rent for a future date");
+  if (r.calledOffOn && r.calledOffOn > today) bad("Called-off date can't be in the future");
   if (r.plannedOffRentDate && r.plannedOffRentDate < r.onRentDate) bad("Planned off-rent date is before the on-rent date");
 }
 
@@ -87,10 +90,11 @@ export const rentalsRouter = router({
   create: protectedProcedure.input(z.object({ projectId: zId, ...fields })).mutation(async ({ ctx, input }) => {
     await requireJobModule(ctx, input.projectId);
     await assertRefs(input);
-    checkDates(input);
+    checkDates(input, await orgToday());
     const d = await db();
     const nulls = Object.fromEntries(Object.keys(fields).map(k => [k, null]));
     const [{ id }] = await d.insert(equipmentRentals).values({ ...nulls, ...defined(input), callOffNoticeDays: input.callOffNoticeDays } as never).$returningId();
+    await recomputeProject(input.projectId);
     await logActivity(ctx, { projectId: input.projectId, entityType: "rental", entityId: id, action: "create", summary: `put ${input.description} on rent from ${input.onRentDate}` });
     return { id };
   }),
@@ -101,9 +105,12 @@ export const rentalsRouter = router({
     await requireJobModule(ctx, r.projectId);
     await assertRefs(rest);
     const set = defined(rest);
-    checkDates({ ...r, ...set });
+    checkDates({ ...r, ...set }, await orgToday());
     const d = await db();
-    if (Object.keys(set).length) await d.update(equipmentRentals).set(set).where(eq(equipmentRentals.id, id));
+    if (Object.keys(set).length) {
+      await d.update(equipmentRentals).set(set).where(eq(equipmentRentals.id, id));
+      await recomputeProject(r.projectId);
+    }
     return { ok: true };
   }),
 
@@ -113,6 +120,7 @@ export const rentalsRouter = router({
     await requireJobModule(ctx, r.projectId);
     if (r.offRentDate) bad("This rental is already off rent");
     if (input.calledOffOn < r.onRentDate) bad("Call-off date is before the on-rent date");
+    if (input.calledOffOn > (await orgToday())) bad("Called-off date can't be in the future");
     const d = await db();
     await d.update(equipmentRentals).set({ calledOffOn: input.calledOffOn, callOffConfirmation: input.confirmation ?? null }).where(eq(equipmentRentals.id, r.id));
     await logActivity(ctx, { projectId: r.projectId, entityType: "rental", entityId: r.id, action: "calloff", summary: `called off ${r.description}${input.confirmation ? ` (conf. ${input.confirmation})` : ""}` });
@@ -123,8 +131,10 @@ export const rentalsRouter = router({
     const r = await rentalOr404(input.id);
     await requireJobModule(ctx, r.projectId);
     if (input.offRentDate < r.onRentDate) bad("Off-rent date is before the on-rent date");
+    if (input.offRentDate > (await orgToday())) bad("Off rent is the actual pickup date — use Planned off rent for a future date");
     const d = await db();
     await d.update(equipmentRentals).set({ offRentDate: input.offRentDate }).where(eq(equipmentRentals.id, r.id));
+    await recomputeProject(r.projectId);
     await logActivity(ctx, { projectId: r.projectId, entityType: "rental", entityId: r.id, action: "offrent", summary: `took ${r.description} off rent on ${input.offRentDate}` });
     return { ok: true };
   }),
@@ -134,6 +144,7 @@ export const rentalsRouter = router({
     await requireJobModule(ctx, r.projectId);
     const d = await db();
     await d.delete(equipmentRentals).where(eq(equipmentRentals.id, r.id));
+    await recomputeProject(r.projectId);
     return { ok: true };
   }),
 });

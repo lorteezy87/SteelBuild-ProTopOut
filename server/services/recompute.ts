@@ -1,4 +1,4 @@
-import { coveredByRental, rentalCost as rentalCost_, type RentalIn } from "@shared/rentals";
+import { coveredByRental, rentalCharge, rentalCost as rentalCost_, type RentalIn } from "@shared/rentals";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import {
   baselines,
@@ -50,8 +50,10 @@ const HEALTH_RANK: Record<ScheduleHealth, number> = {
 export function rentalCosts(rentals: RentalIn[], equipRows: { equipmentId: number; cost: number; reportDate: string }[], today: string) {
   let equipmentCost = 0;
   let coveredCost = 0;
+  // Only a priced rental replaces the daily-report cost; an unpriced one would turn known cost into $0.
+  const priced = rentals.filter(r => rentalCharge(1, r) != null);
   for (const r of equipRows) {
-    if (coveredByRental(rentals, r.equipmentId, r.reportDate)) coveredCost += Number(r.cost);
+    if (coveredByRental(priced, r.equipmentId, r.reportDate)) coveredCost += Number(r.cost);
     else equipmentCost += Number(r.cost);
   }
   let rentalCost = 0;

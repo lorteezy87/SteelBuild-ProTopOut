@@ -12,7 +12,7 @@ import {
   wfStates,
   wfTransitions,
 } from "../../drizzle/schema";
-import { missingFields } from "@shared/safety";
+import { ADDED_APP_FIELDS, fieldsToAdd } from "@shared/safety";
 import { usHolidays } from "../engine/calendar";
 import { db, type Db } from "../db";
 import {
@@ -148,29 +148,42 @@ async function step1(d: Db) {
 }
 
 /**
- * Add preset fields that a log created by an older version doesn't have (e.g. the Phase 3 incident fields
- * on the Safety log). Runs on every boot; never changes or removes a field that exists.
+ * Back-fill log fields a release added (ADDED_APP_FIELDS, e.g. the Phase 3 incident fields on the Safety log)
+ * into installs created before it. Each key is added at most once, ever: if the owner deletes it, it stays deleted.
  */
 export async function ensureAppFields(d: Db) {
+  const applied = await getSetting<string[]>("app_fields_added", []);
   for (const p of APP_PRESETS) {
+    const releaseKeys = ADDED_APP_FIELDS[p.key];
+    if (!releaseKeys?.length) continue;
     const [app] = await d.select({ id: wfApps.id }).from(wfApps).where(eq(wfApps.key, p.key)).limit(1);
     if (!app) continue;
     const have = await d.select({ key: customFieldDefs.key }).from(customFieldDefs).where(eq(customFieldDefs.entityType, `app:${p.key}`));
-    for (const f of missingFields(have.map(h => h.key), p.fields)) {
-      await d.insert(customFieldDefs).values({
-        entityType: `app:${p.key}`,
-        key: f.key,
-        label: f.label,
-        fieldType: f.fieldType,
-        options: f.options ?? null,
-        formula: f.formula ?? null,
-        required: f.required ?? false,
-        isFinancial: f.isFinancial ?? false,
-        showInList: f.showInList ?? false,
-        helpText: f.helpText ?? null,
-        sortOrder: p.fields.indexOf(f),
-      });
+    const appliedHere = applied.filter(a => a.startsWith(`${p.key}.`)).map(a => a.slice(p.key.length + 1));
+    for (const f of fieldsToAdd(p.fields, have.map(h => h.key), appliedHere, releaseKeys)) {
+      await d
+        .insert(customFieldDefs)
+        .values({
+          entityType: `app:${p.key}`,
+          key: f.key,
+          label: f.label,
+          fieldType: f.fieldType,
+          options: f.options ?? null,
+          formula: f.formula ?? null,
+          required: f.required ?? false,
+          isFinancial: f.isFinancial ?? false,
+          showInList: f.showInList ?? false,
+          helpText: f.helpText ?? null,
+          sortOrder: p.fields.indexOf(f),
+        })
+        .onDuplicateKeyUpdate({ set: { key: f.key } });
       console.log(`[bootstrap] added field ${f.key} to ${p.key}`);
+    }
+    // Remember every release key as handled (present or just added), so a later deletion by the owner sticks.
+    const mark = releaseKeys.map(k => `${p.key}.${k}`).filter(k => !applied.includes(k));
+    if (mark.length) {
+      applied.push(...mark);
+      await setSetting("app_fields_added", applied);
     }
   }
 }

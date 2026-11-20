@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { photoDayLabel, usePhotoUpload, type Photo } from "@/features/photos/RecordPhotos";
 import { errMsg, fmtDate } from "@/lib/format";
-import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { useJob } from "./JobContext";
 
@@ -15,7 +14,9 @@ import { useJob } from "./JobContext";
 export default function Photos() {
   const { projectId, can } = useJob();
   const editable = can("document.upload");
-  const { today } = useRefData();
+  // Only the server's org day: before ref data loads, useRefData().today falls back to the browser's UTC date.
+  const refQ = trpc.ref.all.useQuery(undefined, { staleTime: 60_000, refetchOnWindowFocus: false });
+  const orgDay = refQ.data?.today ?? "";
   const tasks = trpc.tasks.list.useQuery({ projectId });
   const seqs = useMemo(() => (tasks.data?.tasks ?? []).filter(t => t.kind === "sequence" && !t.isSummary), [tasks.data]);
   const seqOpts = seqs.map(s => ({ value: String(s.id), label: s.name }));
@@ -24,7 +25,9 @@ export default function Photos() {
   const [to, setTo] = useState("");
   const q = trpc.photos.list.useQuery({ projectId, ...(seq ? { sequenceTaskId: Number(seq) } : {}), ...(from ? { from } : {}), ...(to ? { to } : {}) });
   const { run, busy } = usePhotoUpload(projectId);
-  const [meta, setMeta] = useState({ caption: "", takenOn: today, sequenceTaskId: null as string | null });
+  /** takenOn null = untouched → the org's today once known; "" = cleared by the user (date unknown). */
+  const [meta, setMeta] = useState({ caption: "", takenOn: null as string | null, sequenceTaskId: null as string | null });
+  const takenOn = meta.takenOn ?? orgDay;
   const [files, setFiles] = useState<File[]>([]);
   const [editing, setEditing] = useState<Photo | null>(null);
   const [edit, setEdit] = useState({ caption: "", takenOn: "", sequenceTaskId: null as string | null });
@@ -56,7 +59,7 @@ export default function Photos() {
               <Input type="file" accept="image/*" multiple aria-label="Photo files" onChange={e => setFiles(Array.from(e.target.files ?? []))} />
             </Field>
             <Field label="Caption (applies to all)"><Input value={meta.caption} maxLength={500} onChange={e => setMeta({ ...meta, caption: e.target.value })} placeholder="e.g. Column splice C/4 L2" /></Field>
-            <Field label="Taken on"><Input type="date" value={meta.takenOn} onChange={e => setMeta({ ...meta, takenOn: e.target.value })} /></Field>
+            <Field label="Taken on"><Input type="date" value={takenOn} onChange={e => setMeta({ ...meta, takenOn: e.target.value })} /></Field>
             <Field label="Sequence"><SimpleSelect value={meta.sequenceTaskId} allowNone options={seqOpts} onChange={v => setMeta({ ...meta, sequenceTaskId: v })} /></Field>
           </div>
           <div className="flex items-center gap-2">
@@ -64,7 +67,7 @@ export default function Photos() {
               size="sm"
               disabled={!files.length || busy}
               onClick={async () => {
-                await run(files, { caption: meta.caption, takenOn: meta.takenOn || null, sequenceTaskId: meta.sequenceTaskId ? Number(meta.sequenceTaskId) : null });
+                await run(files, { caption: meta.caption, takenOn: takenOn || null, sequenceTaskId: meta.sequenceTaskId ? Number(meta.sequenceTaskId) : null });
                 setFiles([]);
                 setMeta(m => ({ ...m, caption: "" }));
               }}

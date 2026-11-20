@@ -54,3 +54,17 @@ export function missingFields<T extends { key: string }>(existingKeys: string[],
   const have = new Set(existingKeys);
   return preset.filter(f => !have.has(f.key));
 }
+
+/**
+ * Fields a release adds to an existing log: only keys on the release's list, not already present, and not
+ * already back-filled once (so a field the owner later deletes stays deleted).
+ */
+export function fieldsToAdd<T extends { key: string }>(preset: T[], existingKeys: string[], appliedKeys: string[], releaseKeys: string[]): T[] {
+  const done = new Set(appliedKeys);
+  return missingFields(existingKeys, preset).filter(f => releaseKeys.includes(f.key) && !done.has(f.key));
+}
+
+/** Preset log fields added after first install, by log key. Back-filled once at boot. */
+export const ADDED_APP_FIELDS: Record<string, string[]> = {
+  safety: ["injured_person", "treatment", "osha_recordable", "days_away", "reported_to_gc_on"],
+};

@@ -55,6 +55,7 @@ export async function jobPhotos(projectId: number) {
       return {
         id: doc.id,
         name: doc.name,
+        category: doc.category,
         caption: doc.caption,
         takenOn: doc.takenOn,
         uploadedDay,

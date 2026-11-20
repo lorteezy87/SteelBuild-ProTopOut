@@ -19,8 +19,9 @@ export function plusDays(day: string, n: number): string {
 
 /** Calendar days on rent: delivery day through the day before pickup, minimum 1; 0 if not on rent yet. */
 export function billedDays(onRent: string, offRent: string | null, today: string): number {
-  if (onRent > today && !offRent) return 0;
-  const end = offRent ?? today;
+  // "To date": nothing after today is billed, even when the off-rent date is entered ahead.
+  if (onRent > today) return 0;
+  const end = offRent && offRent < today ? offRent : today;
   if (onRent > end) return 0;
   return Math.max(1, Math.round((toMs(end) - toMs(onRent)) / dayMs));
 }
@@ -56,10 +57,11 @@ export type RentalIn = Rates & {
   pickupCharge: number | null;
 };
 
-/** Cost so far (through off-rent, or today while on rent). Unknown charge → unknown total. */
+/** Cost so far (through off-rent, or today while on rent). Unknown charge → unknown total. Not yet on rent → 0. */
 export function rentalCost(r: RentalIn, today: string): { days: number; charge: number | null; total: number | null } {
   const days = billedDays(r.onRentDate, r.offRentDate, today);
   const charge = rentalCharge(days, r);
+  if (days === 0 && charge != null) return { days, charge: 0, total: 0 };
   return { days, charge, total: charge == null ? null : round2(charge + (r.deliveryCharge ?? 0) + (r.pickupCharge ?? 0)) };
 }
 

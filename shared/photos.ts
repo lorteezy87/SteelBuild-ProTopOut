@@ -29,3 +29,15 @@ export function groupByDay<T extends { takenOn: string | null; uploadedDay: stri
 export function photosForRecord(owned: number[], linked: number[]): number[] {
   return [...new Set([...owned, ...linked])];
 }
+
+type Ref = { entityType: string; entityId: number };
+/**
+ * Photos that go in the weekly report to the GC: job photos (category "photos") taken in the week, plus anything
+ * on that week's final daily reports. Never a photo on a log item (incidents, punch, backcharges stay internal).
+ */
+export function gcReportPhoto(p: { category: string; day: string; owner: Ref | null; links: Ref[] }, wk: { weekStart: string; weekEnd: string; finalReportIds: number[] }): boolean {
+  const all = [...(p.owner ? [p.owner] : []), ...p.links];
+  if (all.some(e => e.entityType === "logItem")) return false;
+  if (all.some(e => e.entityType === "dailyReport" && wk.finalReportIds.includes(e.entityId))) return true;
+  return p.category === "photos" && p.day >= wk.weekStart && p.day <= wk.weekEnd;
+}

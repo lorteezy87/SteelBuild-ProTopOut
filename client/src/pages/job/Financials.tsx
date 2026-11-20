@@ -92,10 +92,14 @@ export default function Financials() {
       </Panel>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Kpi
-          label="Actual job cost"
+          label={data.costs.rentalsUnpriced ? "Actual job cost (incomplete)" : "Actual job cost"}
           value={fmtMoney(data.costs.total)}
-          sub={`Cost budget ${fmtMoney(data.budget)}`}
-          tone={data.costs.total > data.budget ? "red" : "gray"}
+          sub={
+            data.costs.rentalsUnpriced
+              ? `Excludes ${data.costs.rentalsUnpriced} unpriced rental${data.costs.rentalsUnpriced === 1 ? "" : "s"} · budget ${fmtMoney(data.budget)}`
+              : `Cost budget ${fmtMoney(data.budget)}`
+          }
+          tone={data.costs.total > data.budget ? "red" : data.costs.rentalsUnpriced ? "amber" : "gray"}
         />
         <Kpi
           label="Labor cost"

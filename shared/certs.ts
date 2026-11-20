@@ -64,10 +64,25 @@ export function crewCertGaps(required: string[], certs: { certType: string; expi
 
 const RANK: Partial<Record<CertStatus, number>> = { expired: 0, expiring: 1, unknown: 2 };
 
-/** Today panel: expired first, then by date (unknown dates last). */
+/**
+ * Today panel, judged per person and type (like crewCertGaps and the matrix): a renewed card clears the
+ * lapsed one. A pair with no valid card shows its most informative card — the latest dated one, else unknown.
+ * Expired first, then by date (unknown dates last).
+ */
 export function certsDue(certs: { id: number; userId: number; name: string; certType: string; expiresOn: string | null }[], today: string) {
-  return certs
-    .map(c => ({ id: c.id, userId: c.userId, label: `${c.name} · ${certTypeLabel(c.certType)}`, date: c.expiresOn, status: certStatus(c, today) }))
-    .filter(c => RANK[c.status] != null)
-    .sort((a, b) => (a.status === "expired" ? 0 : 1) - (b.status === "expired" ? 0 : 1) || (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.id - b.id);
+  const groups = new Map<string, typeof certs>();
+  for (const c of certs) {
+    const k = `${c.userId}:${c.certType}`;
+    groups.set(k, [...(groups.get(k) ?? []), c]);
+  }
+  const out: { id: number; userId: number; label: string; date: string | null; status: CertStatus }[] = [];
+  for (const cards of groups.values()) {
+    const rated = cards.map(c => ({ c, status: certStatus(c, today) }));
+    if (rated.some(r => r.status === "current" || r.status === "no_expiry")) continue;
+    const dated = rated.filter(r => r.c.expiresOn != null).sort((a, b) => b.c.expiresOn!.localeCompare(a.c.expiresOn!));
+    const pick = dated[0] ?? rated[0];
+    if (RANK[pick.status] == null) continue;
+    out.push({ id: pick.c.id, userId: pick.c.userId, label: `${pick.c.name} · ${certTypeLabel(pick.c.certType)}`, date: pick.c.expiresOn, status: pick.status });
+  }
+  return out.sort((a, b) => (a.status === "expired" ? 0 : 1) - (b.status === "expired" ? 0 : 1) || (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.id - b.id);
 }
