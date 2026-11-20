@@ -32,7 +32,7 @@ export function CommentsPanel({ entityType, entityId, className }: { entityType:
       <ul className="flex flex-col gap-3">
         {(q.data ?? []).map(c => (
           <li key={c.id} className="group flex gap-2.5">
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--ks-graphite)] text-[10.5px] font-semibold text-white">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--tp-graphite)] text-[10.5px] font-semibold text-white">
               {initials(c.userName)}
             </div>
             <div className="min-w-0 flex-1">
@@ -46,7 +46,7 @@ export function CommentsPanel({ entityType, entityId, className }: { entityType:
                     onClick={() => remove.mutate({ id: c.id })}
                     aria-label="Delete comment"
                   >
-                    <Trash2 className="size-3.5 text-muted-foreground hover:text-[var(--ks-red-strong)]" />
+                    <Trash2 className="size-3.5 text-muted-foreground hover:text-[var(--tp-red-strong)]" />
                   </button>
                 )}
               </div>
@@ -61,7 +61,7 @@ export function CommentsPanel({ entityType, entityId, className }: { entityType:
           onChange={e => setBody(e.target.value)}
           placeholder="Add a comment. Use @Name to notify someone."
           rows={2}
-          className="bg-[var(--ks-paper)]"
+          className="bg-[var(--tp-paper)]"
           onKeyDown={e => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && body.trim()) add.mutate({ entityType, entityId, body });
           }}
@@ -80,7 +80,7 @@ function highlightMentions(text: string) {
   const parts = text.split(/(@[A-Za-z][\w.'-]*(?:\s[A-Z][\w.'-]*)?)/g);
   return parts.map((p, i) =>
     p.startsWith("@") ? (
-      <span key={i} className="font-medium text-[var(--ks-accent-ink)]">
+      <span key={i} className="font-medium text-[var(--tp-accent-ink)]">
         {p}
       </span>
     ) : (
@@ -120,7 +120,7 @@ export function ActivityFeed({ projectId, limit = 40, className }: { projectId?:
   return (
     <ol className={cn("flex flex-col", className)}>
       {rows.map(a => (
-        <li key={a.id} className="flex gap-3 border-b border-[var(--ks-rule-soft)] px-4 py-2 last:border-0">
+        <li key={a.id} className="flex gap-3 border-b border-[var(--tp-rule-soft)] px-4 py-2 last:border-0">
           <div className="num w-16 shrink-0 pt-0.5 text-[11px] text-muted-foreground">{fmtAgo(a.createdAt)}</div>
           <div className="min-w-0 text-[13px]">
             <span className="font-semibold">{a.userName ?? "System"}</span> <span>{a.summary}</span>

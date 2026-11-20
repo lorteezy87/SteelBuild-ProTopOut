@@ -43,7 +43,7 @@ export const integrationRouter = router({
     const d = await db();
     const [{ n }] = await d.select({ n: sql<number>`count(*)` }).from(apiTokens).where(eq(apiTokens.userId, ctx.user.id));
     if (Number(n) >= MAX_TOKENS_PER_USER) bad(`You can have at most ${MAX_TOKENS_PER_USER} API tokens. Revoke one first.`);
-    const token = `ks_${randomBytes(24).toString("base64url")}`;
+    const token = `tp_${randomBytes(24).toString("base64url")}`;
     await d.insert(apiTokens).values({ userId: ctx.user.id, name: input.name, tokenHash: hashToken(token), last4: token.slice(-4) });
     return { token };
   }),

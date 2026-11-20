@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { ConfirmButton } from "@/components/ks/Controls";
-import { Panel, Loading, ErrorState } from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+import { ConfirmButton } from "@/components/brand/Controls";
+import { Panel, Loading, ErrorState } from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { trpc } from "@/lib/trpc";
 import { errMsg } from "@/lib/format";
 export default function Demo() {
@@ -85,7 +85,7 @@ export default function Demo() {
       </Panel>
       {result && (
         <p
-          className="border border-[var(--ks-rule)] bg-[var(--ks-paper)] p-4"
+          className="border border-[var(--tp-rule)] bg-[var(--tp-paper)] p-4"
           role="status"
         >
           {result}

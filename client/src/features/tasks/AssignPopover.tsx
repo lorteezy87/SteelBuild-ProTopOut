@@ -94,7 +94,7 @@ function AllocInput({ value, disabled, onCommit, label }: { value: number; disab
     <span className="flex items-center gap-0.5">
       <input
         aria-label={label}
-        className="num h-6 w-12 rounded border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-1 text-right text-[11.5px]"
+        className="num h-6 w-12 rounded border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-1 text-right text-[11.5px]"
         inputMode="numeric"
         value={draft}
         disabled={disabled}
@@ -171,7 +171,7 @@ export function AssignPopover({
   const status = (match: Match) => {
     const n = coverage(match).covered.length;
     return !n ? null : n === total ? (
-      <Check className="size-3.5 text-[var(--ks-accent-ink)]" aria-label="Assigned" />
+      <Check className="size-3.5 text-[var(--tp-accent-ink)]" aria-label="Assigned" />
     ) : (
       <span className="num text-[10.5px] text-muted-foreground" title={`On ${n} of ${total} tasks — click to add to the rest`}>
         {n}/{total}
@@ -188,7 +188,7 @@ export function AssignPopover({
         onClick={e => e.stopPropagation()}
         onKeyDown={e => e.stopPropagation()}
       >
-        <div className="border-b border-[var(--ks-rule)] px-3 py-2">
+        <div className="border-b border-[var(--tp-rule)] px-3 py-2">
           <div className="label-caps">Assign crew & equipment</div>
           <div className="truncate text-[12.5px] font-semibold" title={title}>
             {title}
@@ -200,7 +200,7 @@ export function AssignPopover({
           )}
         </div>
         {rollup.items.length > 0 && (
-          <div className="max-h-40 overflow-auto border-b border-[var(--ks-rule)] px-2 py-1.5">
+          <div className="max-h-40 overflow-auto border-b border-[var(--tp-rule)] px-2 py-1.5">
             {rollup.items.map(item => {
               const name = labelOf(item.ref);
               return (
@@ -223,7 +223,7 @@ export function AssignPopover({
                   )}
                   <button
                     type="button"
-                    className="flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-[var(--ks-gray-soft)] hover:text-[var(--ks-red-strong)] disabled:opacity-40"
+                    className="flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-[var(--tp-gray-soft)] hover:text-[var(--tp-red-strong)] disabled:opacity-40"
                     aria-label={`Remove ${name}`}
                     title={single ? "Remove" : `Remove from all ${total} tasks`}
                     disabled={busy}
@@ -238,7 +238,7 @@ export function AssignPopover({
         )}
         <Command>
           <CommandInput placeholder="Search people, crew roles, equipment…" />
-          <div className="flex items-center gap-2 border-b border-[var(--ks-rule)] px-3 py-1.5 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-2 border-b border-[var(--tp-rule)] px-3 py-1.5 text-[11px] text-muted-foreground">
             New assignments at
             <AllocInput label="Allocation for new assignments" value={alloc} onCommit={setAlloc} />
             <span className="ml-auto" title="Crew roles: 100% per person">
@@ -310,11 +310,11 @@ export function AssignPopover({
           </CommandList>
         </Command>
         {!single && rollup.items.length > 0 && (
-          <div className="flex justify-end border-t border-[var(--ks-rule)] px-2 py-1.5">
+          <div className="flex justify-end border-t border-[var(--tp-rule)] px-2 py-1.5">
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 text-[11.5px] text-[var(--ks-red-strong)]"
+              className="h-7 text-[11.5px] text-[var(--tp-red-strong)]"
               disabled={busy}
               onClick={() => void ops.assign(taskIds, "replace", [], "all resources")}
             >
@@ -351,7 +351,7 @@ export function AssignCell({
   const text = names.length ? (names.length > 2 ? `${names.slice(0, 2).join(", ")} +${names.length - 2}` : names.join(", ")) : r.summary ? "—" : emptyLabel;
   const tip = r.items.map(i => `${labelOf(i.ref)} · ${r.summary ? `${i.count}/${r.leafIds.length} tasks` : `${i.ref.allocationPct}%`}`).join("\n");
   const body = (
-    <span className={cn("flex min-w-0 items-center gap-1", !names.length && "text-muted-foreground", r.summary && "italic text-[var(--ks-ink-2)]")}>
+    <span className={cn("flex min-w-0 items-center gap-1", !names.length && "text-muted-foreground", r.summary && "italic text-[var(--tp-ink-2)]")}>
       {editable && <UserPlus className="size-3 shrink-0 text-muted-foreground" aria-hidden />}
       <span className="truncate">{text}</span>
     </span>
@@ -367,7 +367,7 @@ export function AssignCell({
       <button
         type="button"
         className={cn(
-          "block w-full min-w-0 rounded px-1 py-0.5 text-left text-[11px] hover:bg-[var(--ks-accent-soft)] focus-visible:outline-2 focus-visible:outline-[var(--ks-accent)]",
+          "block w-full min-w-0 rounded px-1 py-0.5 text-left text-[11px] hover:bg-[var(--tp-accent-soft)] focus-visible:outline-2 focus-visible:outline-[var(--tp-accent)]",
           className
         )}
         title={tip ? `${tip}\nClick to change` : r.summary ? "Assign to every task in this sequence" : "Click to assign"}

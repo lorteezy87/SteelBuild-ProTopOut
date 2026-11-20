@@ -4,7 +4,7 @@ import {
   NumberInput,
   RecordDrawer,
   SimpleSelect,
-} from "@/components/ks/Controls";
+} from "@/components/brand/Controls";
 import {
   EmptyState,
   ErrorState,
@@ -13,7 +13,7 @@ import {
   Loading,
   PageHeader,
   Panel,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -146,7 +146,7 @@ export default function Expenses() {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="ks-table min-w-[1050px]">
+              <table className="tp-table min-w-[1050px]">
                 <thead>
                   <tr>
                     <th>
@@ -237,7 +237,7 @@ export default function Expenses() {
                             target="_blank"
                             rel="noreferrer"
                             onClick={event => event.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-[var(--ks-blue)]"
+                            className="inline-flex items-center gap-1 text-[var(--tp-blue)]"
                           >
                             View
                             <ExternalLink className="size-3" />
@@ -249,7 +249,7 @@ export default function Expenses() {
                       <td>
                         <EntryState state={row.e.state} />
                         {row.e.rejectReason && (
-                          <div className="mt-1 max-w-52 text-xs text-[var(--ks-red-strong)]">
+                          <div className="mt-1 max-w-52 text-xs text-[var(--tp-red-strong)]">
                             {row.e.rejectReason}
                           </div>
                         )}
@@ -391,7 +391,7 @@ function ExpenseDrawer({
         <div className="mb-4">
           <EntryState state={row.e.state} />
           {row.e.rejectReason && (
-            <div className="mt-2 border bg-[var(--ks-red-soft)] p-3 text-[var(--ks-red-strong)]">
+            <div className="mt-2 border bg-[var(--tp-red-soft)] p-3 text-[var(--tp-red-strong)]">
               {row.e.rejectReason}
             </div>
           )}
@@ -504,7 +504,7 @@ function ExpenseDrawer({
       </fieldset>
       {row?.e.receiptUrl && (
         <a
-          className="mt-4 inline-flex items-center gap-1 text-[var(--ks-blue)]"
+          className="mt-4 inline-flex items-center gap-1 text-[var(--tp-blue)]"
           href={row.e.receiptUrl}
           target="_blank"
           rel="noreferrer"

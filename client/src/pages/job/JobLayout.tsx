@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ErrorState, Loading } from "@/components/ks/Layout";
-import { CostHealth, Pill, ScheduleHealth } from "@/components/ks/Status";
+import { ErrorState, Loading } from "@/components/brand/Layout";
+import { CostHealth, Pill, ScheduleHealth } from "@/components/brand/Status";
 import { errMsg, fmtDate, fmtTons } from "@/lib/format";
 import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
@@ -70,13 +70,13 @@ export default function JobLayout({ params }: { params: { id: string; tab?: stri
   return (
     <JobProvider params={jp} data={q.data} refetch={refetch}>
       <div className="flex min-h-full flex-col">
-        <div className="border-b border-[var(--ks-rule)] bg-[var(--ks-paper)] px-6 pb-0 pt-4">
-          <div className="mb-3 flex flex-wrap items-center gap-1.5 text-[13px] text-[var(--ks-muted)]">
-            <Link href="/jobs" className="flex items-center gap-1 hover:text-[var(--ks-accent-ink)]">
+        <div className="border-b border-[var(--tp-rule)] bg-[var(--tp-paper)] px-6 pb-0 pt-4">
+          <div className="mb-3 flex flex-wrap items-center gap-1.5 text-[13px] text-[var(--tp-muted)]">
+            <Link href="/jobs" className="flex items-center gap-1 hover:text-[var(--tp-accent-ink)]">
               <ChevronLeft className="size-4" /> Jobs
             </Link>
-            <span className="text-[var(--ks-muted)]">/</span>
-            <span className="num font-medium text-[var(--ks-ink-2)]">{p.code}</span>
+            <span className="text-[var(--tp-muted)]">/</span>
+            <span className="num font-medium text-[var(--tp-ink-2)]">{p.code}</span>
             <div className="ml-auto flex items-center gap-2">
               {canReforecast && (
               <Button
@@ -92,9 +92,9 @@ export default function JobLayout({ params }: { params: { id: string; tab?: stri
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <h1 className="ks-display min-w-0 truncate text-[22px] leading-tight text-[var(--ks-ink)]">{p.name}</h1>
+            <h1 className="tp-display min-w-0 truncate text-[22px] leading-tight text-[var(--tp-ink)]">{p.name}</h1>
             <Pill tone={stateTone(p.state)} dot>{PROJECT_STATES[p.state as keyof typeof PROJECT_STATES] ?? p.state}</Pill>
-            {p.projectType && <span className="text-[13px] text-[var(--ks-muted)]">{p.projectType}</span>}
+            {p.projectType && <span className="text-[13px] text-[var(--tp-muted)]">{p.projectType}</span>}
           </div>
           {/* Job facts */}
           <div
@@ -108,15 +108,15 @@ export default function JobLayout({ params }: { params: { id: string; tab?: stri
             <Cell label="Tons erected">
               <span className="num">
                 {fmtTons(tons.erected)}
-                <span className="text-[var(--ks-muted)]"> / {fmtTons(p.totalTons || tons.planned)}</span>
+                <span className="text-[var(--tp-muted)]"> / {fmtTons(p.totalTons || tons.planned)}</span>
               </span>
             </Cell>
             <Cell label="Schedule">
               <ScheduleHealth value={p.scheduleHealth} />
             </Cell>
-            <Cell label="Cost">{canFinancials ? <CostHealth value={p.costHealth} /> : <span className="text-[var(--ks-muted)]">Restricted</span>}</Cell>
+            <Cell label="Cost">{canFinancials ? <CostHealth value={p.costHealth} /> : <span className="text-[var(--tp-muted)]">Restricted</span>}</Cell>
             <Cell label={late ? "Projected finish vs deadline" : "Deadline"}>
-              <span className={cn("num", late && "text-[var(--ks-red-strong)]")}>
+              <span className={cn("num", late && "text-[var(--tp-red-strong)]")}>
                 {late ? `${fmtDate(p.projectedFinish)} › ${fmtDate(p.deadline)}` : fmtDate(p.deadline)}
               </span>
             </Cell>
@@ -128,12 +128,12 @@ export default function JobLayout({ params }: { params: { id: string; tab?: stri
                 href={t.key === "overview" ? `/jobs/${id}` : `/jobs/${id}/${t.key}`}
                 className={cn(
                   "flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-[13.5px] font-medium transition-colors",
-                  active.key === t.key ? "border-[var(--ks-accent-ink)] text-[var(--ks-ink)]" : "border-transparent text-[var(--ks-muted)] hover:text-[var(--ks-ink)]"
+                  active.key === t.key ? "border-[var(--tp-accent-ink)] text-[var(--tp-ink)]" : "border-transparent text-[var(--tp-muted)] hover:text-[var(--tp-ink)]"
                 )}
               >
                 {t.label}
                 {t.key === "tasks" && counts.delayed > 0 && (
-                  <span className="num rounded-full bg-[var(--ks-red-soft)] px-1.5 text-[11px] font-semibold leading-[18px] text-[var(--ks-red-strong)]">{counts.delayed}</span>
+                  <span className="num rounded-full bg-[var(--tp-red-soft)] px-1.5 text-[11px] font-semibold leading-[18px] text-[var(--tp-red-strong)]">{counts.delayed}</span>
                 )}
               </Link>
             ))}
@@ -153,7 +153,7 @@ function Cell({ label, children }: { label: string; children: React.ReactNode })
   return (
     <div className="flex flex-col justify-center">
       <div className="label-caps">{label}</div>
-      <div className="mt-1 truncate text-[14px] font-medium text-[var(--ks-ink)]">{children}</div>
+      <div className="mt-1 truncate text-[14px] font-medium text-[var(--tp-ink)]">{children}</div>
     </div>
   );
 }

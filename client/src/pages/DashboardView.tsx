@@ -23,8 +23,8 @@ import {
   Loading,
   ErrorState,
   EmptyState,
-} from "@/components/ks/Layout";
-import { ConfirmButton, SimpleSelect } from "@/components/ks/Controls";
+} from "@/components/brand/Layout";
+import { ConfirmButton, SimpleSelect } from "@/components/brand/Controls";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -215,7 +215,7 @@ function Dashboard({
                 value={name}
                 onChange={e => setName(e.target.value)}
                 maxLength={200}
-                className="bg-[var(--ks-paper)]"
+                className="bg-[var(--tp-paper)]"
               />
             </Field>
             <label className="flex h-9 items-center gap-2">
@@ -296,7 +296,7 @@ function Dashboard({
                     </>
                   }
                 >
-                  <div className="grid grid-cols-[1fr_100px] gap-2 border-b border-[var(--ks-rule)] p-3">
+                  <div className="grid grid-cols-[1fr_100px] gap-2 border-b border-[var(--tp-rule)] p-3">
                     <Input
                       aria-label="Widget title"
                       value={w.title ?? ""}
@@ -305,7 +305,7 @@ function Dashboard({
                       onChange={e =>
                         update(i, { title: e.target.value || undefined })
                       }
-                      className="bg-[var(--ks-paper)]"
+                      className="bg-[var(--tp-paper)]"
                     />
                     <SimpleSelect
                       value={w.size}

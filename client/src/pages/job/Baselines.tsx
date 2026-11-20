@@ -9,7 +9,7 @@ import {
   ConfirmButton,
   RecordDrawer,
   SimpleSelect,
-} from "@/components/ks/Controls";
+} from "@/components/brand/Controls";
 import {
   EmptyState,
   ErrorState,
@@ -17,8 +17,8 @@ import {
   Kpi,
   Loading,
   Panel,
-} from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { varianceLabel } from "@/features/jobs/metrics";
 import { errMsg, fmtDate, fmtDateTime, fmtMoney, fmtNum } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
@@ -77,9 +77,9 @@ export default function Baselines() {
     v == null
       ? "text-muted-foreground"
       : v > 0
-        ? "hazard text-[var(--ks-red-strong)]"
+        ? "hazard text-[var(--tp-red-strong)]"
         : v < 0
-          ? "text-[var(--ks-green)]"
+          ? "text-[var(--tp-green)]"
           : "";
   return (
     <div className="space-y-4 p-5">
@@ -136,7 +136,7 @@ export default function Baselines() {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -156,7 +156,7 @@ export default function Baselines() {
                   >
                     <td>
                       <button
-                        className="font-semibold hover:text-[var(--ks-accent-ink)]"
+                        className="font-semibold hover:text-[var(--tp-accent-ink)]"
                         onClick={() => setSelected(String(b.id))}
                       >
                         {b.name}
@@ -224,7 +224,7 @@ export default function Baselines() {
           </div>
         )}
         {!!q.data?.activeBaselineId && can("baseline.manage") && (
-          <div className="border-t border-[var(--ks-rule)] p-3">
+          <div className="border-t border-[var(--tp-rule)] p-3">
             <Button
               size="sm"
               variant="ghost"
@@ -260,7 +260,7 @@ export default function Baselines() {
           ) : (
             compare.data && (
               <>
-                <div className="flex flex-wrap items-center gap-5 border-b border-[var(--ks-rule)] p-4">
+                <div className="flex flex-wrap items-center gap-5 border-b border-[var(--tp-rule)] p-4">
                   <Field label="Baseline finish">
                     <span className="num">
                       {fmtDate(compare.data.baseline.plannedFinish)}
@@ -280,7 +280,7 @@ export default function Baselines() {
                   </Field>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="ks-table">
+                  <table className="tp-table">
                     <thead>
                       <tr>
                         <th>WBS</th>
@@ -301,7 +301,7 @@ export default function Baselines() {
                             ) : (
                               <Link
                                 href={`/jobs/${projectId}/tasks?task=${t.taskId}`}
-                                className="hover:text-[var(--ks-accent-ink)]"
+                                className="hover:text-[var(--tp-accent-ink)]"
                               >
                                 {t.name}
                               </Link>

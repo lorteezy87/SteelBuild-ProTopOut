@@ -2,9 +2,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ExternalLink, FileText, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConfirmButton, RecordDrawer } from "@/components/ks/Controls";
-import { Field } from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+import { ConfirmButton, RecordDrawer } from "@/components/brand/Controls";
+import { Field } from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { errMsg, fmtDate, fmtDateTime } from "@/lib/format";
 import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
@@ -165,7 +165,7 @@ export function SheetDrawer({
     >
       <div className="space-y-5">
         {sheet.status === "HOLD" && (
-          <div className="hazard-amber border border-[var(--ks-rule)] px-3 py-2 text-[13px]">
+          <div className="hazard-amber border border-[var(--tp-rule)] px-3 py-2 text-[13px]">
             <div className="font-semibold">On hold{sheet.holdRfi ? ` · ${sheet.holdRfi.label}` : ""}</div>
             <div className="text-muted-foreground">
               {sheet.holdReason ? (/[.!?]$/.test(sheet.holdReason) ? sheet.holdReason : `${sheet.holdReason}.`) : "No reason recorded."}
@@ -176,7 +176,7 @@ export function SheetDrawer({
           </div>
         )}
         {sheet.status === "RR" && sheet.returnedDate && (
-          <div className="border border-[var(--ks-rule)] bg-[var(--ks-amber-soft)] px-3 py-2 text-[13px]">
+          <div className="border border-[var(--tp-rule)] bg-[var(--tp-amber-soft)] px-3 py-2 text-[13px]">
             <div className="font-semibold">Returned {fmtDate(sheet.returnedDate)} · revise &amp; resubmit</div>
             <div className="text-muted-foreground">
               {pend ? `Rev ${pend.number} is in progress. Sign it off and issue it to resubmit.` : `Clear the redlines, start Rev ${nextN}, get it signed off, then issue it to resubmit.`}
@@ -196,7 +196,7 @@ export function SheetDrawer({
             <span className="num">{fmtDate(sheet.returnedDate)}</span>
           </Field>
           <Field label="Days out">
-            <span className={facts.late ? "num font-semibold text-[var(--ks-red-strong)]" : "num"}>
+            <span className={facts.late ? "num font-semibold text-[var(--tp-red-strong)]" : "num"}>
               {sheet.sentDate ? `${facts.out} d${sheet.status === "REV" ? ` of ${REVIEW_DAYS}` : ""}` : "—"}
             </span>
           </Field>
@@ -206,7 +206,7 @@ export function SheetDrawer({
           <button
             type="button"
             onClick={() => onOpenViewer?.(shown.number)}
-            className="group relative block w-full overflow-hidden border border-[var(--ks-rule)] bg-[var(--ks-drawing-paper)]"
+            className="group relative block w-full overflow-hidden border border-[var(--tp-rule)] bg-[var(--tp-drawing-paper)]"
             title={onOpenViewer ? "Open in the viewer" : undefined}
           >
             {shown.previewUrl ? (
@@ -216,7 +216,7 @@ export function SheetDrawer({
                 <FileText className="size-4" /> PDF only — open it in the viewer
               </div>
             )}
-            <span className="absolute left-0 top-0 bg-[var(--ks-graphite)] px-1.5 py-0.5 text-[11px] font-medium text-white">
+            <span className="absolute left-0 top-0 bg-[var(--tp-graphite)] px-1.5 py-0.5 text-[11px] font-medium text-white">
               Rev {shown.number}
               {shown.state === "issued" ? "" : ` · ${(REVISION_STATES[shown.state as keyof typeof REVISION_STATES] ?? shown.state).toLowerCase()}`}
             </span>
@@ -228,7 +228,7 @@ export function SheetDrawer({
 
         <section>
           <div className="mb-2 flex items-center justify-between">
-            <div className="label-caps text-[11px] text-[var(--ks-ink)]">Revisions</div>
+            <div className="label-caps text-[11px] text-[var(--tp-ink)]">Revisions</div>
             {reg.canUpload && !pend && (
               <Button size="sm" variant={sheet.status === "RR" || sheet.status === "REL" ? "default" : "outline"} onClick={() => setRevForm({ mode: "start", n: nextN })}>
                 Start Rev {nextN}
@@ -236,7 +236,7 @@ export function SheetDrawer({
             )}
           </div>
           {pendNote && <div className="mb-2 text-[12.5px] text-muted-foreground">{pendNote}</div>}
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>Rev</th>
@@ -258,7 +258,7 @@ export function SheetDrawer({
                     {r.url || r.previewUrl ? (
                       <div className="flex flex-col items-start gap-0.5">
                         {onOpenViewer && (
-                          <button type="button" className="inline-flex items-center gap-1 text-[var(--ks-accent-ink)] hover:underline" onClick={() => onOpenViewer(r.number)}>
+                          <button type="button" className="inline-flex items-center gap-1 text-[var(--tp-accent-ink)] hover:underline" onClick={() => onOpenViewer(r.number)}>
                             <FileText className="size-3.5 shrink-0" /> Open
                           </button>
                         )}
@@ -288,7 +288,7 @@ export function SheetDrawer({
                     {fmtDateTime(r.createdAt)}
                     <div className="text-muted-foreground">{userName(r.createdBy)}</div>
                     {(r.description || r.revDate) && (
-                      <div className="text-[var(--ks-ink)]">
+                      <div className="text-[var(--tp-ink)]">
                         {r.description}
                         {r.revDate ? <span className="text-muted-foreground"> · dated {fmtDate(r.revDate)}</span> : null}
                       </div>
@@ -364,7 +364,7 @@ export function SheetDrawer({
         </section>
 
         <section>
-          <div className="label-caps mb-2 text-[11px] text-[var(--ks-ink)]">History</div>
+          <div className="label-caps mb-2 text-[11px] text-[var(--tp-ink)]">History</div>
           {history.data?.length ? (
             <ul className="space-y-1.5 text-[12.5px]">
               {history.data.map(h => (

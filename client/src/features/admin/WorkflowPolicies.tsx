@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { ConfirmButton } from "@/components/ks/Controls";
+import { ConfirmButton } from "@/components/brand/Controls";
 import { trpc } from "@/lib/trpc";
 import { errMsg } from "@/lib/format";
 import { PRIORITIES } from "@shared/domain";

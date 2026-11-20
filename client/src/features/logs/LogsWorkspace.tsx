@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { ListChecks, Plus } from "lucide-react";
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import {
   EmptyState,
   ErrorState,
   Loading,
   PageHeader,
   Panel,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRefData } from "@/lib/ref";
@@ -63,10 +63,10 @@ export function LogsWorkspace({
                     key={a.key}
                     onClick={() => navigate(`${base}/${a.key}`)}
                     className={cn(
-                      "flex items-center gap-2 border-b border-[var(--ks-rule)] px-3 py-2.5 text-left last:border-0",
+                      "flex items-center gap-2 border-b border-[var(--tp-rule)] px-3 py-2.5 text-left last:border-0",
                       a.key === selected
-                        ? "border-l-[3px] border-l-[var(--ks-accent)] bg-[var(--ks-accent-soft)] font-semibold"
-                        : "hover:bg-[var(--ks-bone)]"
+                        ? "border-l-[3px] border-l-[var(--tp-accent)] bg-[var(--tp-accent-soft)] font-semibold"
+                        : "hover:bg-[var(--tp-bone)]"
                     )}
                   >
                     <span
@@ -79,7 +79,7 @@ export function LogsWorkspace({
                         className={cn(
                           "num text-xs",
                           counts?.delayed
-                            ? "text-[var(--ks-red-strong)]"
+                            ? "text-[var(--tp-red-strong)]"
                             : "text-muted-foreground"
                         )}
                         title={`${counts?.open ?? 0} open; ${counts?.atRisk ?? 0} at risk; ${counts?.delayed ?? 0} delayed`}
@@ -203,7 +203,7 @@ function LogRegister({
           </>
         }
       >
-        <div className="flex flex-wrap gap-2 border-b border-[var(--ks-rule)] p-3">
+        <div className="flex flex-wrap gap-2 border-b border-[var(--tp-rule)] p-3">
           <div className="w-36">
             <SimpleSelect
               value={category}
@@ -251,7 +251,7 @@ function LogRegister({
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Number, title, field value…"
-            className="max-w-xs bg-[var(--ks-paper)]"
+            className="max-w-xs bg-[var(--tp-paper)]"
           />
         </div>
         {q.isLoading ? (
@@ -274,7 +274,7 @@ function LogRegister({
             onSelect={rid => navigate(`${base}/${appKey}/${rid}`)}
           />
         )}
-        <div className="flex justify-between border-t border-[var(--ks-rule)] px-3 py-2 text-xs text-muted-foreground">
+        <div className="flex justify-between border-t border-[var(--tp-rule)] px-3 py-2 text-xs text-muted-foreground">
           <span className="num">
             {rows.length} shown / {items.length} loaded
           </span>

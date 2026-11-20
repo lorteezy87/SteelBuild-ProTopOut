@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
+import { PRODUCT_NAME } from "@shared/const";
 import { COST_HEALTH, PRIORITIES, SCHEDULE_HEALTH } from "@shared/domain";
 
 /* ------------------------------------------------------------------ */
-/* Brand: the SteelBuild Pro diamond-plate badge (from steelbuild-pro  */
-/* .com). The artwork sits on Foundry Black (#0B0E11), so it is shown  */
+/* Brand: the SteelBuild Pro diamond-plate badge with the TopOut      */
+/* lockup. The artwork sits on Foundry Black (#0B0E11), so it is shown */
 /* on that ground: the side menu, the sign-in panel, or a dark tile.   */
 /* ------------------------------------------------------------------ */
 export const BRAND_BADGE = "/brand/steelbuild-pro-badge-480.webp";
@@ -20,7 +21,7 @@ export function BrandGlyph({ size = 28, className }: { size?: number; className?
       alt=""
       aria-hidden
       draggable={false}
-      className={cn("shrink-0 rounded-md bg-[var(--ks-graphite)] object-cover", className)}
+      className={cn("shrink-0 rounded-md bg-[var(--tp-graphite)] object-cover", className)}
     />
   );
 }
@@ -42,15 +43,22 @@ export function Wordmark({
 }) {
   const w = width ?? (size === "lg" ? 420 : size === "sm" ? 132 : 200);
   return (
-    <img
-      src={size === "lg" ? BRAND_BADGE_LG : BRAND_BADGE}
-      width={w}
-      height={Math.round((w * 317) / 480)}
-      alt="SteelBuild Pro"
-      draggable={false}
-      className={cn("block h-auto max-w-full select-none", className)}
-      style={{ width: w }}
-    />
+    <div className={cn("flex flex-col items-center select-none", className)} style={{ width: w }} role="img" aria-label={PRODUCT_NAME}>
+      <img
+        src={size === "lg" ? BRAND_BADGE_LG : BRAND_BADGE}
+        width={w}
+        height={Math.round((w * 317) / 480)}
+        alt=""
+        draggable={false}
+        className="block h-auto max-w-full"
+      />
+      <span
+        className="-mt-[2%] font-semibold uppercase leading-none text-[var(--tp-brand)]"
+        style={{ fontSize: Math.max(11, Math.round(w * 0.09)), letterSpacing: "0.32em", paddingLeft: "0.32em" }}
+      >
+        TopOut
+      </span>
+    </div>
   );
 }
 
@@ -61,25 +69,25 @@ export function Wordmark({
 export type Tone = "green" | "amber" | "red" | "blue" | "gray" | "orange" | "ink" | "hazard";
 
 const TONE: Record<Tone, string> = {
-  green: "bg-[var(--ks-green-soft)] text-[var(--ks-green)] ring-[color-mix(in_srgb,var(--ks-green)_22%,transparent)]",
-  amber: "bg-[var(--ks-amber-soft)] text-[var(--ks-amber)] ring-[color-mix(in_srgb,var(--ks-amber)_24%,transparent)]",
-  red: "bg-[var(--ks-red-soft)] text-[var(--ks-red-strong)] ring-[color-mix(in_srgb,var(--ks-red-strong)_22%,transparent)]",
-  blue: "bg-[var(--ks-blue-soft)] text-[var(--ks-blue)] ring-[color-mix(in_srgb,var(--ks-blue)_20%,transparent)]",
-  gray: "bg-[var(--ks-gray-soft)] text-[var(--ks-ink-2)] ring-[var(--ks-rule)]",
-  orange: "bg-[var(--ks-accent-soft)] text-[var(--ks-accent-ink)] ring-[color-mix(in_srgb,var(--ks-accent-ink)_20%,transparent)]",
-  ink: "bg-[var(--ks-solid)] text-white ring-[var(--ks-solid)]",
-  hazard: "bg-[var(--ks-hold)] text-white ring-[var(--ks-hold)]",
+  green: "bg-[var(--tp-green-soft)] text-[var(--tp-green)] ring-[color-mix(in_srgb,var(--tp-green)_22%,transparent)]",
+  amber: "bg-[var(--tp-amber-soft)] text-[var(--tp-amber)] ring-[color-mix(in_srgb,var(--tp-amber)_24%,transparent)]",
+  red: "bg-[var(--tp-red-soft)] text-[var(--tp-red-strong)] ring-[color-mix(in_srgb,var(--tp-red-strong)_22%,transparent)]",
+  blue: "bg-[var(--tp-blue-soft)] text-[var(--tp-blue)] ring-[color-mix(in_srgb,var(--tp-blue)_20%,transparent)]",
+  gray: "bg-[var(--tp-gray-soft)] text-[var(--tp-ink-2)] ring-[var(--tp-rule)]",
+  orange: "bg-[var(--tp-accent-soft)] text-[var(--tp-accent-ink)] ring-[color-mix(in_srgb,var(--tp-accent-ink)_20%,transparent)]",
+  ink: "bg-[var(--tp-solid)] text-white ring-[var(--tp-solid)]",
+  hazard: "bg-[var(--tp-hold)] text-white ring-[var(--tp-hold)]",
 };
 
 const DOT: Record<Tone, string> = {
-  green: "bg-[var(--ks-green)]",
-  amber: "bg-[var(--ks-amber)]",
-  red: "bg-[var(--ks-red)]",
-  blue: "bg-[var(--ks-blue)]",
-  gray: "bg-[var(--ks-muted)]",
-  orange: "bg-[var(--ks-accent)]",
-  ink: "bg-[var(--ks-solid-ink)]",
-  hazard: "bg-[var(--ks-brand)]",
+  green: "bg-[var(--tp-green)]",
+  amber: "bg-[var(--tp-amber)]",
+  red: "bg-[var(--tp-red)]",
+  blue: "bg-[var(--tp-blue)]",
+  gray: "bg-[var(--tp-muted)]",
+  orange: "bg-[var(--tp-accent)]",
+  ink: "bg-[var(--tp-solid-ink)]",
+  hazard: "bg-[var(--tp-brand)]",
 };
 
 /**
@@ -92,11 +100,11 @@ export function Pill({ tone = "gray", children, className, dot, hazard }: { tone
     <span
       className={cn(
         "inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-medium leading-none ring-1 ring-inset",
-        solidRed ? "bg-[var(--ks-red-fill)] text-white ring-[var(--ks-red-fill)]" : TONE[tone],
+        solidRed ? "bg-[var(--tp-red-fill)] text-white ring-[var(--tp-red-fill)]" : TONE[tone],
         className
       )}
     >
-      {(dot || tone === "hazard") && <span className={cn("size-1.5 shrink-0 rounded-full", solidRed ? "bg-[var(--ks-solid-ink)]" : DOT[tone])} />}
+      {(dot || tone === "hazard") && <span className={cn("size-1.5 shrink-0 rounded-full", solidRed ? "bg-[var(--tp-solid-ink)]" : DOT[tone])} />}
       {children}
     </span>
   );
@@ -153,11 +161,11 @@ export function DeliveryRiskBadge({ value }: { value: string | null | undefined 
  * always readable.
  */
 export function StateChip({ name, color, category }: { name: string; color?: string | null; category?: string | null }) {
-  const c = color || (category === "end" ? "var(--ks-muted)" : category === "start" ? "var(--ks-blue)" : "var(--ks-accent-ink)");
+  const c = color || (category === "end" ? "var(--tp-muted)" : category === "start" ? "var(--tp-blue)" : "var(--tp-accent-ink)");
   return (
     <span
-      className="inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-medium leading-none text-[var(--ks-ink)] ring-1 ring-inset"
-      style={{ background: `color-mix(in srgb, ${c} 10%, var(--ks-paper))`, ["--tw-ring-color" as string]: `color-mix(in srgb, ${c} 32%, var(--ks-rule))` }}
+      className="inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-medium leading-none text-[var(--tp-ink)] ring-1 ring-inset"
+      style={{ background: `color-mix(in srgb, ${c} 10%, var(--tp-paper))`, ["--tw-ring-color" as string]: `color-mix(in srgb, ${c} 32%, var(--tp-rule))` }}
     >
       <span className="size-1.5 shrink-0 rounded-full" style={{ background: c }} />
       {name}
@@ -168,12 +176,12 @@ export function StateChip({ name, color, category }: { name: string; color?: str
 /** Slim rounded progress bar with optional planned marker. */
 export function ProgressBar({ value, planned, className, tone = "orange" }: { value: number; planned?: number | null; className?: string; tone?: "orange" | "green" | "ink" }) {
   const v = Math.max(0, Math.min(100, value || 0));
-  const fill = tone === "green" ? "bg-[var(--ks-green)]" : tone === "ink" ? "bg-[var(--ks-ink)]" : "bg-[var(--ks-accent)]";
+  const fill = tone === "green" ? "bg-[var(--tp-green)]" : tone === "ink" ? "bg-[var(--tp-ink)]" : "bg-[var(--tp-accent)]";
   return (
-    <div className={cn("relative h-1.5 w-full overflow-hidden rounded-full bg-[var(--ks-gray-soft)]", className)}>
+    <div className={cn("relative h-1.5 w-full overflow-hidden rounded-full bg-[var(--tp-gray-soft)]", className)}>
       <div className={cn("absolute inset-y-0 left-0 rounded-full", fill)} style={{ width: `${v}%` }} />
       {planned != null && (
-        <div className="absolute inset-y-0 w-[2px] bg-[var(--ks-ink)]/70" style={{ left: `calc(${Math.max(0, Math.min(100, planned))}% - 1px)` }} />
+        <div className="absolute inset-y-0 w-[2px] bg-[var(--tp-ink)]/70" style={{ left: `calc(${Math.max(0, Math.min(100, planned))}% - 1px)` }} />
       )}
     </div>
   );

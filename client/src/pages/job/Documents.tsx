@@ -19,13 +19,13 @@ import {
   Loading,
   ErrorState,
   EmptyState,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import {
   RecordDrawer,
   SimpleSelect,
   ConfirmButton,
-} from "@/components/ks/Controls";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Controls";
+import { Pill } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -194,7 +194,7 @@ export default function Documents() {
             onChange={e => setSearch(e.target.value)}
             placeholder="Name or sheet #…"
             aria-label="Search documents"
-            className="w-52 bg-[var(--ks-paper)]"
+            className="w-52 bg-[var(--tp-paper)]"
           />
           <div className="w-48">
             <SimpleSelect
@@ -243,7 +243,7 @@ export default function Documents() {
             title={`${categoryLabel(cat)} / ${rows.filter(d => d.category === cat).length}`}
           >
             <div className="overflow-auto">
-              <table className="ks-table">
+              <table className="tp-table">
                 <thead>
                   <tr>
                     <th>Name / sheet #</th>
@@ -295,7 +295,7 @@ export default function Documents() {
                               rel="noopener noreferrer"
                               onClick={e => e.stopPropagation()}
                               aria-label={`Open ${d.name}`}
-                              className="inline-flex p-1 hover:text-[var(--ks-accent-ink)]"
+                              className="inline-flex p-1 hover:text-[var(--tp-accent-ink)]"
                             >
                               <ExternalLink className="size-4" />
                             </a>
@@ -410,7 +410,7 @@ export default function Documents() {
                       value={name}
                       onChange={e => setName(e.target.value)}
                       maxLength={255}
-                      className="bg-[var(--ks-paper)]"
+                      className="bg-[var(--tp-paper)]"
                     />
                   </Field>
                   <div className="grid grid-cols-2 gap-3">
@@ -426,7 +426,7 @@ export default function Documents() {
                         value={sheet}
                         onChange={e => setSheet(e.target.value)}
                         maxLength={64}
-                        className="bg-[var(--ks-paper)]"
+                        className="bg-[var(--tp-paper)]"
                       />
                     </Field>
                   </div>
@@ -468,7 +468,7 @@ export default function Documents() {
               </div>
               <Panel title="Revision history">
                 <div className="overflow-auto">
-                  <table className="ks-table">
+                  <table className="tp-table">
                     <thead>
                       <tr>
                         <th>Revision / file</th>
@@ -508,7 +508,7 @@ export default function Documents() {
                               target="_blank"
                               rel="noopener noreferrer"
                               aria-label={`Download revision ${v.revision}`}
-                              className="inline-flex p-1 hover:text-[var(--ks-accent-ink)]"
+                              className="inline-flex p-1 hover:text-[var(--tp-accent-ink)]"
                             >
                               <Download className="size-4" />
                             </a>
@@ -535,7 +535,7 @@ export default function Documents() {
                 disabled={mode === "revision"}
                 maxLength={255}
                 autoFocus
-                className="bg-[var(--ks-paper)]"
+                className="bg-[var(--tp-paper)]"
               />
             </Field>
             <div className="grid grid-cols-2 gap-3">
@@ -551,7 +551,7 @@ export default function Documents() {
                   value={sheet}
                   onChange={e => setSheet(e.target.value)}
                   maxLength={64}
-                  className="bg-[var(--ks-paper)]"
+                  className="bg-[var(--tp-paper)]"
                 />
               </Field>
               <Field label="Revision">
@@ -560,7 +560,7 @@ export default function Documents() {
                   onChange={e => setRevision(e.target.value)}
                   maxLength={16}
                   placeholder="e.g. 0, A, B"
-                  className="num bg-[var(--ks-paper)]"
+                  className="num bg-[var(--tp-paper)]"
                 />
               </Field>
             </div>
@@ -580,7 +580,7 @@ export default function Documents() {
                   if (f && mode === "new" && !name)
                     setName(f.name.replace(/\.[^.]+$/, ""));
                 }}
-                className="bg-[var(--ks-paper)]"
+                className="bg-[var(--tp-paper)]"
               />
               {file && (
                 <div className="num mt-1 text-xs text-muted-foreground">
@@ -594,7 +594,7 @@ export default function Documents() {
                 onChange={e => setNotes(e.target.value)}
                 maxLength={500}
                 rows={3}
-                className="bg-[var(--ks-paper)]"
+                className="bg-[var(--tp-paper)]"
               />
             </Field>
             {mode === "revision" && (

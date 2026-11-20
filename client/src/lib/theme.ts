@@ -60,8 +60,8 @@ export function contrastRatio(foreground: string, background: string): number {
 
 /** Preserve an admin-selected text hue only when it remains readable on every work surface. */
 export function readableDataColor(color: string): string {
-  const fallback = readCssToken("--ks-ink");
+  const fallback = readCssToken("--tp-ink");
   if (!/^#[\da-f]{3}(?:[\da-f]{3})?$/i.test(color)) return fallback;
-  const surfaces = ["--ks-paper", "--ks-bone", "--ks-raised", "--ks-gray-soft", "--ks-accent-soft"] as const;
+  const surfaces = ["--tp-paper", "--tp-bone", "--tp-raised", "--tp-gray-soft", "--tp-accent-soft"] as const;
   return surfaces.every(name => contrastRatio(color, readCssToken(name)) >= 4.5) ? color : fallback;
 }

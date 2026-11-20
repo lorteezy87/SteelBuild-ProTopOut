@@ -32,9 +32,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ConfirmButton, SimpleSelect } from "@/components/ks/Controls";
-import { EmptyState, ErrorState, Loading } from "@/components/ks/Layout";
-import { Pill, ProgressBar, ScheduleHealth } from "@/components/ks/Status";
+import { ConfirmButton, SimpleSelect } from "@/components/brand/Controls";
+import { EmptyState, ErrorState, Loading } from "@/components/brand/Layout";
+import { Pill, ProgressBar, ScheduleHealth } from "@/components/brand/Status";
 import {
   CreateTaskDrawer,
   InlineCell,
@@ -315,7 +315,7 @@ export default function Tasks() {
     move.isPending || indent.isPending || outdent.isPending || remove.isPending;
   return (
     <div className="flex min-h-full flex-col">
-      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--ks-rule)] bg-[var(--ks-paper)] px-5 py-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--tp-rule)] bg-[var(--tp-paper)] px-5 py-3">
         <div className="label-caps mr-2">Sequences & Tasks</div>
         <Button
           variant="outline"
@@ -350,7 +350,7 @@ export default function Tasks() {
           </Button>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--ks-rule)] px-5 py-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--tp-rule)] px-5 py-2">
         <div className="w-40">
           <SimpleSelect
             value={kind}
@@ -402,7 +402,7 @@ export default function Tasks() {
           Critical only
         </label>
         <Input
-          className="ml-auto h-8 w-52 bg-[var(--ks-paper)]"
+          className="ml-auto h-8 w-52 bg-[var(--tp-paper)]"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Task, WBS or location…"
@@ -414,7 +414,7 @@ export default function Tasks() {
       </div>
       {canEdit && checked.size > 0 && (
         <div
-          className="sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b border-[var(--ks-graphite)] bg-[var(--ks-solid)] px-5 py-2 text-white"
+          className="sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b border-[var(--tp-graphite)] bg-[var(--tp-solid)] px-5 py-2 text-white"
           role="toolbar"
           aria-label="Bulk actions for checked rows"
         >
@@ -459,7 +459,7 @@ export default function Tasks() {
           <Button
             size="sm"
             variant="ghost"
-            className="ml-auto h-7 text-white hover:bg-[var(--ks-solid-ink)]/10 hover:text-white"
+            className="ml-auto h-7 text-white hover:bg-[var(--tp-solid-ink)]/10 hover:text-white"
             onClick={() => setChecked(new Set())}
           >
             <X className="size-3.5" /> Clear
@@ -482,7 +482,7 @@ export default function Tasks() {
         />
       ) : (
         <div className="flex-1 overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th className="w-[56px] !pr-0">
@@ -538,7 +538,7 @@ export default function Tasks() {
                     key={t.id}
                     tabIndex={0}
                     aria-label={`${t.wbs ?? ""} ${t.name}`}
-                    className={`${taskId === t.id ? "is-selected" : checked.has(t.id) ? "is-checked" : ""} ${context ? "text-muted-foreground" : ""} ${drag.rowClass(t.id)} cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--ks-accent)]`}
+                    className={`${taskId === t.id ? "is-selected" : checked.has(t.id) ? "is-checked" : ""} ${context ? "text-muted-foreground" : ""} ${drag.rowClass(t.id)} cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--tp-accent)]`}
                     onClick={() => open(t.id)}
                     onKeyDown={e => rowKeys(e, t)}
                     {...drag.rowProps(t)}
@@ -558,7 +558,7 @@ export default function Tasks() {
                             {...drag.handleProps(t)}
                             role="button"
                             tabIndex={-1}
-                            className={`ks-grip flex h-6 w-4 items-center justify-center ${filtering || ops.pending ? "pointer-events-none opacity-30" : ""}`}
+                            className={`tp-grip flex h-6 w-4 items-center justify-center ${filtering || ops.pending ? "pointer-events-none opacity-30" : ""}`}
                             title={
                               filtering
                                 ? "Clear filters to drag rows"
@@ -575,7 +575,7 @@ export default function Tasks() {
                     </td>
                     <td className="num">
                       <button
-                        className="font-medium hover:text-[var(--ks-accent-ink)]"
+                        className="font-medium hover:text-[var(--tp-accent-ink)]"
                         onClick={e => {
                           e.stopPropagation();
                           open(t.id);
@@ -611,7 +611,7 @@ export default function Tasks() {
                           <span className="w-3.5" />
                         )}
                         <Icon
-                          className={`size-3.5 shrink-0 ${t.kind === "sequence" ? "text-[var(--ks-accent-ink)]" : "text-muted-foreground"}`}
+                          className={`size-3.5 shrink-0 ${t.kind === "sequence" ? "text-[var(--tp-accent-ink)]" : "text-muted-foreground"}`}
                         />
                         <div
                           className={`min-w-40 flex-1 ${t.isSummary ? "font-semibold" : ""}`}
@@ -699,7 +699,7 @@ export default function Tasks() {
                       }
                       className={
                         t.constraintViolated
-                          ? "hazard text-[var(--ks-red-strong)]"
+                          ? "hazard text-[var(--tp-red-strong)]"
                           : ""
                       }
                     >
@@ -784,7 +784,7 @@ export default function Tasks() {
                     <td>
                       {t.isCritical && !t.isSummary && (
                         <span
-                          className="font-semibold text-[var(--ks-red-strong)]"
+                          className="font-semibold text-[var(--tp-red-strong)]"
                           title={`Critical · ${t.totalFloat ?? 0} work days float`}
                         >
                           CP

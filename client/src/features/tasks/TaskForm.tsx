@@ -3,9 +3,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { DateInput, NumberInput, SimpleSelect } from "@/components/ks/Controls";
-import { CfDisplay, CfForm } from "@/components/ks/CustomFields";
-import { Field, Panel } from "@/components/ks/Layout";
+import { DateInput, NumberInput, SimpleSelect } from "@/components/brand/Controls";
+import { CfDisplay, CfForm } from "@/components/brand/CustomFields";
+import { Field, Panel } from "@/components/brand/Layout";
 import { errMsg } from "@/lib/format";
 import type { RouterOutputs } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
@@ -303,7 +303,7 @@ export function TaskForm({
           </Field>
         )}
         {draft.kind === "sequence" && (
-          <section className="grid gap-3 border-y border-[var(--ks-rule)] py-3 sm:col-span-2 sm:grid-cols-2">
+          <section className="grid gap-3 border-y border-[var(--tp-rule)] py-3 sm:col-span-2 sm:grid-cols-2">
             <h3 className="label-caps sm:col-span-2">
               Erection sequence · field progress
             </h3>
@@ -366,7 +366,7 @@ export function TaskForm({
         </Field>
       </div>
       {!!data.customFieldDefs.length && (
-        <section className="mt-4 border-t border-[var(--ks-rule)] pt-3">
+        <section className="mt-4 border-t border-[var(--tp-rule)] pt-3">
           <h3 className="label-caps mb-3">Custom fields</h3>
           {canEdit ? (
             <CfForm

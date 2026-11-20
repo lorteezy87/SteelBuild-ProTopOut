@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Plus, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import {
   EmptyState,
   ErrorState,
@@ -12,8 +12,8 @@ import {
   Loading,
   PageHeader,
   Panel,
-} from "@/components/ks/Layout";
-import { DeliveryRiskBadge, Pill } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { DeliveryRiskBadge, Pill } from "@/components/brand/Status";
 import { DeliveryDrawer } from "@/features/deliveries/DeliveryDrawer";
 import { errMsg, fmtDateShort, fmtNum, fmtTons } from "@/lib/format";
 import { useRefData } from "@/lib/ref";
@@ -103,10 +103,10 @@ export default function Deliveries() {
       />
       <div className="space-y-4 p-5">
         {notice && (
-          <div className="flex items-center gap-3 border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-3 py-2">
+          <div className="flex items-center gap-3 border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-3 py-2">
             Delay notice created.
             <Link
-              className="font-medium text-[var(--ks-accent-ink)] underline"
+              className="font-medium text-[var(--tp-accent-ink)] underline"
               href={`/jobs/${projectId}/logs/delay/${notice.id}`}
             >
               {notice.label} → Open notice
@@ -153,7 +153,7 @@ export default function Deliveries() {
           title="Load register"
           actions={<span className="num text-xs">{rows.length} loads</span>}
         >
-          <div className="flex flex-wrap gap-2 border-b border-[var(--ks-rule)] p-3">
+          <div className="flex flex-wrap gap-2 border-b border-[var(--tp-rule)] p-3">
             <div className="w-64">
               <SimpleSelect
                 value={sequence}
@@ -184,7 +184,7 @@ export default function Deliveries() {
             <Input
               aria-label="Search loads"
               placeholder="Load, fabricator, ticket, notes…"
-              className="max-w-xs bg-[var(--ks-paper)]"
+              className="max-w-xs bg-[var(--tp-paper)]"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -207,7 +207,7 @@ export default function Deliveries() {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="ks-table whitespace-nowrap">
+              <table className="tp-table whitespace-nowrap">
                 <thead>
                   <tr>
                     {[
@@ -243,7 +243,7 @@ export default function Deliveries() {
                         className={`num font-medium ${d.risk === "late" ? "hazard" : ""}`}
                       >
                         <button
-                          className="text-[var(--ks-accent-ink)]"
+                          className="text-[var(--tp-accent-ink)]"
                           onClick={() => setSelected(d.id)}
                         >
                           {d.loadNumber}

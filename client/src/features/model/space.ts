@@ -28,12 +28,12 @@ const UNO = /\bU\.?\s*N\.?\s*O\b|\bTYP/i;
 export type Tone = "auto" | "ok" | "add" | "col";
 /** [tone, label, CSS token, fallback hex] */
 export const TONES: [Tone, string, string, string][] = [
-  ["auto", "Needs review", "--ks-amber", "#e0a100"],
-  ["ok", "Accepted / fixed", "--ks-green", "#2f9e44"],
-  ["add", "Added by hand", "--ks-blue", "#1c7ed6"],
-  ["col", "Column (from its mark)", "--ks-ink-2", "#555c64"],
+  ["auto", "Needs review", "--tp-amber", "#e0a100"],
+  ["ok", "Accepted / fixed", "--tp-green", "#2f9e44"],
+  ["add", "Added by hand", "--tp-blue", "#1c7ed6"],
+  ["col", "Column (from its mark)", "--tp-ink-2", "#555c64"],
 ];
-export const SEL_COLOR = ["--ks-orange", "#e8590c"] as const;
+export const SEL_COLOR = ["--tp-orange", "#e8590c"] as const;
 
 export type Shape = { t: "I" | "box" | "joist"; d: number; b: number; tf?: number; tw?: number; unknown?: boolean };
 export type MPiece = {

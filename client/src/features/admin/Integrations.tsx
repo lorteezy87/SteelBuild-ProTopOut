@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RecordDrawer, ConfirmButton } from "@/components/ks/Controls";
+import { RecordDrawer, ConfirmButton } from "@/components/brand/Controls";
 import {
   Panel,
   Field,
@@ -11,8 +11,8 @@ import {
   ErrorState,
   EmptyState,
   TabStrip,
-} from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { trpc } from "@/lib/trpc";
 import type { RouterOutputs } from "@/lib/ref";
 import { errMsg, fmtDateTime } from "@/lib/format";
@@ -129,7 +129,7 @@ function Webhooks() {
       </div>
       <Panel title={`${q.data?.length ?? 0} endpoints`}>
         <div className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -253,7 +253,7 @@ function Webhooks() {
             )}
           </div>
           <Field label="Events">
-            <div className="border border-[var(--ks-rule)] p-3">
+            <div className="border border-[var(--tp-rule)] p-3">
               <Check
                 label="All events (*)"
                 checked={form.events.includes("*")}
@@ -285,7 +285,7 @@ function Webhooks() {
           </Field>
           {selected && (
             <>
-              <div className="border-t border-[var(--ks-rule)] pt-4">
+              <div className="border-t border-[var(--tp-rule)] pt-4">
                 <p className="mb-3 text-xs text-muted-foreground">
                   Stored secret: {selected.secret}. The original cannot be
                   retrieved. Rotate only after coordinating with your receiver.
@@ -322,7 +322,7 @@ function Deliveries({ id }: { id: number }) {
     <div className="space-y-3">
       <h3 className="label-caps">Recent delivery log · latest 100</h3>
       <div className="overflow-x-auto">
-        <table className="ks-table">
+        <table className="tp-table">
           <thead>
             <tr>
               <th>Event / sent</th>
@@ -381,7 +381,7 @@ function Deliveries({ id }: { id: number }) {
         </p>
       )}
       {detail && (
-        <div className="space-y-2 border bg-[var(--ks-bone)] p-3">
+        <div className="space-y-2 border bg-[var(--tp-bone)] p-3">
           <Field label="Delivery ID">
             <code className="text-xs">{detail.deliveryId}</code>
           </Field>
@@ -431,7 +431,7 @@ function AllTokens() {
       </p>
       <Panel title={`${q.data?.length ?? 0} tokens`}>
         <div className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>Owner</th>

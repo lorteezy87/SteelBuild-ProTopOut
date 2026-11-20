@@ -5,14 +5,14 @@ import {
   Loading,
   PageHeader,
   Panel,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import {
   PriorityBadge,
   ProgressBar,
   ScheduleHealth,
   SlaBadge,
   StateChip,
-} from "@/components/ks/Status";
+} from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { TaskDrawer } from "@/features/tasks/TaskDrawer";
 import { EntryState, sum } from "@/features/time/shared";
@@ -100,7 +100,7 @@ export default function MyWork() {
           />
           <Link
             href="/approvals"
-            className="block hover:outline hover:outline-[var(--ks-accent)]"
+            className="block hover:outline hover:outline-[var(--tp-accent)]"
           >
             <Kpi
               label="Pending approvals"
@@ -114,7 +114,7 @@ export default function MyWork() {
           title={`Timesheet · week of ${fmtDate(start)}`}
           actions={
             <Link
-              className="text-xs text-[var(--ks-blue)] hover:underline"
+              className="text-xs text-[var(--tp-blue)] hover:underline"
               href="/timesheet"
             >
               Review / submit week
@@ -150,7 +150,7 @@ export default function MyWork() {
                 </span>
               )}
               {time.data?.entries.some(entry => entry.state === "rejected") && (
-                <span className="text-xs text-[var(--ks-red-strong)]">
+                <span className="text-xs text-[var(--tp-red-strong)]">
                   Returned time needs correction.
                 </span>
               )}
@@ -158,7 +158,7 @@ export default function MyWork() {
           )}
         </Panel>
         {badges.error && <ErrorState error={badges.error} />}
-        <div className="label-caps pt-1 text-[var(--ks-ink)]">
+        <div className="label-caps pt-1 text-[var(--tp-ink)]">
           My tasks · scheduled finish
         </div>
         {tasks.isLoading ? (
@@ -184,7 +184,7 @@ export default function MyWork() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="ks-table min-w-[760px]">
+                  <table className="tp-table min-w-[760px]">
                     <thead>
                       <tr>
                         <th>Job</th>
@@ -337,7 +337,7 @@ function AssignedLogs({ apps }: { apps: RouterOutputs["ref"]["all"]["apps"] }) {
       )}
       {!!rows.length && (
         <div className="overflow-x-auto">
-          <table className="ks-table min-w-[800px]">
+          <table className="tp-table min-w-[800px]">
             <thead>
               <tr>
                 <th>Log / number</th>

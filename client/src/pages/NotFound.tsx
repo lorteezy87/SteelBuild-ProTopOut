@@ -32,22 +32,22 @@ export default function NotFound() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-[var(--ks-paper)]/80 backdrop-blur-sm">
+      <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-[var(--tp-paper)]/80 backdrop-blur-sm">
         <CardContent className="pt-8 pb-8 text-center">
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <div className="absolute inset-0 bg-[var(--ks-red-soft)] rounded-full animate-pulse" />
-              <AlertCircle className="relative h-16 w-16 text-[var(--ks-red-strong)]" />
+              <div className="absolute inset-0 bg-[var(--tp-red-soft)] rounded-full animate-pulse" />
+              <AlertCircle className="relative h-16 w-16 text-[var(--tp-red-strong)]" />
             </div>
           </div>
 
-          <h1 className="text-4xl font-bold text-[var(--ks-ink)] mb-2">404</h1>
+          <h1 className="text-4xl font-bold text-[var(--tp-ink)] mb-2">404</h1>
 
-          <h2 className="text-xl font-semibold text-[var(--ks-ink-2)] mb-4">
+          <h2 className="text-xl font-semibold text-[var(--tp-ink-2)] mb-4">
             Page Not Found
           </h2>
 
-          <p className="text-[var(--ks-muted)] mb-8 leading-relaxed">
+          <p className="text-[var(--tp-muted)] mb-8 leading-relaxed">
             Sorry, the page you are looking for doesn't exist.
             <br />
             It may have been moved or deleted.
@@ -59,7 +59,7 @@ export default function NotFound() {
           >
             <Button
               onClick={handleGoHome}
-              className="bg-primary hover:bg-[var(--ks-accent-deep)] text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+              className="bg-primary hover:bg-[var(--tp-accent-deep)] text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <Home className="w-4 h-4 mr-2" />
               Go Home

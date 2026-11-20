@@ -5,7 +5,7 @@ import { errMsg } from "@/lib/format";
 import { COMPANY_TYPES } from "@shared/domain";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/ks/Controls";
+import { ConfirmButton } from "@/components/brand/Controls";
 import {
   ReferenceEditor,
   DraftFields,
@@ -51,7 +51,7 @@ function Contacts({ id }: { id: number }) {
           New contact
         </Button>
       </div>
-      <table className="ks-table">
+      <table className="tp-table">
         <thead>
           <tr>
             <th>Name / title</th>
@@ -64,7 +64,7 @@ function Contacts({ id }: { id: number }) {
             <tr key={c.id}>
               <td>
                 <button
-                  className="text-left hover:text-[var(--ks-accent-ink)]"
+                  className="text-left hover:text-[var(--tp-accent-ink)]"
                   onClick={() => {
                     setEditing(c.id);
                     setDraft({
@@ -106,7 +106,7 @@ function Contacts({ id }: { id: number }) {
         </p>
       )}
       {editing !== undefined && (
-        <div className="space-y-3 border border-[var(--ks-rule)] p-3">
+        <div className="space-y-3 border border-[var(--tp-rule)] p-3">
           <DraftFields
             fields={[
               { key: "name", label: "Name", required: true },

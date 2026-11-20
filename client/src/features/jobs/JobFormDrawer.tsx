@@ -11,9 +11,9 @@ import {
   RecordDrawer,
   SimpleSelect,
   UserSelect,
-} from "@/components/ks/Controls";
-import { CfForm } from "@/components/ks/CustomFields";
-import { Field } from "@/components/ks/Layout";
+} from "@/components/brand/Controls";
+import { CfForm } from "@/components/brand/CustomFields";
+import { Field } from "@/components/brand/Layout";
 import { trpc } from "@/lib/trpc";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
 import { errMsg } from "@/lib/format";
@@ -350,7 +350,7 @@ export function JobFormDrawer({
           </Field>
         </div>
         <section>
-          <h3 className="label-caps mb-3 border-b border-[var(--ks-rule)] pb-2">
+          <h3 className="label-caps mb-3 border-b border-[var(--tp-rule)] pb-2">
             Job companies · fabrication by others
           </h3>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -367,7 +367,7 @@ export function JobFormDrawer({
         </section>
         {!data && (
           <section>
-            <h3 className="label-caps mb-3 border-b border-[var(--ks-rule)] pb-2">
+            <h3 className="label-caps mb-3 border-b border-[var(--tp-rule)] pb-2">
               Starter WBS
             </h3>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -401,7 +401,7 @@ export function JobFormDrawer({
         )}
         {!!fieldDefs.length && (
           <section>
-            <h3 className="label-caps mb-3 border-b border-[var(--ks-rule)] pb-2">
+            <h3 className="label-caps mb-3 border-b border-[var(--tp-rule)] pb-2">
               Custom fields
             </h3>
             <CfForm

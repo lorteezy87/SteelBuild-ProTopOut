@@ -1,7 +1,7 @@
-import { RecordDrawer } from "@/components/ks/Controls";
-import { CommentsPanel, FollowButton } from "@/components/ks/Collab";
-import { ErrorState, Field, Loading, Panel } from "@/components/ks/Layout";
-import { Pill, ProgressBar, ScheduleHealth } from "@/components/ks/Status";
+import { RecordDrawer } from "@/components/brand/Controls";
+import { CommentsPanel, FollowButton } from "@/components/brand/Collab";
+import { ErrorState, Field, Loading, Panel } from "@/components/brand/Layout";
+import { Pill, ProgressBar, ScheduleHealth } from "@/components/brand/Status";
 import { fmtDate, fmtNum, fmtPct } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
 import { TASK_KINDS } from "@shared/domain";
@@ -99,7 +99,7 @@ export function TaskDrawer({
               </Field>
               <Field label="Baseline finish variance">
                 <span
-                  className={`num ${variance != null && variance > 0 ? "text-[var(--ks-red-strong)]" : variance != null && variance < 0 ? "text-[var(--ks-green)]" : ""}`}
+                  className={`num ${variance != null && variance > 0 ? "text-[var(--tp-red-strong)]" : variance != null && variance < 0 ? "text-[var(--tp-green)]" : ""}`}
                 >
                   {baseline
                     ? varianceLabel(variance, "work days")

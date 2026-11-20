@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { CommentsPanel } from "@/components/ks/Collab";
+import { CommentsPanel } from "@/components/brand/Collab";
 import {
   ConfirmButton,
   DateInput,
   RecordDrawer,
   UserSelect,
-} from "@/components/ks/Controls";
-import { ErrorState, Field, Loading, Panel } from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Controls";
+import { ErrorState, Field, Loading, Panel } from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -290,14 +290,14 @@ function ReportForm({
         </div>
       </div>
       <div
-        className={`border border-[var(--ks-rule)] px-3 py-2 text-xs ${status === "approved" ? "bg-[var(--ks-green-soft)]" : "bg-[var(--ks-bone)]"}`}
+        className={`border border-[var(--tp-rule)] px-3 py-2 text-xs ${status === "approved" ? "bg-[var(--tp-green-soft)]" : "bg-[var(--tp-bone)]"}`}
       >
         {status === "approved"
           ? `Posted to time entries and sequences · Approved by ${userName(report?.approvedBy)} ${fmtDateTime(report?.approvedAt)}`
           : "Approval posts crew hours to time entries, equipment cost to the job, and tons / pieces erected to sequences. Draft and submitted reports do not post progress."}
       </div>
       {report?.rejectReason && (
-        <div className="border border-[color-mix(in_srgb,var(--ks-red)_35%,var(--ks-rule))] bg-[var(--ks-red-soft)] p-3">
+        <div className="border border-[color-mix(in_srgb,var(--tp-red)_35%,var(--tp-rule))] bg-[var(--tp-red-soft)] p-3">
           <div className="label-caps">Returned for correction</div>
           <p className="mt-1 whitespace-pre-wrap">{report.rejectReason}</p>
         </div>

@@ -97,7 +97,7 @@ function AlertDialogTitle({
   return (
     <AlertDialogPrimitive.Title
       data-slot="alert-dialog-title"
-      className={cn("text-[17px] font-semibold leading-snug tracking-[-0.01em] text-[var(--ks-ink)]", className)}
+      className={cn("text-[17px] font-semibold leading-snug tracking-[-0.01em] text-[var(--tp-ink)]", className)}
       {...props}
     />
   );

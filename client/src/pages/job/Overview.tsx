@@ -4,13 +4,13 @@ import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ConfirmButton } from "@/components/ks/Controls";
-import { CfDisplay } from "@/components/ks/CustomFields";
+import { ConfirmButton } from "@/components/brand/Controls";
+import { CfDisplay } from "@/components/brand/CustomFields";
 import {
   ActivityFeed,
   CommentsPanel,
   FollowButton,
-} from "@/components/ks/Collab";
+} from "@/components/brand/Collab";
 import {
   EmptyState,
   ErrorState,
@@ -18,13 +18,13 @@ import {
   Kpi,
   Loading,
   Panel,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import {
   CostHealth,
   DeliveryRiskBadge,
   ProgressBar,
   ScheduleHealth,
-} from "@/components/ks/Status";
+} from "@/components/brand/Status";
 import { JobFormDrawer } from "@/features/jobs/JobFormDrawer";
 import { deadlineVariance, varianceLabel } from "@/features/jobs/metrics";
 import { TaskDrawer } from "@/features/tasks/TaskDrawer";
@@ -165,7 +165,7 @@ export default function Overview() {
             actions={
               <Link
                 href={`/jobs/${projectId}/tasks`}
-                className="text-[12px] text-[var(--ks-accent-ink)]"
+                className="text-[12px] text-[var(--tp-accent-ink)]"
               >
                 All sequences & tasks →
               </Link>
@@ -182,7 +182,7 @@ export default function Overview() {
               />
             ) : (
               <div className="overflow-x-auto">
-                <table className="ks-table">
+                <table className="tp-table">
                   <thead>
                     <tr>
                       <th>Sequence / location</th>
@@ -265,7 +265,7 @@ export default function Overview() {
               actions={
                 <Link
                   href={`/jobs/${projectId}/logs`}
-                  className="text-[12px] text-[var(--ks-accent-ink)]"
+                  className="text-[12px] text-[var(--tp-accent-ink)]"
                 >
                   View logs →
                 </Link>
@@ -281,7 +281,7 @@ export default function Overview() {
                   body="RFIs, submittals and notices will appear here."
                 />
               ) : (
-                <table className="ks-table">
+                <table className="tp-table">
                   <thead>
                     <tr>
                       <th>Log</th>
@@ -298,19 +298,19 @@ export default function Overview() {
                           <td>
                             <Link
                               href={`/jobs/${projectId}/logs/${appById(l.appId)?.key ?? ""}`}
-                              className="font-medium hover:text-[var(--ks-accent-ink)]"
+                              className="font-medium hover:text-[var(--tp-accent-ink)]"
                             >
                               {appById(l.appId)?.pluralName ?? `App ${l.appId}`}
                             </Link>
                           </td>
                           <td className="right num">{l.open}</td>
                           <td
-                            className={`right num ${l.atRisk ? "text-[var(--ks-amber)]" : ""}`}
+                            className={`right num ${l.atRisk ? "text-[var(--tp-amber)]" : ""}`}
                           >
                             {l.atRisk}
                           </td>
                           <td
-                            className={`right num ${l.delayed ? "hazard text-[var(--ks-red-strong)]" : ""}`}
+                            className={`right num ${l.delayed ? "hazard text-[var(--tp-red-strong)]" : ""}`}
                           >
                             {l.delayed}
                           </td>
@@ -418,7 +418,7 @@ export default function Overview() {
           </div>
           <CfDisplay defs={data.customFieldDefs} values={data.customFields} />
           {can("project.delete") && (
-            <div className="border-t border-[var(--ks-rule)] pt-3">
+            <div className="border-t border-[var(--tp-rule)] pt-3">
               <ConfirmButton
                 destructive
                 title={`Delete ${p.code ?? p.name}?`}

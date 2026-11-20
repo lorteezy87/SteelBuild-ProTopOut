@@ -5,7 +5,7 @@ import {
   Loading,
   Panel,
   TitleBlock,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import { FinancialTransactions } from "@/features/financials/FinancialTransactions";
 import { fmtHours, fmtMoney, fmtNum, fmtPct, fmtTons } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
@@ -66,7 +66,7 @@ export default function Financials() {
             {
               label: "Approved COs",
               value: (
-                <span className="num text-[var(--ks-green)]">
+                <span className="num text-[var(--tp-green)]">
                   + {fmtMoney(data.changeOrders.coApproved)}
                 </span>
               ),
@@ -74,7 +74,7 @@ export default function Financials() {
             {
               label: "Pending COs · excluded",
               value: (
-                <span className="num text-[var(--ks-amber)]">
+                <span className="num text-[var(--tp-amber)]">
                   {fmtMoney(data.changeOrders.coPending)}
                 </span>
               ),
@@ -226,7 +226,7 @@ export default function Financials() {
       <div className="grid items-start gap-4 xl:grid-cols-3">
         <Panel title="Labor by time code">
           <div className="overflow-x-auto">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>Time code</th>
@@ -255,7 +255,7 @@ export default function Financials() {
           )}
         </Panel>
         <Panel title="Expenses by code">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>Expense code</th>
@@ -277,13 +277,13 @@ export default function Financials() {
               body="Approve job expenses to include them here."
             />
           )}
-          <p className="border-t border-[var(--ks-rule)] px-3 py-2 text-[11px] text-muted-foreground">
+          <p className="border-t border-[var(--tp-rule)] px-3 py-2 text-[11px] text-muted-foreground">
             Gross approved / invoiced amounts, including non-costable expenses.
           </p>
         </Panel>
         <Panel title="Equipment cost">
           <div className="overflow-x-auto">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>Unit</th>
@@ -325,7 +325,7 @@ export default function Financials() {
                 data={data.monthlyLabor}
                 margin={{ top: 8, right: 16, bottom: 4, left: 8 }}
               >
-                <CartesianGrid vertical={false} stroke="var(--ks-rule)" />
+                <CartesianGrid vertical={false} stroke="var(--tp-rule)" />
                 <XAxis
                   dataKey="month"
                   tick={{ fontSize: 11, fontFamily: "IBM Plex Mono" }}
@@ -338,15 +338,15 @@ export default function Financials() {
                   width={80}
                 />
                 <Tooltip
-                  cursor={{ fill: "var(--ks-gray-soft)" }}
-                  labelStyle={{ color: "var(--ks-ink)" }}
-                  itemStyle={{ color: "var(--ks-ink-2)" }}
+                  cursor={{ fill: "var(--tp-gray-soft)" }}
+                  labelStyle={{ color: "var(--tp-ink)" }}
+                  itemStyle={{ color: "var(--tp-ink-2)" }}
                   formatter={value => [
                     fmtMoney(Number(value), { cents: true }),
                     "Labor cost",
                   ]}
                   contentStyle={{
-                    border: "1px solid var(--ks-rule)",
+                    border: "1px solid var(--tp-rule)",
                     borderRadius: 3,
                     fontSize: 12,
                     background: "var(--popover)",

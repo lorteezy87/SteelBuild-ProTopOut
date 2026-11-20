@@ -1,9 +1,9 @@
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import {
   PriorityBadge,
   ProgressBar,
   ScheduleHealth,
-} from "@/components/ks/Status";
+} from "@/components/brand/Status";
 import { fmtDate, fmtTons } from "@/lib/format";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
 import { cn } from "@/lib/utils";
@@ -63,8 +63,8 @@ export function TaskCard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       className={cn(
-        "relative rounded-[3px] border border-[var(--ks-rule)] bg-[var(--ks-paper)] p-3",
-        selected && "border-[var(--ks-accent)]",
+        "relative rounded-[3px] border border-[var(--tp-rule)] bg-[var(--tp-paper)] p-3",
+        selected && "border-[var(--tp-accent)]",
         dragging && "opacity-40",
         pending && "opacity-60"
       )}
@@ -72,8 +72,8 @@ export function TaskCard({
         borderLeftWidth: 3,
         borderLeftColor:
           task.kind === "sequence"
-            ? "var(--ks-accent)"
-            : "var(--ks-graphite-3)",
+            ? "var(--tp-accent)"
+            : "var(--tp-graphite-3)",
       }}
       aria-busy={pending}
       data-board-task={task.id}
@@ -88,7 +88,7 @@ export function TaskCard({
       <button
         type="button"
         onClick={onOpen}
-        className="mb-2 w-full text-left text-[13px] font-semibold leading-snug hover:text-[var(--ks-accent-ink)] focus-visible:outline-2 focus-visible:outline-[var(--ks-accent)]"
+        className="mb-2 w-full text-left text-[13px] font-semibold leading-snug hover:text-[var(--tp-accent-ink)] focus-visible:outline-2 focus-visible:outline-[var(--tp-accent)]"
       >
         {task.name}
       </button>
@@ -121,7 +121,7 @@ export function TaskCard({
         <span className="num">{fmtDate(task.finishDate)}</span>
         {task.kind === "sequence" && (
           <span
-            className="num ml-auto text-[var(--ks-accent-ink)]"
+            className="num ml-auto text-[var(--tp-accent-ink)]"
             title="Erected / planned tons"
           >
             {fmtTons(task.erectedTons)} / {fmtTons(task.plannedTons)}

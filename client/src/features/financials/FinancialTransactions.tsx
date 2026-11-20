@@ -1,11 +1,11 @@
-import { ConfirmButton, RecordDrawer } from "@/components/ks/Controls";
+import { ConfirmButton, RecordDrawer } from "@/components/brand/Controls";
 import {
   EmptyState,
   ErrorState,
   Field,
   Loading,
   Panel,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EntryState } from "@/features/time/shared";
 import { errMsg, fmtDate, fmtHours, fmtMoney } from "@/lib/format";
@@ -59,7 +59,7 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="ks-table min-w-[850px]">
+            <table className="tp-table min-w-[850px]">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -133,7 +133,7 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="ks-table min-w-[750px]">
+            <table className="tp-table min-w-[750px]">
               <thead>
                 <tr>
                   <th>
@@ -187,7 +187,7 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
                     <td>
                       {row.e.source === "daily_report" ? (
                         <Link
-                          className="text-[var(--ks-blue)] hover:underline"
+                          className="text-[var(--tp-blue)] hover:underline"
                           href={`/jobs/${projectId}/daily/${row.e.sourceId}`}
                         >
                           Daily report #{row.e.sourceId}
@@ -258,7 +258,7 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
             </Field>
             {selected.e.rejectReason && (
               <Field label="Rejection reason" className="sm:col-span-2">
-                <span className="text-[var(--ks-red-strong)]">
+                <span className="text-[var(--tp-red-strong)]">
                   {selected.e.rejectReason}
                 </span>
               </Field>
@@ -269,7 +269,7 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
                   href={selected.e.receiptUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[var(--ks-blue)]"
+                  className="inline-flex items-center gap-1 text-[var(--tp-blue)]"
                 >
                   View receipt
                   <ExternalLink className="size-3" />

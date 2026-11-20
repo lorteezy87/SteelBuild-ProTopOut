@@ -4,7 +4,7 @@ import { Check, Loader2, Pencil, RotateCcw, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FIELD_MAX, plural, type Kind, type ReadRec } from "./domain";
@@ -19,7 +19,7 @@ type Props = {
   onBusyChange?: (busy: boolean) => void;
 };
 type Confirmation = { type: "edit" | "delete"; recs: ReadRec[]; keys: string[] };
-const actionClass = "border-[var(--ks-rule)] bg-[var(--ks-paper)] text-[var(--ks-ink)] hover:bg-[var(--ks-accent-soft)]";
+const actionClass = "border-[var(--tp-rule)] bg-[var(--tp-paper)] text-[var(--tp-ink)] hover:bg-[var(--tp-accent-soft)]";
 
 /** Shared by Pieces, Lift list and the 3D multi-selection contract. Never includes hidden keys. */
 export function PieceBulkBar({ api, recs, keys, onDone, hiddenCount = 0, onBusyChange }: Props) {
@@ -73,7 +73,7 @@ export function PieceBulkBar({ api, recs, keys, onDone, hiddenCount = 0, onBusyC
 
   return (
     <>
-      <div role="region" aria-label="Bulk piece actions" aria-busy={busy} className="sticky bottom-0 z-20 flex flex-col gap-2 rounded-md border border-[var(--ks-rule)] bg-[var(--ks-graphite)] px-3 py-2.5 text-white shadow-md">
+      <div role="region" aria-label="Bulk piece actions" aria-busy={busy} className="sticky bottom-0 z-20 flex flex-col gap-2 rounded-md border border-[var(--tp-rule)] bg-[var(--tp-graphite)] px-3 py-2.5 text-white shadow-md">
         <div className="flex flex-wrap items-center gap-2">
           <span role="status" className="mr-2 text-[12px] font-medium">
             {plural(uniqueKeys.length, "piece")} selected{hiddenCount ? " · " + hiddenCount + " hidden by filters, not included" : ""}
@@ -83,8 +83,8 @@ export function PieceBulkBar({ api, recs, keys, onDone, hiddenCount = 0, onBusyC
           <Button size="sm" variant="outline" className={actionClass} disabled={disabled} onClick={() => void run({ type: "review" })}><RotateCcw />Needs review</Button>
           <Button size="sm" variant="outline" className={actionClass} disabled={disabled} onClick={() => void run({ type: "reject" })}>Reject</Button>
           <Button size="sm" variant="outline" className={actionClass} disabled={disabled} onClick={() => openConfirm("edit")}><Pencil />Edit…</Button>
-          <Button size="sm" variant="outline" className={actionClass + " text-[var(--ks-red-strong)]"} disabled={disabled} onClick={() => openConfirm("delete")}><Trash2 />Delete…</Button>
-          <Button size="sm" variant="ghost" className="ml-auto text-white hover:bg-[var(--ks-graphite-2)] hover:text-white" disabled={busy} onClick={() => { setFailures([]); onDone(); }}><X />Clear selection</Button>
+          <Button size="sm" variant="outline" className={actionClass + " text-[var(--tp-red-strong)]"} disabled={disabled} onClick={() => openConfirm("delete")}><Trash2 />Delete…</Button>
+          <Button size="sm" variant="ghost" className="ml-auto text-white hover:bg-[var(--tp-graphite-2)] hover:text-white" disabled={busy} onClick={() => { setFailures([]); onDone(); }}><X />Clear selection</Button>
         </div>
         {failures.length > 0 && <div role="alert" className="max-h-36 overflow-auto text-[12px]">
           <p className="font-medium">Some pages were not changed. Selection kept; review the failed pages before trying again.</p>
@@ -92,7 +92,7 @@ export function PieceBulkBar({ api, recs, keys, onDone, hiddenCount = 0, onBusyC
         </div>}
       </div>
       <Dialog open={confirm?.type === "edit"} onOpenChange={open => { if (!open && !busy) setConfirm(null); }}>
-        <DialogContent className="bg-[var(--ks-paper)] text-[var(--ks-ink)]">
+        <DialogContent className="bg-[var(--tp-paper)] text-[var(--tp-ink)]">
           <DialogHeader>
             <DialogTitle>Edit {plural(confirm?.keys.length ?? 0, "piece")}</DialogTitle>
             <DialogDescription>Leave fields unchanged unless selected below. Changed pieces count as fixed; added-by-hand pieces stay added. Geometry and length stay unchanged. Weights update from the new mark, size and kind.</DialogDescription>
@@ -100,11 +100,11 @@ export function PieceBulkBar({ api, recs, keys, onDone, hiddenCount = 0, onBusyC
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2 text-[13px]"><Checkbox checked={setMark} disabled={busy} onCheckedChange={v => enableMark(v === true)} />Set mark</label>
-              <Input aria-label="Bulk piece mark" maxLength={FIELD_MAX.mark} disabled={busy || !setMark} placeholder={setMark ? "Blank clears the mark" : "Leave unchanged"} value={mark} onChange={e => editMark(e.target.value)} className="num bg-[var(--ks-paper)]" />
+              <Input aria-label="Bulk piece mark" maxLength={FIELD_MAX.mark} disabled={busy || !setMark} placeholder={setMark ? "Blank clears the mark" : "Leave unchanged"} value={mark} onChange={e => editMark(e.target.value)} className="num bg-[var(--tp-paper)]" />
             </div>
             <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2 text-[13px]"><Checkbox checked={setSize} disabled={busy} onCheckedChange={v => enableSize(v === true)} />Set size</label>
-              <Input aria-label="Bulk piece size" maxLength={FIELD_MAX.size} disabled={busy || !setSize} placeholder={setSize ? "Blank clears the size" : "Leave unchanged"} value={size} onChange={e => editSize(e.target.value)} className="num bg-[var(--ks-paper)]" />
+              <Input aria-label="Bulk piece size" maxLength={FIELD_MAX.size} disabled={busy || !setSize} placeholder={setSize ? "Blank clears the size" : "Leave unchanged"} value={size} onChange={e => editSize(e.target.value)} className="num bg-[var(--tp-paper)]" />
             </div>
             <label className="flex flex-col gap-2 text-[13px]">Kind
               <SimpleSelect value={kind || "unchanged"} onChange={v => { if (!busy) editKind(v === "beam" || v === "joist" ? v : ""); }} options={[{ value: "unchanged", label: "Leave unchanged" }, { value: "beam", label: "Beam" }, { value: "joist", label: "Joist" }]} />
@@ -117,7 +117,7 @@ export function PieceBulkBar({ api, recs, keys, onDone, hiddenCount = 0, onBusyC
         </DialogContent>
       </Dialog>
       <AlertDialog open={confirm?.type === "delete"} onOpenChange={open => { if (!open && !busy) setConfirm(null); }}>
-        <AlertDialogContent className="bg-[var(--ks-paper)] text-[var(--ks-ink)]">
+        <AlertDialogContent className="bg-[var(--tp-paper)] text-[var(--tp-ink)]">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {plural(facts.count, "piece")}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -127,7 +127,7 @@ export function PieceBulkBar({ api, recs, keys, onDone, hiddenCount = 0, onBusyC
               {facts.requiresDelete && " Type DELETE to confirm."}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {facts.requiresDelete && <Input aria-label="Type DELETE to confirm piece deletion" autoComplete="off" placeholder="DELETE" value={deleteText} disabled={busy} onChange={e => setDeleteText(e.target.value)} className="num bg-[var(--ks-paper)]" />}
+          {facts.requiresDelete && <Input aria-label="Type DELETE to confirm piece deletion" autoComplete="off" placeholder="DELETE" value={deleteText} disabled={busy} onChange={e => setDeleteText(e.target.value)} className="num bg-[var(--tp-paper)]" />}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
             <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={busy || !facts.count || (facts.requiresDelete && deleteText !== "DELETE")} onClick={e => { e.preventDefault(); if (confirm) void run({ type: "delete" }, confirm); }}>{busy ? "Deleting…" : "Delete pieces"}</AlertDialogAction>

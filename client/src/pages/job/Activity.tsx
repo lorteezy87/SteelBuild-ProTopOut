@@ -4,9 +4,9 @@ import { RefreshCw, Activity as ActivityIcon } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { fmtAgo, fmtDateTime, initials } from "@/lib/format";
 import { useJob } from "./JobContext";
-import { Panel, Loading, ErrorState, EmptyState } from "@/components/ks/Layout";
-import { SimpleSelect } from "@/components/ks/Controls";
-import { Pill } from "@/components/ks/Status";
+import { Panel, Loading, ErrorState, EmptyState } from "@/components/brand/Layout";
+import { SimpleSelect } from "@/components/brand/Controls";
+import { Pill } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { RouterOutputs } from "@/lib/ref";
@@ -101,7 +101,7 @@ export default function Activity() {
           onChange={e => setSearch(e.target.value)}
           placeholder="Search activity…"
           aria-label="Search activity"
-          className="w-60 bg-[var(--ks-paper)]"
+          className="w-60 bg-[var(--tp-paper)]"
         />
         <div className="w-40">
           <SimpleSelect
@@ -176,9 +176,9 @@ export default function Activity() {
             {rows.map(e => (
               <li
                 key={e.id}
-                className="flex gap-3 border-b border-[var(--ks-rule)] px-4 py-3 last:border-0"
+                className="flex gap-3 border-b border-[var(--tp-rule)] px-4 py-3 last:border-0"
               >
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-[3px] bg-[var(--ks-graphite)] text-[11px] font-semibold text-white">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-[3px] bg-[var(--tp-graphite)] text-[11px] font-semibold text-white">
                   {initials(e.userName ?? "System")}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -199,7 +199,7 @@ export default function Activity() {
                   </div>
                   <Link
                     href={eventLink(e, projectId)}
-                    className="mt-1 block text-[13px] hover:text-[var(--ks-accent-ink)] hover:underline"
+                    className="mt-1 block text-[13px] hover:text-[var(--tp-accent-ink)] hover:underline"
                   >
                     {e.summary}
                   </Link>
@@ -212,7 +212,7 @@ export default function Activity() {
           </ol>
         )}
         {data.length >= Number(limit) && (
-          <div className="border-t border-[var(--ks-rule)] px-4 py-2 text-xs text-muted-foreground">
+          <div className="border-t border-[var(--tp-rule)] px-4 py-2 text-xs text-muted-foreground">
             Showing the latest {limit} events. Filters apply to these events
             only.
             {limit !== "200" && (

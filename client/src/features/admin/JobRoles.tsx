@@ -1,7 +1,7 @@
 import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { fmtMoney } from "@/lib/format";
-import { Pill } from "@/components/ks/Status";
+import { Pill } from "@/components/brand/Status";
 import { ReferenceEditor, text, number, flag } from "./Editor";
 export default function JobRoles() {
   const { ref } = useRefData();

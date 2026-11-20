@@ -1,4 +1,4 @@
-import { EmptyState } from "@/components/ks/Layout";
+import { EmptyState } from "@/components/brand/Layout";
 import { LogsWorkspace } from "@/features/logs/LogsWorkspace";
 import { useJob } from "./JobContext";
 

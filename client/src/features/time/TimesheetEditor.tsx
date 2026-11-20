@@ -2,9 +2,9 @@ import {
   ConfirmButton,
   RecordDrawer,
   SimpleSelect,
-} from "@/components/ks/Controls";
-import { EmptyState, Field, Kpi, Panel } from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Controls";
+import { EmptyState, Field, Kpi, Panel } from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { addDays, dow, errMsg, fmtDate, fmtHours } from "@/lib/format";
@@ -140,7 +140,7 @@ export function TimesheetEditor({
       {data.timeLockedThrough && (
         <div
           role="status"
-          className="flex items-start gap-2 border border-[var(--ks-rule)] bg-[var(--ks-amber-soft)] p-3 text-xs"
+          className="flex items-start gap-2 border border-[var(--tp-rule)] bg-[var(--tp-amber-soft)] p-3 text-xs"
         >
           <LockKeyhole className="mt-0.5 size-3.5 shrink-0" />
           <div>
@@ -222,13 +222,13 @@ export function TimesheetEditor({
         {!valid && (
           <div
             role="alert"
-            className="border-b bg-[var(--ks-red-soft)] p-3 text-[var(--ks-red-strong)]"
+            className="border-b bg-[var(--tp-red-soft)] p-3 text-[var(--tp-red-strong)]"
           >
             Each day must total 24 hours or less. Maximum 60 editable rows.
           </div>
         )}
         <div className="overflow-x-auto">
-          <table className="ks-table min-w-[1050px]">
+          <table className="tp-table min-w-[1050px]">
             <thead>
               <tr>
                 <th className="min-w-64">Job / task / log item</th>
@@ -272,7 +272,7 @@ export function TimesheetEditor({
                       </div>
                       {row.source === "daily_report" ? (
                         <Link
-                          className="mt-1 inline-flex items-center gap-1 text-xs text-[var(--ks-blue)]"
+                          className="mt-1 inline-flex items-center gap-1 text-xs text-[var(--tp-blue)]"
                           href={`/jobs/${row.projectId}/daily/${row.sourceId}`}
                         >
                           <LockKeyhole className="size-3" />
@@ -309,7 +309,7 @@ export function TimesheetEditor({
                     {row.hours.map((hours, di) => (
                       <td
                         key={di}
-                        className={`right align-top ${lockedDays[di] ? "bg-[var(--ks-gray-soft)]" : ""}`}
+                        className={`right align-top ${lockedDays[di] ? "bg-[var(--tp-gray-soft)]" : ""}`}
                       >
                         {row.editable && !lockedDays[di] ? (
                           <Input
@@ -365,7 +365,7 @@ export function TimesheetEditor({
                             .map(entry => (
                               <span
                                 key={entry.id}
-                                className="max-w-24 text-left text-[10px] text-[var(--ks-red-strong)]"
+                                className="max-w-24 text-left text-[10px] text-[var(--tp-red-strong)]"
                               >
                                 {entry.rejectReason}
                               </span>
@@ -396,7 +396,7 @@ export function TimesheetEditor({
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t bg-[var(--ks-bone)]">
+              <tr className="border-t bg-[var(--tp-bone)]">
                 <td colSpan={2} className="font-semibold">
                   Day totals / capacity
                 </td>
@@ -404,7 +404,7 @@ export function TimesheetEditor({
                   <td key={i} className="right num">
                     <div
                       className={
-                        hours > 24 ? "text-[var(--ks-red-strong)]" : ""
+                        hours > 24 ? "text-[var(--tp-red-strong)]" : ""
                       }
                     >
                       {fmtHours(hours)}

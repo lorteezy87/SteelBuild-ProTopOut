@@ -1,6 +1,6 @@
-import { SimpleSelect } from "@/components/ks/Controls";
-import { EmptyState, ErrorState, Loading } from "@/components/ks/Layout";
-import { PriorityBadge } from "@/components/ks/Status";
+import { SimpleSelect } from "@/components/brand/Controls";
+import { EmptyState, ErrorState, Loading } from "@/components/brand/Layout";
+import { PriorityBadge } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import {
   BOARD_DRAG_TYPE,
@@ -23,10 +23,10 @@ import { useJob, useJobInvalidate, useSearchParam } from "./JobContext";
 const STATUSES = Object.entries(TASK_STATUSES) as [TaskStatus, string][];
 const PRIORITY_ORDER = ["critical", "high", "normal", "low"];
 const STATUS_COLORS: Record<TaskStatus, string> = {
-  not_started: "var(--ks-graphite-3)",
-  in_progress: "var(--ks-accent)",
-  blocked: "var(--ks-red-strong)",
-  done: "var(--ks-green)",
+  not_started: "var(--tp-graphite-3)",
+  in_progress: "var(--tp-accent)",
+  blocked: "var(--tp-red-strong)",
+  done: "var(--tp-green)",
 };
 
 export default function Board() {
@@ -162,7 +162,7 @@ export default function Board() {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="mr-auto flex items-center gap-2">
           <Columns3 className="size-4 text-muted-foreground" />
-          <h2 className="label-caps text-[11px] text-[var(--ks-ink)]">
+          <h2 className="label-caps text-[11px] text-[var(--tp-ink)]">
             Task board
           </h2>
           <span className="num text-[11.5px] text-muted-foreground">
@@ -230,17 +230,17 @@ export default function Board() {
       ) : (
         <div
           ref={boardRef}
-          className="max-h-[calc(100vh-330px)] min-h-[300px] overflow-auto border border-[var(--ks-rule)] bg-[var(--ks-bone)]"
+          className="max-h-[calc(100vh-330px)] min-h-[300px] overflow-auto border border-[var(--tp-rule)] bg-[var(--tp-bone)]"
         >
           <div className="min-w-[980px]">
-            <div className="sticky top-0 z-10 grid grid-cols-4 gap-px border-b border-[var(--ks-rule)] bg-[var(--ks-rule)]">
+            <div className="sticky top-0 z-10 grid grid-cols-4 gap-px border-b border-[var(--tp-rule)] bg-[var(--tp-rule)]">
               {STATUSES.map(([status, label]) => (
                 <div
                   key={status}
-                  className="flex items-center gap-2 bg-[var(--ks-paper)] px-3 py-3"
+                  className="flex items-center gap-2 bg-[var(--tp-paper)] px-3 py-3"
                   style={{ borderTop: `3px solid ${STATUS_COLORS[status]}` }}
                 >
-                  <span className="label-caps text-[11px] text-[var(--ks-ink)]">
+                  <span className="label-caps text-[11px] text-[var(--tp-ink)]">
                     {label}
                   </span>
                   <span className="num ml-auto text-[12px] text-muted-foreground">
@@ -265,14 +265,14 @@ export default function Board() {
                   }
                 >
                   {swimlanes && (
-                    <div className="flex items-center gap-2 border-b border-[var(--ks-rule)] bg-[var(--ks-gray-soft)] px-3 py-1.5">
+                    <div className="flex items-center gap-2 border-b border-[var(--tp-rule)] bg-[var(--tp-gray-soft)] px-3 py-1.5">
                       <PriorityBadge value={priority} />
                       <span className="num text-[11px] text-muted-foreground">
                         {laneTasks.length} tasks
                       </span>
                     </div>
                   )}
-                  <div className="grid grid-cols-4 divide-x divide-[var(--ks-rule)] border-b border-[var(--ks-rule)]">
+                  <div className="grid grid-cols-4 divide-x divide-[var(--tp-rule)] border-b border-[var(--tp-rule)]">
                     {STATUSES.map(([status, label]) => {
                       const key = `${priority}:${status}`;
                       const cards = laneTasks.filter(t => t.status === status);
@@ -282,7 +282,7 @@ export default function Board() {
                           className={cn(
                             "min-h-[150px] space-y-2 p-2",
                             dropTarget === key &&
-                              "bg-[var(--ks-accent-soft)] outline outline-1 -outline-offset-1 outline-[var(--ks-accent)]"
+                              "bg-[var(--tp-accent-soft)] outline outline-1 -outline-offset-1 outline-[var(--tp-accent)]"
                           )}
                           aria-label={`${priority === "all" ? "" : priority + " priority — "}${label}`}
                           onDragOver={event => {

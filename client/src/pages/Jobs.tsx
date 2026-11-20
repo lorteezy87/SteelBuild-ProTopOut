@@ -4,19 +4,19 @@ import { ArrowDown, ArrowUp, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import {
   EmptyState,
   ErrorState,
   Loading,
   PageHeader,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import {
   CostHealth,
   Pill,
   ProgressBar,
   ScheduleHealth,
-} from "@/components/ks/Status";
+} from "@/components/brand/Status";
 import { JobFormDrawer } from "@/features/jobs/JobFormDrawer";
 import { errMsg, fmtDateShort, fmtPct, fmtTons } from "@/lib/format";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
@@ -140,14 +140,14 @@ export default function Jobs() {
           </>
         }
       />
-      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--ks-rule)] px-5 py-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--tp-rule)] px-5 py-3">
         {Object.entries(PROJECT_STATES).map(([key, label]) => (
           <Button
             key={key}
             size="sm"
             variant={states.includes(key) ? "secondary" : "outline"}
             className={
-              states.includes(key) ? "ring-1 ring-inset ring-[var(--ks-accent-ink)]" : ""
+              states.includes(key) ? "ring-1 ring-inset ring-[var(--tp-accent-ink)]" : ""
             }
             aria-pressed={states.includes(key)}
             onClick={() =>
@@ -174,7 +174,7 @@ export default function Jobs() {
         </div>
         <Input
           aria-label="Search jobs"
-          className="h-8 w-60 bg-[var(--ks-paper)]"
+          className="h-8 w-60 bg-[var(--tp-paper)]"
           placeholder="Search job # or name…"
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -194,7 +194,7 @@ export default function Jobs() {
         />
       ) : (
         <div className="flex-1 overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>{header("code", "Job #")}</th>
@@ -270,18 +270,18 @@ export default function Jobs() {
                   </td>
                   <td className="num">{fmtDateShort(j.deadline)}</td>
                   <td
-                    className={`num ${j.deadline && j.projectedFinish && j.projectedFinish > j.deadline ? "hazard text-[var(--ks-red-strong)]" : ""}`}
+                    className={`num ${j.deadline && j.projectedFinish && j.projectedFinish > j.deadline ? "hazard text-[var(--tp-red-strong)]" : ""}`}
                   >
                     {fmtDateShort(j.projectedFinish)}
                   </td>
                   <td className="right num">{j.openLogs}</td>
                   <td
-                    className={`right num ${j.delayedLogs ? "hazard text-[var(--ks-red-strong)]" : ""}`}
+                    className={`right num ${j.delayedLogs ? "hazard text-[var(--tp-red-strong)]" : ""}`}
                   >
                     {j.delayedLogs}
                   </td>
                   <td
-                    className={`right num ${j.lateDeliveries ? "hazard text-[var(--ks-red-strong)]" : ""}`}
+                    className={`right num ${j.lateDeliveries ? "hazard text-[var(--tp-red-strong)]" : ""}`}
                   >
                     {j.lateDeliveries}
                   </td>

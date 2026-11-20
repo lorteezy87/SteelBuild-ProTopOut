@@ -1,11 +1,11 @@
-import { ConfirmButton } from "@/components/ks/Controls";
+import { ConfirmButton } from "@/components/brand/Controls";
 import {
   EmptyState,
   ErrorState,
   Loading,
   Panel,
   TabStrip,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { errMsg, fmtDate, fmtHours, fmtMoney, weekStart } from "@/lib/format";
@@ -258,7 +258,7 @@ function TimeQueue({ approved }: { approved: boolean }) {
                 }
               >
                 <div className="overflow-x-auto">
-                  <table className="ks-table min-w-[850px]">
+                  <table className="tp-table min-w-[850px]">
                     <thead>
                       <tr>
                         <th />
@@ -453,7 +453,7 @@ function ExpenseQueue({ approved }: { approved: boolean }) {
         />
       ) : (
         <div className="overflow-x-auto">
-          <table className="ks-table min-w-[1050px]">
+          <table className="tp-table min-w-[1050px]">
             <thead>
               <tr>
                 <th>
@@ -532,7 +532,7 @@ function ExpenseQueue({ approved }: { approved: boolean }) {
                         href={row.e.receiptUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[var(--ks-blue)]"
+                        className="inline-flex items-center gap-1 text-[var(--tp-blue)]"
                       >
                         View
                         <ExternalLink className="size-3" />
@@ -593,7 +593,7 @@ export function DailyApprovalQueue() {
   }
   return (
     <Panel title="Submitted daily field reports">
-      <div className="border-b border-[var(--ks-rule)] p-3 text-xs text-muted-foreground">
+      <div className="border-b border-[var(--tp-rule)] p-3 text-xs text-muted-foreground">
         Approval posts ST/OT crew hours, equipment cost and erection progress.
         Review the report before posting.
       </div>
@@ -608,7 +608,7 @@ export function DailyApprovalQueue() {
         />
       ) : (
         <div className="overflow-x-auto">
-          <table className="ks-table min-w-[850px]">
+          <table className="tp-table min-w-[850px]">
             <thead>
               <tr>
                 <th>Date</th>
@@ -637,7 +637,7 @@ export function DailyApprovalQueue() {
                   </td>
                   <td>
                     <Link
-                      className="text-[var(--ks-blue)] hover:underline"
+                      className="text-[var(--tp-blue)] hover:underline"
                       href={`/jobs/${row.projectId}/daily/${row.id}`}
                     >
                       Open report #{row.id}

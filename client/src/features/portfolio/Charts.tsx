@@ -12,17 +12,17 @@ import {
 } from "recharts";
 import { useLocation } from "wouter";
 import type { RouterOutputs } from "@/lib/ref";
-import { EmptyState } from "@/components/ks/Layout";
+import { EmptyState } from "@/components/brand/Layout";
 import { fmtDate, fmtNum } from "@/lib/format";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 
-const CHART_TOKENS = ["--ks-rule-soft", "--ks-muted", "--ks-accent-ink", "--chart-2"] as const;
+const CHART_TOKENS = ["--tp-rule-soft", "--tp-muted", "--tp-accent-ink", "--chart-2"] as const;
 
 type Portfolio = RouterOutputs["dashboard"]["portfolio"];
 const tooltipStyle = {
   background: "var(--popover)",
   color: "var(--popover-foreground)",
-  border: "1px solid var(--ks-rule)",
+  border: "1px solid var(--tp-rule)",
   borderRadius: 8,
   boxShadow: "0 4px 12px rgba(16,24,40,0.08)",
   fontSize: 12,
@@ -48,24 +48,24 @@ export function TonsChart({ data }: { data: Portfolio["tons"] }) {
           data={data}
           margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
         >
-          <CartesianGrid stroke={colors["--ks-rule-soft"]} vertical={false} />
+          <CartesianGrid stroke={colors["--tp-rule-soft"]} vertical={false} />
           <XAxis
             dataKey="week"
             tickFormatter={v => fmtDate(v)}
-            tick={{ fontSize: 11, fill: colors["--ks-muted"] }}
+            tick={{ fontSize: 11, fill: colors["--tp-muted"] }}
             minTickGap={30}
           />
-          <YAxis width={55} tick={{ fontSize: 11, fill: colors["--ks-muted"] }} />
+          <YAxis width={55} tick={{ fontSize: 11, fill: colors["--tp-muted"] }} />
           <Tooltip
             labelFormatter={v => `Week of ${fmtDate(String(v))}`}
             formatter={(v: number) => `${fmtNum(v, 1)} t`}
-            contentStyle={tooltipStyle} labelStyle={{ color: "var(--ks-ink)" }} itemStyle={{ color: "var(--ks-ink-2)" }} cursor={{ fill: "var(--ks-gray-soft)", stroke: "var(--ks-muted)" }}
+            contentStyle={tooltipStyle} labelStyle={{ color: "var(--tp-ink)" }} itemStyle={{ color: "var(--tp-ink-2)" }} cursor={{ fill: "var(--tp-gray-soft)", stroke: "var(--tp-muted)" }}
           />
-          <Legend wrapperStyle={{ fontSize: 11 }} formatter={value => <span className="text-[var(--ks-ink-2)]">{value}</span>} />
+          <Legend wrapperStyle={{ fontSize: 11 }} formatter={value => <span className="text-[var(--tp-ink-2)]">{value}</span>} />
           <Line
             dataKey="planned"
             name="Planned"
-            stroke={colors["--ks-muted"]}
+            stroke={colors["--tp-muted"]}
             strokeDasharray="4 3"
             dot={false}
             strokeWidth={1.5}
@@ -74,7 +74,7 @@ export function TonsChart({ data }: { data: Portfolio["tons"] }) {
           <Line
             dataKey="erected"
             name="Erected"
-            stroke={colors["--ks-accent-ink"]}
+            stroke={colors["--tp-accent-ink"]}
             strokeWidth={2.5}
             dot={false}
             connectNulls={false}
@@ -92,10 +92,10 @@ export function RfiChart({ data }: { data: Portfolio["rfiAging"] }) {
     <div className="h-56 p-3" role="img" aria-label="Open RFIs by age">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ left: -20, right: 8, top: 10 }}>
-          <CartesianGrid stroke={colors["--ks-rule-soft"]} vertical={false} />
-          <XAxis dataKey="bucket" tick={{ fontSize: 11, fill: colors["--ks-muted"] }} />
-          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: colors["--ks-muted"] }} />
-          <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: "var(--ks-ink)" }} itemStyle={{ color: "var(--ks-ink-2)" }} cursor={{ fill: "var(--ks-gray-soft)", stroke: "var(--ks-muted)" }} />
+          <CartesianGrid stroke={colors["--tp-rule-soft"]} vertical={false} />
+          <XAxis dataKey="bucket" tick={{ fontSize: 11, fill: colors["--tp-muted"] }} />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: colors["--tp-muted"] }} />
+          <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: "var(--tp-ink)" }} itemStyle={{ color: "var(--tp-ink-2)" }} cursor={{ fill: "var(--tp-gray-soft)", stroke: "var(--tp-muted)" }} />
           <Bar
             dataKey="count"
             name="Open RFIs"
@@ -133,16 +133,16 @@ export function CrewChart({ data }: { data: Portfolio["crewHours"]["byJob"] }) {
           layout="vertical"
           margin={{ top: 8, bottom: 0, right: 15 }}
         >
-          <CartesianGrid stroke={colors["--ks-rule-soft"]} horizontal={false} />
-          <XAxis type="number" tick={{ fontSize: 11, fill: colors["--ks-muted"] }} />
+          <CartesianGrid stroke={colors["--tp-rule-soft"]} horizontal={false} />
+          <XAxis type="number" tick={{ fontSize: 11, fill: colors["--tp-muted"] }} />
           <YAxis
             type="category"
             dataKey="label"
             width={78}
-            tick={{ fontSize: 11, fill: colors["--ks-muted"] }}
+            tick={{ fontSize: 11, fill: colors["--tp-muted"] }}
           />
           <Tooltip
-            contentStyle={tooltipStyle} labelStyle={{ color: "var(--ks-ink)" }} itemStyle={{ color: "var(--ks-ink-2)" }} cursor={{ fill: "var(--ks-gray-soft)", stroke: "var(--ks-muted)" }}
+            contentStyle={tooltipStyle} labelStyle={{ color: "var(--tp-ink)" }} itemStyle={{ color: "var(--tp-ink-2)" }} cursor={{ fill: "var(--tp-gray-soft)", stroke: "var(--tp-muted)" }}
             formatter={(v: number) => `${fmtNum(v, 1)} h`}
           />
           <Bar

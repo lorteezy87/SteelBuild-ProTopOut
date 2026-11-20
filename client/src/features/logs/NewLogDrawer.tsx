@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { RecordDrawer, SimpleSelect } from "@/components/ks/Controls";
-import { ErrorState, Field, Loading } from "@/components/ks/Layout";
+import { RecordDrawer, SimpleSelect } from "@/components/brand/Controls";
+import { ErrorState, Field, Loading } from "@/components/brand/Layout";
 import { Button } from "@/components/ui/button";
 import { errMsg } from "@/lib/format";
 import { useRefData } from "@/lib/ref";
@@ -120,7 +120,7 @@ export function NewLogDrawer({
           )}
           {job.error && <ErrorState error={job.error} />}
           {!canCreate && !job.isLoading && (
-            <p className="border border-[var(--ks-rule)] bg-[var(--ks-bone)] p-3 text-muted-foreground">
+            <p className="border border-[var(--tp-rule)] bg-[var(--tp-bone)] p-3 text-muted-foreground">
               Choose a job where you have log creation privileges.
             </p>
           )}

@@ -7,9 +7,9 @@ import {
   NumberInput,
   RecordDrawer,
   SimpleSelect,
-} from "@/components/ks/Controls";
-import { Field } from "@/components/ks/Layout";
-import { DeliveryRiskBadge } from "@/components/ks/Status";
+} from "@/components/brand/Controls";
+import { Field } from "@/components/brand/Layout";
+import { DeliveryRiskBadge } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

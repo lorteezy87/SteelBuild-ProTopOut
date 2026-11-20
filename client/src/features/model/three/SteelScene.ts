@@ -392,8 +392,8 @@ export class SteelScene {
   }
   updateTheme() {
     const dark = document.documentElement.classList.contains("dark");
-    const paper = themeColor("--ks-paper", dark ? "#171d25" : "#f5f7fa");
-    const bone = themeColor("--ks-bone", dark ? "#11161d" : "#edf2f7");
+    const paper = themeColor("--tp-paper", dark ? "#171d25" : "#f5f7fa");
+    const bone = themeColor("--tp-bone", dark ? "#11161d" : "#edf2f7");
     const top = dark
       ? bone.clone().lerp(new THREE.Color(0x090d13), 0.6)
       : paper.clone().lerp(new THREE.Color(0xd1e2f2), 0.55);
@@ -404,7 +404,7 @@ export class SteelScene {
     this.concrete.color.set(dark ? 0x525a62 : 0xbfc3c7);
     if (this.grid)
       (this.grid.material as THREE.LineBasicMaterial).color.copy(
-        themeColor("--ks-rule", dark ? "#76808d" : "#909eaa")
+        themeColor("--tp-rule", dark ? "#76808d" : "#909eaa")
       );
     this.fill.color.set(dark ? 0xbdcee0 : 0xdceafa);
     this.fill.groundColor.set(dark ? 0x465360 : 0x71716a);

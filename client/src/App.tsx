@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Loading } from "@/components/ks/Layout";
+import { Loading } from "@/components/brand/Layout";
 import { AppShell } from "@/components/shell/AppShell";
 import { AccessBlocked, SignIn } from "@/components/shell/SignIn";
 import { Toaster } from "@/components/ui/sonner";
@@ -68,7 +68,7 @@ function Routes() {
 function Gate() {
   const { user, loading, logout } = useAuth();
   const ref = trpc.ref.all.useQuery(undefined, { enabled: !!user, staleTime: 60_000, retry: false, refetchOnWindowFocus: false });
-  if (loading) return <Loading label="Starting SteelBuild Pro…" className="h-dvh" />;
+  if (loading) return <Loading label="Starting SteelBuild Pro TopOut…" className="h-dvh" />;
   if (!user) return <SignIn />;
   if (ref.error) {
     const code = (ref.error.data as { code?: string } | undefined)?.code;

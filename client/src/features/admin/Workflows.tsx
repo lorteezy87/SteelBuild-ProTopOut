@@ -1,6 +1,6 @@
 import { trpc } from "@/lib/trpc";
-import { ErrorState, Loading } from "@/components/ks/Layout";
-import { StateChip } from "@/components/ks/Status";
+import { ErrorState, Loading } from "@/components/brand/Layout";
+import { StateChip } from "@/components/brand/Status";
 import { ReferenceEditor, text, nullableText, flag } from "./Editor";
 import { WorkflowStructure } from "./WorkflowStructure";
 export default function Workflows() {

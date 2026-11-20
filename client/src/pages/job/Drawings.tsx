@@ -4,9 +4,9 @@ import { ChevronDown, ChevronRight, Download, FileStack, Plus, Upload } from "lu
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { SimpleSelect } from "@/components/ks/Controls";
-import { EmptyState, ErrorState, Kpi, Loading, PageHeader, Panel } from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+import { SimpleSelect } from "@/components/brand/Controls";
+import { EmptyState, ErrorState, Kpi, Loading, PageHeader, Panel } from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { ImportDialog } from "@/features/drawings/ImportDialog";
 import { BulkBar } from "@/features/drawings/BulkBar";
 import { SetForm, SheetForm } from "@/features/drawings/Forms";
@@ -203,8 +203,8 @@ export default function Drawings() {
                 label={l}
                 value={view.cnt(k)}
                 tone={tone}
-                sub={k === "REV" && view.late ? <span className="text-[var(--ks-red-strong)]">{view.late} late</span> : undefined}
-                className={status && status !== k ? "opacity-50" : status === k ? "outline outline-2 outline-[var(--ks-accent)]" : ""}
+                sub={k === "REV" && view.late ? <span className="text-[var(--tp-red-strong)]">{view.late} late</span> : undefined}
+                className={status && status !== k ? "opacity-50" : status === k ? "outline outline-2 outline-[var(--tp-accent)]" : ""}
               />
             </button>
           ))}
@@ -218,7 +218,7 @@ export default function Drawings() {
                   key={m.id}
                   type="button"
                   onClick={() => setSeq(seq === String(m.id) ? null : String(m.id))}
-                  className={"flex min-w-[150px] flex-col items-start gap-1 border px-3 py-2 text-left " + (seq === String(m.id) ? "border-[var(--ks-accent)]" : "border-[var(--ks-rule)]") + " bg-[var(--ks-paper)] text-[var(--ks-ink)]"}
+                  className={"flex min-w-[150px] flex-col items-start gap-1 border px-3 py-2 text-left " + (seq === String(m.id) ? "border-[var(--tp-accent)]" : "border-[var(--tp-rule)]") + " bg-[var(--tp-paper)] text-[var(--tp-ink)]"}
                   title={`${m.n} sheet${m.n === 1 ? "" : "s"}`}
                 >
                   <span className="truncate text-[12.5px] font-medium">{m.name}</span>
@@ -233,7 +233,7 @@ export default function Drawings() {
         )}
 
         <div className="flex flex-wrap items-center gap-2">
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search sheet, title, set…" className="h-8 w-[240px] border-[var(--ks-rule)] bg-[var(--ks-paper)] text-[var(--ks-ink)]" />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search sheet, title, set…" className="h-8 w-[240px] border-[var(--tp-rule)] bg-[var(--tp-paper)] text-[var(--tp-ink)]" />
           <div className="w-[170px]">
             <SimpleSelect value={status} onChange={v => setStatus(v as SheetStatus | null)} options={SHEET_STATUSES} allowNone noneLabel="All statuses" placeholder="All statuses" size="sm" />
           </div>
@@ -317,7 +317,7 @@ export default function Drawings() {
               />
             )
           ) : (
-            <table className="ks-table min-w-[900px]">
+            <table className="tp-table min-w-[900px]">
               <thead>
                 <tr>
                   {showCheck && <th style={{ width: 28 }}><Checkbox checked={allVisiblePicked ? true : someVisiblePicked ? "indeterminate" : false} disabled={!visibleIds.length} onCheckedChange={() => { toggle(visibleIds, !allVisiblePicked); lastPicked.current = null; }} aria-label="Select all visible sheets" /></th>}
@@ -340,7 +340,7 @@ export default function Drawings() {
                   const somePicked = kidIds.some(i => picked.has(i));
                   return (
                     <Fragment key={g.key}>
-                      <tr className="bg-[var(--ks-bone)]">
+                      <tr className="bg-[var(--tp-bone)]">
                         {showCheck && (
                           <td>
                             {kidIds.length > 0 && (
@@ -468,7 +468,7 @@ function SheetRow({
       <td className="num">
         {revLabel(x)}
         {p && (
-          <span className={"ml-1 " + (p.state === "checked" ? "text-[var(--ks-blue)]" : "text-[var(--ks-accent-ink)]")} title={p.state === "checked" ? `Rev ${p.number} signed off, not issued` : `Rev ${p.number} draft`}>
+          <span className={"ml-1 " + (p.state === "checked" ? "text-[var(--tp-blue)]" : "text-[var(--tp-accent-ink)]")} title={p.state === "checked" ? `Rev ${p.number} signed off, not issued` : `Rev ${p.number} draft`}>
             →{p.number}
           </span>
         )}

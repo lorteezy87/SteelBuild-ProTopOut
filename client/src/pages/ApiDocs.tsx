@@ -3,8 +3,8 @@ import { Link } from "wouter";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { PageHeader, Panel } from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+import { PageHeader, Panel } from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { errMsg } from "@/lib/format";
 import { WEBHOOK_ENTITIES, WEBHOOK_ACTIONS } from "@shared/domain";
 import { API_RESOURCES, type ApiResource } from "@/features/admin/ApiResources";
@@ -49,7 +49,7 @@ app.use(express.json());
 app.listen(8080);`;
 function Code({ value, label }: { value: string; label?: string }) {
   return (
-    <div className="overflow-hidden border border-[var(--ks-rule)] bg-[var(--ks-graphite)] text-[var(--ks-solid-ink)]">
+    <div className="overflow-hidden border border-[var(--tp-rule)] bg-[var(--tp-graphite)] text-[var(--tp-solid-ink)]">
       <div className="flex items-center justify-between border-b border-white/10 px-3 py-1.5">
         <span className="font-mono text-[10px] text-white/60">
           {label ?? "Example"}
@@ -57,7 +57,7 @@ function Code({ value, label }: { value: string; label?: string }) {
         <Button
           size="sm"
           variant="ghost"
-          className="h-6 text-white/70 hover:bg-[var(--ks-solid-ink)]/10 hover:text-white"
+          className="h-6 text-white/70 hover:bg-[var(--tp-solid-ink)]/10 hover:text-white"
           aria-label={`Copy ${label ?? "example"}`}
           onClick={async () => {
             try {
@@ -90,7 +90,7 @@ function Section({
   return (
     <section
       id={id}
-      className="scroll-mt-5 space-y-4 border-b border-[var(--ks-rule)] pb-8"
+      className="scroll-mt-5 space-y-4 border-b border-[var(--tp-rule)] pb-8"
     >
       <h2 className="text-[18px] font-semibold">{title}</h2>
       {children}
@@ -125,7 +125,7 @@ export default function ApiDocs() {
       <div className="flex flex-col md:flex-row">
         <nav
           aria-label="API reference index"
-          className="border-b border-[var(--ks-rule)] bg-[var(--ks-paper)] p-4 md:w-56 md:shrink-0 md:border-b-0 md:border-r"
+          className="border-b border-[var(--tp-rule)] bg-[var(--tp-paper)] p-4 md:w-56 md:shrink-0 md:border-b-0 md:border-r"
         >
           <div className="md:sticky md:top-4">
             <div className="label-caps mb-3">On this page</div>
@@ -134,7 +134,7 @@ export default function ApiDocs() {
                 <a
                   key={i.id}
                   href={`#${i.id}`}
-                  className="block border-l-2 border-transparent px-3 py-1.5 text-xs text-muted-foreground hover:border-[var(--ks-accent)] hover:bg-[var(--ks-bone)] hover:text-foreground"
+                  className="block border-l-2 border-transparent px-3 py-1.5 text-xs text-muted-foreground hover:border-[var(--tp-accent)] hover:bg-[var(--tp-bone)] hover:text-foreground"
                 >
                   {i.label}
                 </a>
@@ -235,7 +235,7 @@ export default function ApiDocs() {
             </p>
           </Section>
           <Section id="queries" title="Fields, filters, sorting & pagination">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>Parameter</th>
@@ -372,7 +372,7 @@ export default function ApiDocs() {
               }
               label="Rate-limit response"
             />
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>HTTP</th>
@@ -439,7 +439,7 @@ export default function ApiDocs() {
               approvals, files or workflow transitions.
             </p>
             <div className="overflow-x-auto">
-              <table className="ks-table">
+              <table className="tp-table">
                 <thead>
                   <tr>
                     <th>Resource</th>
@@ -488,7 +488,7 @@ export default function ApiDocs() {
               Subscribe to specific events or <code>*</code>. A signed test uses
               the event <code>ping</code>.
             </p>
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>Header</th>
@@ -556,7 +556,7 @@ export default function ApiDocs() {
               whitespace and byte order matter.
             </p>
             <div className="overflow-x-auto">
-              <table className="ks-table">
+              <table className="tp-table">
                 <thead>
                   <tr>
                     <th>Entity</th>
@@ -627,7 +627,7 @@ function Resource({
         value={`curl '${base}/${r.key}${r.key === "logItems" ? "?app=rfi" : ""}' \\\n  -H 'Authorization: Bearer <YOUR_TOKEN>'\n\ncurl '${base}/${r.key}/1?fields=id${r.key === "logItems" ? ",label,title&app=rfi" : ""}' \\\n  -H 'Authorization: Bearer <YOUR_TOKEN>'`}
         label={`${r.key} · read examples (replace sample IDs)`}
       />
-      <details className="border border-[var(--ks-rule)] bg-[var(--ks-paper)] p-3">
+      <details className="border border-[var(--tp-rule)] bg-[var(--tp-paper)] p-3">
         <summary className="cursor-pointer font-medium">
           Response field names
         </summary>
@@ -636,7 +636,7 @@ function Resource({
         </p>
       </details>
       {r.create && (
-        <div className="space-y-3 border-l-2 border-[var(--ks-accent)] pl-4">
+        <div className="space-y-3 border-l-2 border-[var(--tp-accent)] pl-4">
           <h3 className="font-semibold">
             <Pill tone="orange">POST</Pill>{" "}
             <code className="ml-2">/{r.key}</code>
@@ -657,7 +657,7 @@ function Resource({
         </div>
       )}
       {r.patch && (
-        <div className="space-y-3 border-l-2 border-[var(--ks-rule)] pl-4">
+        <div className="space-y-3 border-l-2 border-[var(--tp-rule)] pl-4">
           <h3 className="font-semibold">
             <Pill tone="orange">PATCH</Pill>{" "}
             <code className="ml-2">/{r.key}/:id</code>
@@ -677,7 +677,7 @@ function Resource({
         </div>
       )}
       {r.delete && (
-        <div className="space-y-3 border-l-2 border-[var(--ks-red)] pl-4">
+        <div className="space-y-3 border-l-2 border-[var(--tp-red)] pl-4">
           <h3 className="font-semibold">
             <Pill tone="red">DELETE</Pill>{" "}
             <code className="ml-2">/{r.key}/:id</code>
@@ -692,7 +692,7 @@ function Resource({
         </div>
       )}
       {r.note && (
-        <p className="border border-[var(--ks-rule)] bg-[var(--ks-paper)] p-3 text-xs leading-5">
+        <p className="border border-[var(--tp-rule)] bg-[var(--tp-paper)] p-3 text-xs leading-5">
           {r.note}
         </p>
       )}

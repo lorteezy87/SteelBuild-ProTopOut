@@ -1,7 +1,7 @@
 import { toast } from "sonner";
-import { ConfirmButton } from "@/components/ks/Controls";
-import { ErrorState, Loading } from "@/components/ks/Layout";
-import { StateChip } from "@/components/ks/Status";
+import { ConfirmButton } from "@/components/brand/Controls";
+import { ErrorState, Loading } from "@/components/brand/Layout";
+import { StateChip } from "@/components/brand/Status";
 import { trpc } from "@/lib/trpc";
 import { errMsg } from "@/lib/format";
 import type { RouterOutputs } from "@/lib/ref";

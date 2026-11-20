@@ -4,13 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import { BALL_IN_COURT, type BulkSheetPatch } from "@shared/drawings";
 import type { Register, Sheet } from "./model";
 
 const KEEP = "keep";
 const CLEAR = "clear";
-const surface = "border-[var(--ks-rule)] bg-[var(--ks-paper)] text-[var(--ks-ink)]";
+const surface = "border-[var(--tp-rule)] bg-[var(--tp-paper)] text-[var(--tp-ink)]";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return <label className="block space-y-1"><span className="label-caps">{label}</span>{children}</label>;
@@ -69,7 +69,7 @@ export function BulkEditDialog({ reg, count, busy, onClose, onSave }: {
               {returnedMode === "set" && <Input aria-label="Returned date" type="date" value={returned} max={reg.today} onChange={e => setReturned(e.target.value)} className={surface} required />}
             </Field>
           </div>
-          {!!dateError && <p className="mt-3 text-[12px] text-[var(--ks-red-strong)]">Choose a date on or before today.</p>}
+          {!!dateError && <p className="mt-3 text-[12px] text-[var(--tp-red-strong)]">Choose a date on or before today.</p>}
           <DialogFooter className="mt-4">
             <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Cancel</Button>
             <Button type="submit" disabled={busy || !!dateError || !Object.keys(patch).length}>{busy ? "Saving…" : "Save changes"}</Button>
@@ -135,7 +135,7 @@ export function BulkDeleteDialog({ sheets, canEdit, busy, onClose, onDelete }: {
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-[13px] text-muted-foreground">
               <p>This removes the selected sheets and all their revisions, markups, scales and model reads. It cannot be undone.</p>
-              <p className="num text-[var(--ks-ink)]">{sheets.slice(0, 6).map(s => s.sheetNumber).join(", ")}{sheets.length > 6 ? `, +${sheets.length - 6} more` : ""}</p>
+              <p className="num text-[var(--tp-ink)]">{sheets.slice(0, 6).map(s => s.sheetNumber).join(", ")}{sheets.length > 6 ? `, +${sheets.length - 6} more` : ""}</p>
               {protectedCount > 0 && <p>{protectedCount} sheets sent on set issues require an editor and will be skipped. {deletable} can be deleted.</p>}
               {sheets.some(s => s.inSetIssue) && <p>Recorded set issues keep their sheet numbers as historical evidence.</p>}
               {hasIssued && <p>Issued revisions are included. Type DELETE to confirm.</p>}

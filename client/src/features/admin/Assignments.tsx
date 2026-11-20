@@ -5,14 +5,14 @@ import {
   SimpleSelect,
   ConfirmButton,
   UserSelect,
-} from "@/components/ks/Controls";
+} from "@/components/brand/Controls";
 import {
   Panel,
   Field,
   Loading,
   ErrorState,
   EmptyState,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { errMsg } from "@/lib/format";
@@ -156,7 +156,7 @@ export default function Assignments() {
         }
       >
         <div className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>Person</th>

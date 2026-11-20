@@ -10,9 +10,9 @@ import {
   Loading,
   ErrorState,
   EmptyState,
-} from "@/components/ks/Layout";
-import { ConfirmButton } from "@/components/ks/Controls";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { ConfirmButton } from "@/components/brand/Controls";
+import { Pill } from "@/components/brand/Status";
 import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { ACCESS_TYPES } from "@shared/domain";
@@ -141,13 +141,13 @@ export default function Account() {
               </Button>
             </div>
           ) : (
-            <p className="border border-[var(--ks-rule)] p-3">
+            <p className="border border-[var(--tp-rule)] p-3">
               API token creation requires Full access or organization admin
               access.
             </p>
           )}
           <div className="overflow-x-auto">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>Name</th>

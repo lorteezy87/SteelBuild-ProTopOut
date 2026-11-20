@@ -74,7 +74,7 @@ export function MoveToDialog({
             Rows land at the end of the chosen sequence with their subtasks. Drag rows in the grid for an exact position.
           </DialogDescription>
         </DialogHeader>
-        <Command className="border-t border-[var(--ks-rule)]">
+        <Command className="border-t border-[var(--tp-rule)]">
           <CommandInput placeholder="Search sequences and summaries…" />
           <CommandList className="max-h-80">
             <CommandEmpty>No sequence matches.</CommandEmpty>
@@ -94,7 +94,7 @@ export function MoveToDialog({
                   {summary ? (
                     <FolderTree className="size-3.5 text-muted-foreground" />
                   ) : (
-                    <Layers className="size-3.5 text-[var(--ks-accent-ink)]" />
+                    <Layers className="size-3.5 text-[var(--tp-accent-ink)]" />
                   )}
                   <span className="num w-12 shrink-0 text-[11px] text-muted-foreground">{task.wbs}</span>
                   <span className="truncate">{task.name}</span>
@@ -157,7 +157,7 @@ export function ShiftDialog({
           ))}
           <Input
             aria-label="Work days to shift"
-            className="num h-8 w-20 bg-[var(--ks-paper)] text-right"
+            className="num h-8 w-20 bg-[var(--tp-paper)] text-right"
             value={days}
             disabled={ops.pending}
             onChange={e => setDays(e.target.value.replace(/[^0-9-]/g, ""))}

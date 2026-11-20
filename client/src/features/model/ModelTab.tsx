@@ -10,7 +10,7 @@ import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Download, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ErrorState, Kpi, Loading, TabStrip } from "@/components/ks/Layout";
+import { ErrorState, Kpi, Loading, TabStrip } from "@/components/brand/Layout";
 import { errMsg } from "@/lib/format";
 import { csvCell } from "@shared/drawings";
 import {
@@ -173,7 +173,7 @@ export default function ModelTab({ projectId, openSheet }: ModelTabProps) {
           )}
         </span>
       </div>
-      <TabStrip tabs={VIEWS.map(v => ({ key: v.key, label: v.label, badge: v.key === "pieces" && tot.review ? <span className="num text-[11px] text-[var(--ks-amber)]">{tot.review}</span> : undefined }))} active={view} onSelect={k => setView(k as View)} />
+      <TabStrip tabs={VIEWS.map(v => ({ key: v.key, label: v.label, badge: v.key === "pieces" && tot.review ? <span className="num text-[11px] text-[var(--tp-amber)]">{tot.review}</span> : undefined }))} active={view} onSelect={k => setView(k as View)} />
       {view === "sheets" && (
         <SheetsSection
           lines={lines}

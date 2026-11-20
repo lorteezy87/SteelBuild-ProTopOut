@@ -5,8 +5,8 @@ import { errMsg, fmtDate } from "@/lib/format";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DateInput, ConfirmButton } from "@/components/ks/Controls";
-import { Field, Loading, ErrorState } from "@/components/ks/Layout";
+import { DateInput, ConfirmButton } from "@/components/brand/Controls";
+import { Field, Loading, ErrorState } from "@/components/brand/Layout";
 import { ReferenceEditor, text, number, flag, Check } from "./Editor";
 function Holidays({ id }: { id: number }) {
   const q = trpc.admin.calendars.get.useQuery({ id });
@@ -37,7 +37,7 @@ function Holidays({ id }: { id: number }) {
   return (
     <div className="space-y-3">
       <h3 className="label-caps">Holidays & workday exceptions</h3>
-      <table className="ks-table">
+      <table className="tp-table">
         <thead>
           <tr>
             <th>Date</th>

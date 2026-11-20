@@ -2,15 +2,15 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { ClipboardList, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import {
   EmptyState,
   ErrorState,
   Loading,
   PageHeader,
   Panel,
-} from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { ReportEditor, reportTone } from "@/features/daily/ReportEditor";
 import { fmtDate, fmtHours, fmtTons } from "@/lib/format";
 import { useRefData } from "@/lib/ref";
@@ -75,7 +75,7 @@ export default function DailyReports() {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="ks-table">
+              <table className="tp-table">
                 <thead>
                   <tr>
                     <th>Date</th>
@@ -97,7 +97,7 @@ export default function DailyReports() {
                     >
                       <td className="num">
                         <button
-                          className="font-medium text-[var(--ks-accent-ink)]"
+                          className="font-medium text-[var(--tp-accent-ink)]"
                           onClick={() => navigate(`${base}/${r.id}`)}
                         >
                           {fmtDate(r.reportDate)}

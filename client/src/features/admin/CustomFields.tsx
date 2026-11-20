@@ -8,15 +8,15 @@ import {
   SimpleSelect,
   NumberInput,
   ConfirmButton,
-} from "@/components/ks/Controls";
+} from "@/components/brand/Controls";
 import {
   Panel,
   Field,
   Loading,
   ErrorState,
   EmptyState,
-} from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { FIELD_TYPES } from "@shared/domain";
 import { trpc } from "@/lib/trpc";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
@@ -158,7 +158,7 @@ export default function CustomFields() {
       </p>
       <Panel title={`${rows.length} field definitions`}>
         <div className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>Order</th>
@@ -457,7 +457,7 @@ export default function CustomFields() {
                 </Field>
                 <div
                   role="status"
-                  className={`border p-3 ${preview && !preview.ok ? "bg-[var(--ks-red-soft)]" : "bg-[var(--ks-bone)]"}`}
+                  className={`border p-3 ${preview && !preview.ok ? "bg-[var(--tp-red-soft)]" : "bg-[var(--tp-bone)]"}`}
                 >
                   {testing
                     ? "Validating…"

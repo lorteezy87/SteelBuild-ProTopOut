@@ -2,8 +2,8 @@ import {
   ConfirmButton,
   NumberInput,
   SimpleSelect,
-} from "@/components/ks/Controls";
-import { EmptyState, ErrorState, Loading } from "@/components/ks/Layout";
+} from "@/components/brand/Controls";
+import { EmptyState, ErrorState, Loading } from "@/components/brand/Layout";
 import { Button } from "@/components/ui/button";
 import { TaskDrawer } from "@/features/tasks/TaskDrawer";
 import { AssignCell, buildRollups } from "@/features/tasks/AssignPopover";
@@ -584,7 +584,7 @@ export default function Schedule() {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="mr-auto flex items-center gap-2">
           <CalendarDays className="size-4 text-muted-foreground" />
-          <h2 className="label-caps text-[11px] text-[var(--ks-ink)]">
+          <h2 className="label-caps text-[11px] text-[var(--tp-ink)]">
             Erection schedule
           </h2>
           <span className="num text-[11.5px] text-muted-foreground">
@@ -654,8 +654,8 @@ export default function Schedule() {
         </Button>
       </div>
       {selectedLink && (
-        <div className="mb-2 flex flex-wrap items-center gap-2 border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-3 py-2 text-[12px]">
-          <GitBranch className="size-3.5 shrink-0 text-[var(--ks-accent-ink)]" />
+        <div className="mb-2 flex flex-wrap items-center gap-2 border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-3 py-2 text-[12px]">
+          <GitBranch className="size-3.5 shrink-0 text-[var(--tp-accent-ink)]" />
           <span
             className="min-w-0 flex-1 truncate"
             title={`${taskNames.get(selectedLink.predecessorId)} → ${taskNames.get(selectedLink.successorId)}`}
@@ -732,7 +732,7 @@ export default function Schedule() {
       ) : (
         <div
           ref={scrollRef}
-          className="relative isolate h-[calc(100vh-345px)] min-h-[340px] max-h-[740px] overflow-auto border border-[var(--ks-rule)] bg-[var(--ks-paper)]"
+          className="relative isolate h-[calc(100vh-345px)] min-h-[340px] max-h-[740px] overflow-auto border border-[var(--tp-rule)] bg-[var(--tp-paper)]"
           onScroll={event => {
             const node = event.currentTarget;
             setViewport(v => ({
@@ -753,7 +753,7 @@ export default function Schedule() {
                 gridRef={gridBodyRef}
               />
               <div
-                className="sticky z-40 shrink-0 bg-[var(--ks-graphite-3)]"
+                className="sticky z-40 shrink-0 bg-[var(--tp-graphite-3)]"
                 style={{ left: paneWidth, width: DIVIDER_WIDTH }}
               />
               <TimelineRuler {...rulerProps} />
@@ -791,7 +791,7 @@ export default function Schedule() {
                 aria-valuemin={300}
                 aria-valuemax={Math.max(300, viewport.width - 180)}
                 aria-valuenow={paneWidth}
-                className="sticky z-30 shrink-0 cursor-col-resize bg-[var(--ks-rule)] hover:bg-[var(--ks-accent)] focus:bg-[var(--ks-accent)]"
+                className="sticky z-30 shrink-0 cursor-col-resize bg-[var(--tp-rule)] hover:bg-[var(--tp-accent)] focus:bg-[var(--tp-accent)]"
                 style={{
                   left: paneWidth,
                   width: DIVIDER_WIDTH,
@@ -872,29 +872,29 @@ export default function Schedule() {
         aria-label="Schedule legend"
       >
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-5 border-b-[3px] border-x-[3px] border-[var(--ks-ink-2)]" />{" "}
+          <span className="h-2 w-5 border-b-[3px] border-x-[3px] border-[var(--tp-ink-2)]" />{" "}
           Summary
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-5 bg-[var(--ks-accent)]" /> Erection sequence
+          <span className="h-2.5 w-5 bg-[var(--tp-accent)]" /> Erection sequence
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-5 bg-[var(--ks-gantt-fill)]" /> Task
+          <span className="h-2.5 w-5 bg-[var(--tp-gantt-fill)]" /> Task
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-2 rotate-45 border border-[var(--ks-ink-2)]" />{" "}
+          <span className="size-2 rotate-45 border border-[var(--tp-ink-2)]" />{" "}
           Milestone
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-5 border-2 border-[var(--ks-red-strong)]" />{" "}
+          <span className="h-2.5 w-5 border-2 border-[var(--tp-red-strong)]" />{" "}
           Critical
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="hazard h-2.5 w-5 border border-[var(--ks-rule)]" />{" "}
+          <span className="hazard h-2.5 w-5 border border-[var(--tp-rule)]" />{" "}
           Delayed
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-1.5 w-5 border border-dashed border-[var(--ks-muted)]" />{" "}
+          <span className="h-1.5 w-5 border border-dashed border-[var(--tp-muted)]" />{" "}
           Baseline
         </span>
         {!!externalCount && (
@@ -913,7 +913,7 @@ export default function Schedule() {
         manual drags shift dates. Dragging a summary shifts its unstarted
         detail tasks by whole work days; started tasks keep actual dates.
         {query.data.tasks.some(t => t.constraintViolated) && (
-          <span className="ml-2 text-[var(--ks-red-strong)]">
+          <span className="ml-2 text-[var(--tp-red-strong)]">
             A task constraint is violated. Open the flagged task to inspect it.
           </span>
         )}

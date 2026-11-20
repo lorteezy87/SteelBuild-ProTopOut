@@ -1,6 +1,6 @@
-import { DateInput, RecordDrawer } from "@/components/ks/Controls";
-import { Field } from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+import { DateInput, RecordDrawer } from "@/components/brand/Controls";
+import { Field } from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { addDays, fmtDate, weekStart } from "@/lib/format";

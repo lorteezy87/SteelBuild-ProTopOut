@@ -433,12 +433,12 @@ export default function Viewer3D(props: ViewerProps) {
         aria-description="Drag to orbit. Right-drag or Shift-drag to pan. Scroll to zoom. Double-click to focus. F fits the model, T looks from above, A shows an angle, Escape clears selection. Shift, Control or Command-click toggles multiple pieces."
         tabIndex={0}
         onContextMenu={e => e.preventDefault()}
-        className="block h-full w-full cursor-grab touch-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ks-accent)]"
+        className="block h-full w-full cursor-grab touch-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--tp-accent)]"
       />
       {hover && member && (
         <div
           role="tooltip"
-          className="pointer-events-none absolute z-10 max-w-48 rounded-md border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-2.5 py-1.5 text-[11px] text-[var(--ks-ink)] shadow-md"
+          className="pointer-events-none absolute z-10 max-w-48 rounded-md border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-2.5 py-1.5 text-[11px] text-[var(--tp-ink)] shadow-md"
           style={{ left: hover.x, top: hover.y }}
         >
           <b className="num block truncate">

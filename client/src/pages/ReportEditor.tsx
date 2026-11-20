@@ -20,12 +20,12 @@ import {
   Loading,
   ErrorState,
   EmptyState,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import {
   RecordDrawer,
   SimpleSelect,
   NumberInput,
-} from "@/components/ks/Controls";
+} from "@/components/brand/Controls";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -402,7 +402,7 @@ function Builder({ report }: { report?: RouterOutputs["reports"]["get"] }) {
                     </label>
                   ))}
                 </div>
-                <div className="mt-3 max-h-40 overflow-auto border-t border-[var(--ks-rule)] pt-2">
+                <div className="mt-3 max-h-40 overflow-auto border-t border-[var(--tp-rule)] pt-2">
                   {config.columns.map((key, i) => (
                     <div
                       key={key}
@@ -571,7 +571,7 @@ function Builder({ report }: { report?: RouterOutputs["reports"]["get"] }) {
               value={name}
               onChange={e => setName(e.target.value)}
               maxLength={200}
-              className="bg-[var(--ks-paper)]"
+              className="bg-[var(--tp-paper)]"
               autoFocus
             />
           </Field>
@@ -581,7 +581,7 @@ function Builder({ report }: { report?: RouterOutputs["reports"]["get"] }) {
               onChange={e => setDescription(e.target.value)}
               maxLength={2000}
               rows={4}
-              className="bg-[var(--ks-paper)]"
+              className="bg-[var(--tp-paper)]"
             />
           </Field>
           <label className="flex items-center gap-2">

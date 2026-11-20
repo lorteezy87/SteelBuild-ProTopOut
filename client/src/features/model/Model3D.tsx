@@ -1,7 +1,7 @@
 /** Model filters, lazy 3D / Plan view, selection details, legends and placement notes. */
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import { cn } from "@/lib/utils";
 import {
   MD,
@@ -106,17 +106,17 @@ export function Model3D({
       disabled={disabled}
       onClick={run}
       className={cn(
-        "rounded-md border px-2.5 py-1 text-[12px] font-medium text-[var(--ks-ink)] transition-colors hover:border-[var(--ks-accent)] focus-visible:outline-2 focus-visible:outline-[var(--ks-accent)] disabled:cursor-not-allowed disabled:opacity-50",
+        "rounded-md border px-2.5 py-1 text-[12px] font-medium text-[var(--tp-ink)] transition-colors hover:border-[var(--tp-accent)] focus-visible:outline-2 focus-visible:outline-[var(--tp-accent)] disabled:cursor-not-allowed disabled:opacity-50",
         on
-          ? "border-[var(--ks-accent)] bg-[var(--ks-accent-soft)]"
-          : "border-[var(--ks-rule)] bg-[var(--ks-paper)]"
+          ? "border-[var(--tp-accent)] bg-[var(--tp-accent-soft)]"
+          : "border-[var(--tp-rule)] bg-[var(--tp-paper)]"
       )}
     >
       {label}
     </button>
   );
   return (
-    <div className="flex flex-col gap-3 text-[var(--ks-ink)]">
+    <div className="flex flex-col gap-3 text-[var(--tp-ink)]">
       <div className="flex flex-wrap items-center gap-2">
         <div className="w-48">
           <SimpleSelect
@@ -171,7 +171,7 @@ export function Model3D({
             aria-label="Color by"
             value={colorBy}
             onChange={e => setColorBy(e.target.value as ColorBy)}
-            className="rounded-md border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-2 py-1 text-[12px] text-[var(--ks-ink)] focus-visible:outline-2 focus-visible:outline-[var(--ks-accent)]"
+            className="rounded-md border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-2 py-1 text-[12px] text-[var(--tp-ink)] focus-visible:outline-2 focus-visible:outline-[var(--tp-accent)]"
           >
             <option value="steel">Steel</option>
             <option value="review">Review state</option>
@@ -192,7 +192,7 @@ export function Model3D({
           )}
         </span>
       </div>
-      <div className="relative h-[min(560px,68vh)] min-h-[320px] overflow-hidden rounded-lg border border-[var(--ks-rule)] bg-[var(--ks-paper)]">
+      <div className="relative h-[min(560px,68vh)] min-h-[320px] overflow-hidden rounded-lg border border-[var(--tp-rule)] bg-[var(--tp-paper)]">
         {empty ? (
           <div className="grid h-full place-items-center p-6 text-center text-[13px] text-muted-foreground">
             {m.unplaced.length
@@ -227,7 +227,7 @@ export function Model3D({
         {noGL && !empty && (
           <span
             role="status"
-            className="pointer-events-none absolute left-2.5 top-2.5 rounded-md border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-2 py-1 text-[11px] text-muted-foreground"
+            className="pointer-events-none absolute left-2.5 top-2.5 rounded-md border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-2 py-1 text-[11px] text-muted-foreground"
           >
             3D unavailable on this device · Plan view shown
           </span>
@@ -235,7 +235,7 @@ export function Model3D({
         {(q || c) && (
           <div
             role="status"
-            className="absolute right-2.5 top-2.5 flex max-h-[calc(100%-80px)] w-[min(300px,calc(100%-20px))] flex-col gap-1.5 overflow-auto rounded-lg border border-[var(--ks-rule)] bg-[var(--ks-paper)] p-3 text-[12px] shadow-md"
+            className="absolute right-2.5 top-2.5 flex max-h-[calc(100%-80px)] w-[min(300px,calc(100%-20px))] flex-col gap-1.5 overflow-auto rounded-lg border border-[var(--tp-rule)] bg-[var(--tp-paper)] p-3 text-[12px] shadow-md"
           >
             <div className="flex items-baseline justify-between gap-2">
               <b className="num text-[14px]">
@@ -247,7 +247,7 @@ export function Model3D({
                 type="button"
                 aria-label="Clear selection"
                 onClick={clear}
-                className="rounded p-1 text-muted-foreground hover:text-[var(--ks-ink)] focus-visible:outline-2 focus-visible:outline-[var(--ks-accent)]"
+                className="rounded p-1 text-muted-foreground hover:text-[var(--tp-ink)] focus-visible:outline-2 focus-visible:outline-[var(--tp-accent)]"
               >
                 <X className="size-4" />
               </button>
@@ -275,7 +275,7 @@ export function Model3D({
                 <span className="font-semibold">{STATES[q.st]}</span>
                 <button
                   type="button"
-                  className="self-start text-[var(--ks-accent-ink)] hover:underline"
+                  className="self-start text-[var(--tp-accent-ink)] hover:underline"
                   onClick={() => openSheet(q.sid, { rev: q.rev, tab: "model" })}
                 >
                   Open in viewer
@@ -293,7 +293,7 @@ export function Model3D({
                 <span>{(c!.lvl || "No level") + " · " + c!.sheet}</span>
                 <button
                   type="button"
-                  className="self-start text-[var(--ks-accent-ink)] hover:underline"
+                  className="self-start text-[var(--tp-accent-ink)] hover:underline"
                   onClick={() => openSheet(c!.sid, { tab: "model" })}
                 >
                   Open in viewer
@@ -312,13 +312,13 @@ export function Model3D({
           selected.length > 1 && (
             <div
               role="status"
-              className="absolute bottom-3 left-3 flex items-center gap-3 rounded-md border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-3 py-2 text-[12px] shadow-sm"
+              className="absolute bottom-3 left-3 flex items-center gap-3 rounded-md border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-3 py-2 text-[12px] shadow-sm"
             >
               <span>{plural(selected.length, "member")} selected</span>
               <button
                 type="button"
                 onClick={clear}
-                className="text-[var(--ks-accent-ink)] hover:underline"
+                className="text-[var(--tp-accent-ink)] hover:underline"
               >
                 Clear
               </button>

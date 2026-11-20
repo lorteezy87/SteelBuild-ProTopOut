@@ -127,7 +127,7 @@ export function registerLocalAuthRoutes(app: Express) {
     // Serialize registrations so two simultaneous first sign-ups cannot both become admin.
     const conn = await (d.$client as unknown as { promise(): { getConnection(): Promise<LockConn> } }).promise().getConnection();
     try {
-      const [[lock]] = (await conn.query("SELECT GET_LOCK('ks_local_register', 10) AS ok")) as unknown as [[{ ok: number }]];
+      const [[lock]] = (await conn.query("SELECT GET_LOCK('topout_owner_setup', 10) AS ok")) as unknown as [[{ ok: number }]];
       if (!lock?.ok) return fail(res, 503, "Busy. Try again.");
 
       const [existingCred] = await d.select({ id: localCredentials.userId }).from(localCredentials).where(eq(localCredentials.email, email)).limit(1);
@@ -163,7 +163,7 @@ export function registerLocalAuthRoutes(app: Express) {
       fail(res, 500, "Could not create the account. Try again.");
     } finally {
       try {
-        await conn.query("SELECT RELEASE_LOCK('ks_local_register')");
+        await conn.query("SELECT RELEASE_LOCK('topout_owner_setup')");
       } catch {}
       conn.release();
     }

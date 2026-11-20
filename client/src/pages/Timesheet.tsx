@@ -1,4 +1,4 @@
-import { ErrorState, Loading, PageHeader } from "@/components/ks/Layout";
+import { ErrorState, Loading, PageHeader } from "@/components/brand/Layout";
 import { TimesheetEditor } from "@/features/time/TimesheetEditor";
 import { WeekPicker } from "@/features/time/shared";
 import { weekStart } from "@/lib/format";

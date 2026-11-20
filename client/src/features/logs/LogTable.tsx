@@ -1,5 +1,5 @@
-import { CfValue, type CfDef } from "@/components/ks/CustomFields";
-import { PriorityBadge, SlaBadge, StateChip } from "@/components/ks/Status";
+import { CfValue, type CfDef } from "@/components/brand/CustomFields";
+import { PriorityBadge, SlaBadge, StateChip } from "@/components/brand/Status";
 import { diffDays, fmtDateShort, toDay } from "@/lib/format";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
 import { RESPONSIBLE_PARTIES } from "@shared/domain";
@@ -24,7 +24,7 @@ export function LogTable({
   const listDefs = defs.filter(d => d.showInList);
   return (
     <div className="overflow-x-auto">
-      <table className="ks-table whitespace-nowrap">
+      <table className="tp-table whitespace-nowrap">
         <thead>
           <tr>
             <th>Number</th>
@@ -57,7 +57,7 @@ export function LogTable({
                   className={`num font-medium ${item.slaStatus === "delayed" && state?.category !== "end" ? "hazard" : ""}`}
                 >
                   <button
-                    className="text-[var(--ks-accent-ink)]"
+                    className="text-[var(--tp-accent-ink)]"
                     onClick={() => onSelect(item.id)}
                   >
                     {item.label}

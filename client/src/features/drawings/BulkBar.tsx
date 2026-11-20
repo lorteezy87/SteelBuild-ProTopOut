@@ -68,7 +68,7 @@ export function BulkBar({ reg, sheets, hiddenCount, onClear }: {
 
   return (
     <>
-      <div role="toolbar" aria-label="Bulk drawing actions" aria-busy={busy} className="sticky top-0 z-10 flex flex-wrap items-center gap-2 rounded-md bg-[var(--ks-graphite)] px-3 py-2 text-white">
+      <div role="toolbar" aria-label="Bulk drawing actions" aria-busy={busy} className="sticky top-0 z-10 flex flex-wrap items-center gap-2 rounded-md bg-[var(--tp-graphite)] px-3 py-2 text-white">
         <div className="mr-auto text-[13px]">
           <span className="font-semibold">{sheets.length} selected</span>
           {hiddenCount > 0 && <span className="ml-2 text-white/70">{hiddenCount} hidden by filters or collapsed sets, not included</span>}
@@ -78,7 +78,7 @@ export function BulkBar({ reg, sheets, hiddenCount, onClear }: {
         <Button size="sm" disabled={unavailable || !checked.length} onClick={() => revisions.mutate({ projectId: reg.projectId, items: checked, step: "issue" })}>Issue {checked.length} revisions</Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild><Button size="sm" disabled={unavailable}>Review status <ChevronDown className="size-3.5" /></Button></DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[250px] border-[var(--ks-rule)] bg-[var(--ks-paper)] text-[var(--ks-ink)]">
+          <DropdownMenuContent align="end" className="min-w-[250px] border-[var(--tp-rule)] bg-[var(--tp-paper)] text-[var(--tp-ink)]">
             {(Object.keys(SHEET_ACTIONS) as SheetAction[]).map(a => (
               <DropdownMenuItem key={a} disabled={!countFor(a)} onSelect={() => a === "hold" ? setDialog({ kind: "hold", sheets: [...sheets] }) : runAction(a)}>
                 <span>{SHEET_ACTIONS[a]}</span><span className="num ml-auto pl-4 text-muted-foreground">{countFor(a)}</span>
@@ -88,7 +88,7 @@ export function BulkBar({ reg, sheets, hiddenCount, onClear }: {
         </DropdownMenu>
         <Button size="sm" disabled={unavailable} onClick={() => setDialog({ kind: "edit", sheets: [...sheets] })}>Edit fields…</Button>
         <Button size="sm" disabled={unavailable || !canDelete} onClick={() => setDialog({ kind: "delete", sheets: [...sheets] })}>Delete…</Button>
-        <Button size="sm" variant="outline" disabled={busy} className="border-white/30 bg-transparent text-white hover:bg-[var(--ks-graphite-2)] hover:text-white" onClick={onClear}>Clear</Button>
+        <Button size="sm" variant="outline" disabled={busy} className="border-white/30 bg-transparent text-white hover:bg-[var(--tp-graphite-2)] hover:text-white" onClick={onClear}>Clear</Button>
       </div>
       {dialog?.kind === "edit" && <BulkEditDialog reg={reg} count={dialog.sheets.length} busy={busy} onClose={() => setDialog(null)} onSave={patch => edit.mutate({ projectId: reg.projectId, sheetIds: dialog.sheets.map(s => s.id), patch })} />}
       {dialog?.kind === "hold" && <BulkHoldDialog reg={reg} count={dialog.sheets.filter(s => sheetActions(s, s.revs).includes("hold")).length} busy={busy} onClose={() => setDialog(null)} onSave={(reason, rfi) => runAction("hold", dialog.sheets, reason, rfi)} />}

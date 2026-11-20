@@ -270,7 +270,7 @@ export default function ComponentsShowcase() {
                       <p className="text-sm text-muted-foreground mb-1">
                         Primary
                       </p>
-                      <p className="text-[var(--ks-accent-ink)] text-lg font-medium">
+                      <p className="text-[var(--tp-accent-ink)] text-lg font-medium">
                         Primary brand color text
                       </p>
                     </div>
@@ -296,7 +296,7 @@ export default function ComponentsShowcase() {
                       <p className="text-sm text-muted-foreground mb-1">
                         Destructive
                       </p>
-                      <p className="text-[var(--ks-red-strong)] text-lg font-medium">
+                      <p className="text-[var(--tp-red-strong)] text-lg font-medium">
                         Error or destructive action text
                       </p>
                     </div>

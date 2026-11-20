@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { NumberInput, SimpleSelect } from "@/components/ks/Controls";
-import { Field, Panel } from "@/components/ks/Layout";
+import { NumberInput, SimpleSelect } from "@/components/brand/Controls";
+import { Field, Panel } from "@/components/brand/Layout";
 import { trpc } from "@/lib/trpc";
 import type { RouterOutputs } from "@/lib/ref";
 import { errMsg } from "@/lib/format";
@@ -53,7 +53,7 @@ function DependencyRow({
         ) : (
           <Link
             href={`/jobs/${link.projectId}/tasks?task=${id}`}
-            className="hover:text-[var(--ks-accent-ink)]"
+            className="hover:text-[var(--tp-accent-ink)]"
           >
             <span className="num mr-2 text-muted-foreground">{link.wbs}</span>
             {link.name}
@@ -180,7 +180,7 @@ export function TaskDependencies({
           dir === "predecessor" ? data.predecessors : data.successors;
         return (
           <section key={dir}>
-            <h4 className="label-caps border-b border-[var(--ks-rule)] px-3 py-2">
+            <h4 className="label-caps border-b border-[var(--tp-rule)] px-3 py-2">
               {dir === "predecessor" ? "Predecessors" : "Successors"}
             </h4>
             {!rows.length ? (
@@ -189,7 +189,7 @@ export function TaskDependencies({
               </p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="ks-table">
+                <table className="tp-table">
                   <thead>
                     <tr>
                       <th>Task</th>
@@ -222,7 +222,7 @@ export function TaskDependencies({
         </p>
       )}
       {adding && (
-        <div className="space-y-3 border-t border-[var(--ks-rule)] p-3">
+        <div className="space-y-3 border-t border-[var(--tp-rule)] p-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Link direction">
               <SimpleSelect

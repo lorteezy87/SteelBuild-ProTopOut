@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { startLogin } from "@/const";
 import { BarChart3, CalendarRange, ClipboardCheck } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { BrandGlyph, Wordmark } from "../ks/Status";
+import { BrandGlyph, Wordmark } from "../brand/Status";
 
 const POINTS = [
   { icon: CalendarRange, title: "Schedule and sequences", body: "Erection sequences tied to fabricator loads, with health that flags a slipping job early." },
@@ -15,41 +15,41 @@ const POINTS = [
 /** Unauthenticated entry: brand panel on Foundry Black, sign-in card on white. */
 export function SignIn() {
   return (
-    <div className="flex min-h-dvh bg-[var(--ks-bone)]">
-      <div className="relative hidden w-[46%] max-w-[720px] flex-col overflow-hidden bg-[var(--ks-graphite)] px-12 py-10 text-white lg:flex">
+    <div className="flex min-h-dvh bg-[var(--tp-bone)]">
+      <div className="relative hidden w-[46%] max-w-[720px] flex-col overflow-hidden bg-[var(--tp-graphite)] px-12 py-10 text-white lg:flex">
         <Wordmark size="lg" width={380} className="-ml-3" />
         <div className="mt-auto max-w-[460px]">
-          <div className="text-[12.5px] font-medium tracking-[0.02em] text-[var(--ks-brand)]">Steel erection project management</div>
+          <div className="text-[12.5px] font-medium tracking-[0.02em] text-[var(--tp-brand)]">Steel erection project management</div>
           <h1 className="mt-3 text-[32px] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
             Every job, sequence and dollar in one place.
           </h1>
           <div className="mt-8 space-y-5">
             {POINTS.map(({ icon: Icon, title, body }) => (
               <div key={title} className="flex gap-3.5">
-                <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--ks-graphite-3)] bg-[var(--ks-graphite-2)] text-[var(--ks-brand)]">
+                <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-[var(--tp-graphite-3)] bg-[var(--tp-graphite-2)] text-[var(--tp-brand)]">
                   <Icon className="size-4" />
                 </span>
                 <div>
                   <div className="text-[14px] font-medium text-white">{title}</div>
-                  <div className="mt-0.5 text-[13.5px] leading-relaxed text-[var(--ks-sidebar-muted)]">{body}</div>
+                  <div className="mt-0.5 text-[13.5px] leading-relaxed text-[var(--tp-sidebar-muted)]">{body}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="mt-10 border-t border-[var(--ks-graphite-3)] pt-4 text-[12px] text-[var(--ks-sidebar-muted)]">Erection only · Fabrication by others</div>
+        <div className="mt-10 border-t border-[var(--tp-graphite-3)] pt-4 text-[12px] text-[var(--tp-sidebar-muted)]">Erection only · Fabrication by others</div>
       </div>
       <div className="flex flex-1 items-center justify-center p-6 sm:p-8">
         <div className="w-full max-w-[400px]">
           <div className="mb-8 flex justify-center lg:hidden">
-            <div className="rounded-xl bg-[var(--ks-graphite)] px-6 py-4">
+            <div className="rounded-xl bg-[var(--tp-graphite)] px-6 py-4">
               <Wordmark size="md" />
             </div>
           </div>
           {window.__MANUS_CONFIG__?.oauthPortalUrl ? (
-            <div className="ks-panel p-8">
-              <h2 className="text-[22px] font-semibold leading-tight tracking-[-0.015em] text-[var(--ks-ink)]">Sign in to SteelBuild Pro</h2>
-              <p className="mt-2 text-[14px] leading-relaxed text-[var(--ks-muted)]">
+            <div className="tp-panel p-8">
+              <h2 className="text-[22px] font-semibold leading-tight tracking-[-0.015em] text-[var(--tp-ink)]">Sign in to SteelBuild Pro TopOut</h2>
+              <p className="mt-2 text-[14px] leading-relaxed text-[var(--tp-muted)]">
                 Use your company account. The first person to sign in becomes the administrator and can invite the rest of the team.
               </p>
               <Button className="mt-7 h-11 w-full text-[14.5px]" onClick={() => startLogin()}>
@@ -59,7 +59,7 @@ export function SignIn() {
           ) : (
             <PasswordSignIn />
           )}
-          <p className="mt-6 text-center text-[12px] text-[var(--ks-muted)]">Access is limited to authorized company users.</p>
+          <p className="mt-6 text-center text-[12px] text-[var(--tp-muted)]">Access is limited to authorized company users.</p>
         </div>
       </div>
     </div>
@@ -68,15 +68,15 @@ export function SignIn() {
 
 export function AccessBlocked({ message, onSignOut }: { message: string; onSignOut: () => void }) {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-[var(--ks-bone)] p-8">
-      <div className="ks-panel w-full max-w-md p-7">
+    <div className="flex min-h-dvh items-center justify-center bg-[var(--tp-bone)] p-8">
+      <div className="tp-panel w-full max-w-md p-7">
         <div className="mb-5 flex items-center gap-3">
           <BrandGlyph size={40} />
-          <div className="text-[13px] font-medium text-[var(--ks-muted)]">SteelBuild Pro</div>
+          <div className="text-[13px] font-medium text-[var(--tp-muted)]">SteelBuild Pro TopOut</div>
         </div>
-        <h2 className="text-[20px] font-semibold leading-tight tracking-[-0.01em] text-[var(--ks-ink)]">Your account can't sign in yet</h2>
-        <p className="mt-2 text-[14px] text-[var(--ks-ink-2)]">{message}</p>
-        <p className="mt-2 text-[14px] text-[var(--ks-muted)]">Ask your SteelBuild Pro administrator to activate your account or change your access type.</p>
+        <h2 className="text-[20px] font-semibold leading-tight tracking-[-0.01em] text-[var(--tp-ink)]">Your account can't sign in yet</h2>
+        <p className="mt-2 text-[14px] text-[var(--tp-ink-2)]">{message}</p>
+        <p className="mt-2 text-[14px] text-[var(--tp-muted)]">Ask your SteelBuild Pro TopOut administrator to activate your account or change your access type.</p>
         <Button variant="outline" className="mt-6" onClick={onSignOut}>
           Sign out
         </Button>
@@ -135,11 +135,11 @@ function PasswordSignIn() {
 
   const register = mode === "register";
   return (
-    <form className="ks-panel p-8" onSubmit={submit} noValidate>
-      <h2 className="text-[22px] font-semibold leading-tight tracking-[-0.015em] text-[var(--ks-ink)]">
-        {setupRequired ? "Set up SteelBuild Pro" : register ? "Create your account" : "Sign in to SteelBuild Pro"}
+    <form className="tp-panel p-8" onSubmit={submit} noValidate>
+      <h2 className="text-[22px] font-semibold leading-tight tracking-[-0.015em] text-[var(--tp-ink)]">
+        {setupRequired ? "Set up SteelBuild Pro TopOut" : register ? "Create your account" : "Sign in to SteelBuild Pro TopOut"}
       </h2>
-      <p className="mt-2 text-[14px] leading-relaxed text-[var(--ks-muted)]">
+      <p className="mt-2 text-[14px] leading-relaxed text-[var(--tp-muted)]">
         {setupRequired
           ? "No administrator exists yet. This first account becomes the administrator and can invite the rest of the team."
           : register
@@ -166,7 +166,7 @@ function PasswordSignIn() {
             value={password}
             onChange={e => setPassword(e.target.value)}
           />
-          {register && <p className="text-[12px] text-[var(--ks-muted)]">At least 10 characters.</p>}
+          {register && <p className="text-[12px] text-[var(--tp-muted)]">At least 10 characters.</p>}
         </div>
       </div>
       {error && (
@@ -180,7 +180,7 @@ function PasswordSignIn() {
       {!setupRequired && (
         <button
           type="button"
-          className="mt-4 w-full text-center text-[13px] text-[var(--ks-accent-ink,var(--ks-ink-2))] underline-offset-2 hover:underline"
+          className="mt-4 w-full text-center text-[13px] text-[var(--tp-accent-ink,var(--tp-ink-2))] underline-offset-2 hover:underline"
           onClick={() => {
             setMode(register ? "signin" : "register");
             setError(null);

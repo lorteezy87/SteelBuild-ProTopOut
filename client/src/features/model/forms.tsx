@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { RecordDrawer, SimpleSelect } from "@/components/ks/Controls";
+import { RecordDrawer, SimpleSelect } from "@/components/brand/Controls";
 import { MD, elevText, type Kind, type PieceFields, type ReadRec, type Settings } from "./domain";
 import { MS } from "./space";
 
@@ -16,7 +16,7 @@ function Row({ label, hint, error, children }: { label: string; hint?: string; e
     <label className="flex flex-col gap-1">
       <span className="label-caps">{label}</span>
       {children}
-      {error ? <span className="text-[12px] text-[var(--ks-red-strong)]">{error}</span> : hint ? <span className="text-[12px] text-muted-foreground">{hint}</span> : null}
+      {error ? <span className="text-[12px] text-[var(--tp-red-strong)]">{error}</span> : hint ? <span className="text-[12px] text-muted-foreground">{hint}</span> : null}
     </label>
   );
 }
@@ -65,10 +65,10 @@ export function SettingsDrawer({ open, onClose, cfg, version, onSave }: { open: 
       <div className="flex flex-col gap-4">
         <p className="text-[12px] text-muted-foreground">Used in this job’s piece lists, lift weights, totals and the 3D model.</p>
         <Row label="Allowance for connections (%)" hint="Added to every piece’s weight. 0 = bare steel." error={tried ? errs.allow : ""}>
-          <Input className="num w-32 bg-[var(--ks-paper)]" inputMode="decimal" value={allow} onChange={e => setAllow(e.target.value)} />
+          <Input className="num w-32 bg-[var(--tp-paper)]" inputMode="decimal" value={allow} onChange={e => setAllow(e.target.value)} />
         </Row>
         <Row label="Column base elevation" hint="In the 3D model, where the lowest columns start. Blank: 12 ft below their level." error={tried ? errs.base : ""}>
-          <Input className="num w-40 bg-[var(--ks-paper)]" placeholder={"0'-0\""} value={base} onChange={e => setBase(e.target.value)} />
+          <Input className="num w-40 bg-[var(--tp-paper)]" placeholder={"0'-0\""} value={base} onChange={e => setBase(e.target.value)} />
         </Row>
         <Row
           label="Joist weights (one per line: mark and pounds per joist)"
@@ -81,7 +81,7 @@ export function SettingsDrawer({ open, onClose, cfg, version, onSave }: { open: 
                 : "Paste from the joist supplier’s list. Joists without one show no weight."
           }
         >
-          <Textarea className="num min-h-48 bg-[var(--ks-paper)]" placeholder={"T12 1950\nT13 2100\nJ145 640"} value={jw} onChange={e => setJw(e.target.value)} />
+          <Textarea className="num min-h-48 bg-[var(--tp-paper)]" placeholder={"T12 1950\nT13 2100\nJ145 640"} value={jw} onChange={e => setJw(e.target.value)} />
         </Row>
       </div>
     </RecordDrawer>
@@ -121,14 +121,14 @@ export function LevelDrawer({ rec, sheet, onClose, onSave }: { rec: ReadRec; she
     >
       <div className="flex flex-col gap-4">
         <Row label="Level" hint={rec.lvlBy === "read" && lvl.trim() === rec.lvl ? "From the sheet title" : "Sheets with the same level are filtered together."}>
-          <Input className="bg-[var(--ks-paper)]" placeholder="Level 2, Roof" value={lvl} onChange={e => setLvl(e.target.value)} />
+          <Input className="bg-[var(--tp-paper)]" placeholder="Level 2, Roof" value={lvl} onChange={e => setLvl(e.target.value)} />
         </Row>
         <Row
           label="Top of steel elevation"
           error={bad ? "Feet and inches, like 13'-6\"" : ""}
           hint={rec.tosBy === "read" && tos.trim() === elevText(rec.tos) ? "From the drawing’s top-of-steel note" : "Feet and inches, as the drawings give it. Blank: not known (shown at 0)."}
         >
-          <Input className="num w-40 bg-[var(--ks-paper)]" placeholder={"13'-6\""} value={tos} onChange={e => setTos(e.target.value)} />
+          <Input className="num w-40 bg-[var(--tp-paper)]" placeholder={"13'-6\""} value={tos} onChange={e => setTos(e.target.value)} />
         </Row>
       </div>
     </RecordDrawer>
@@ -176,7 +176,7 @@ export function PieceForm({
     }
   };
   return (
-    <div className="mx-3 flex flex-col gap-2.5 border border-[var(--ks-rule)] bg-[var(--ks-paper)] p-3">
+    <div className="mx-3 flex flex-col gap-2.5 border border-[var(--tp-rule)] bg-[var(--tp-paper)] p-3">
       <div>
         <div className="text-[13px] font-semibold">{title}</div>
         <div className="text-[12px] text-muted-foreground">{sub}</div>
@@ -193,13 +193,13 @@ export function PieceForm({
         />
       </Row>
       <Row label="Piece mark" hint="As the drawing labels it (optional for a beam with a size)." error={err}>
-        <Input className="num h-8 bg-[var(--ks-paper)]" placeholder="B1220 or T12" value={mark} onChange={e => (setMark(e.target.value), setErr(""))} />
+        <Input className="num h-8 bg-[var(--tp-paper)]" placeholder="B1220 or T12" value={mark} onChange={e => (setMark(e.target.value), setErr(""))} />
       </Row>
       <Row label="Size" hint={sizeHint}>
-        <Input className="num h-8 bg-[var(--ks-paper)]" placeholder={k === "joist" ? "26K9" : "W18X40"} value={size} onChange={e => (setSize(e.target.value), setErr(""))} />
+        <Input className="num h-8 bg-[var(--tp-paper)]" placeholder={k === "joist" ? "26K9" : "W18X40"} value={size} onChange={e => (setSize(e.target.value), setErr(""))} />
       </Row>
       <Row label="Note">
-        <Input className="h-8 bg-[var(--ks-paper)]" placeholder="Why it was added or fixed (optional)" value={note} onChange={e => setNote(e.target.value)} />
+        <Input className="h-8 bg-[var(--tp-paper)]" placeholder="Why it was added or fixed (optional)" value={note} onChange={e => setNote(e.target.value)} />
       </Row>
       <div className="flex justify-end gap-2">
         <Button variant="outline" size="sm" onClick={onCancel}>

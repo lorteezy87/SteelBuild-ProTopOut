@@ -90,7 +90,7 @@ export function TimelineRuler({
   const todayX = (diffDays(first, today) + 0.5) * dayWidth;
   return (
     <div
-      className="ruler-ticks relative shrink-0 border-b border-[var(--ks-rule)] bg-[var(--ks-rule-soft)]"
+      className="ruler-ticks relative shrink-0 border-b border-[var(--tp-rule)] bg-[var(--tp-rule-soft)]"
       style={{
         width: days * dayWidth,
         height: HEADER_HEIGHT,
@@ -102,7 +102,7 @@ export function TimelineRuler({
       {segments.map(segment => (
         <div
           key={segment.index}
-          className="absolute inset-y-0 border-l border-[var(--ks-rule)] px-1.5 pt-1.5"
+          className="absolute inset-y-0 border-l border-[var(--tp-rule)] px-1.5 pt-1.5"
           style={{
             left: segment.index * dayWidth,
             width: segment.length * dayWidth,
@@ -131,7 +131,7 @@ export function TimelineRuler({
       ))}
       {todayX >= 0 && todayX < days * dayWidth && (
         <div
-          className="absolute bottom-0 z-10 h-4 border-l-2 border-[var(--ks-accent)]"
+          className="absolute bottom-0 z-10 h-4 border-l-2 border-[var(--tp-accent)]"
           style={{ left: todayX }}
           title={`Today: ${today}`}
         >
@@ -256,13 +256,13 @@ export function Timeline(props: TimelineProps) {
   return (
     <div
       ref={props.bodyRef}
-      className="relative shrink-0 bg-[var(--ks-paper)]"
+      className="relative shrink-0 bg-[var(--tp-paper)]"
       style={{ width, height }}
     >
       {shadeDays.map(index => (
         <div
           key={index}
-          className="pointer-events-none absolute inset-y-0 bg-[var(--ks-bone)]"
+          className="pointer-events-none absolute inset-y-0 bg-[var(--tp-bone)]"
           style={{ left: index * dayWidth, width: dayWidth }}
         />
       ))}
@@ -270,13 +270,13 @@ export function Timeline(props: TimelineProps) {
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(to bottom, transparent 37px, var(--ks-rule) 37px)",
+            "linear-gradient(to bottom, transparent 37px, var(--tp-rule) 37px)",
           backgroundSize: `100% ${ROW_HEIGHT}px`,
         }}
       />
       {props.today >= first && diffDays(first, props.today) < days && (
         <div
-          className="pointer-events-none absolute inset-y-0 z-10 border-l-2 border-[var(--ks-accent)] opacity-80"
+          className="pointer-events-none absolute inset-y-0 z-10 border-l-2 border-[var(--tp-accent)] opacity-80"
           style={{ left: (diffDays(first, props.today) + 0.5) * dayWidth }}
         />
       )}
@@ -330,8 +330,8 @@ export function Timeline(props: TimelineProps) {
               d={path}
               stroke={
                 props.selectedDependency === dep.id
-                  ? "var(--ks-accent)"
-                  : "var(--ks-muted)"
+                  ? "var(--tp-accent)"
+                  : "var(--tp-muted)"
               }
               strokeWidth={props.selectedDependency === dep.id ? 2 : 1.2}
               strokeDasharray={externalName ? "3 2" : undefined}
@@ -341,7 +341,7 @@ export function Timeline(props: TimelineProps) {
             {(props.zoom === "day" ||
               props.selectedDependency === dep.id ||
               externalName) && (
-              <text x={labelX} y={labelY} fontSize="9" fill="var(--ks-ink-2)">
+              <text x={labelX} y={labelY} fontSize="9" fill="var(--tp-ink-2)">
                 {externalName ? "EXT " : ""}
                 {dep.type}
                 {dep.lagDays
@@ -359,7 +359,7 @@ export function Timeline(props: TimelineProps) {
             return (
               <path
                 d={`M ${bar.finishX} ${source.index * ROW_HEIGHT + 17} H ${bar.finishX + 12} V ${preview.y} H ${preview.x}`}
-                stroke="var(--ks-accent)"
+                stroke="var(--tp-accent)"
                 strokeWidth="2"
                 strokeDasharray="4 3"
                 fill="none"
@@ -395,20 +395,20 @@ export function Timeline(props: TimelineProps) {
         const pct = Math.max(0, Math.min(100, task.percentComplete));
         const tone =
           task.kind === "sequence"
-            ? "var(--ks-accent)"
-            : "var(--ks-gantt-fill)";
+            ? "var(--tp-accent)"
+            : "var(--tp-gantt-fill)";
         return (
           <div
             key={task.id}
             className={cn(
               "absolute inset-x-0 h-[38px]",
-              props.selectedId === task.id && "bg-[var(--ks-accent-soft)]/50"
+              props.selectedId === task.id && "bg-[var(--tp-accent-soft)]/50"
             )}
             style={{ top }}
           >
             {ghost && (
               <div
-                className="pointer-events-none absolute rounded-[3px] border border-dashed border-[var(--ks-muted)] bg-[var(--ks-muted)]/20"
+                className="pointer-events-none absolute rounded-[3px] border border-dashed border-[var(--tp-muted)] bg-[var(--tp-muted)]/20"
                 style={{
                   left: ghost.x,
                   width: ghost.width,
@@ -431,11 +431,11 @@ export function Timeline(props: TimelineProps) {
                 data-gantt-task={task.id}
                 data-summary={summary ? "true" : undefined}
                 className={cn(
-                  "group absolute z-20 select-none rounded-[4px] focus-visible:outline-2 focus-visible:outline-[var(--ks-accent)]",
+                  "group absolute z-20 select-none rounded-[4px] focus-visible:outline-2 focus-visible:outline-[var(--tp-accent)]",
                   canDrag && "cursor-grab active:cursor-grabbing",
                   !canDrag && "cursor-pointer",
                   preview?.targetId === task.id &&
-                    "outline-2 outline-offset-4 outline-[var(--ks-accent)]"
+                    "outline-2 outline-offset-4 outline-[var(--tp-accent)]"
                 )}
                 role="button"
                 tabIndex={0}
@@ -447,7 +447,7 @@ export function Timeline(props: TimelineProps) {
                   height: 20,
                   touchAction: canDrag ? "none" : "auto",
                   outline: highlight
-                    ? "2px solid var(--ks-red-strong)"
+                    ? "2px solid var(--tp-red-strong)"
                     : undefined,
                   outlineOffset: highlight ? 2 : undefined,
                 }}
@@ -474,25 +474,25 @@ export function Timeline(props: TimelineProps) {
                   >
                     <path
                       d={`M0 0 H${bar.width} V4 L${Math.max(0, bar.width - 5)} 11 V5 H5 V11 L0 4 Z`}
-                      fill="var(--ks-ink-2)"
+                      fill="var(--tp-ink-2)"
                     />
                     <rect
                       x="0"
                       y="0"
                       width={(bar.width * pct) / 100}
                       height="3"
-                      fill="var(--ks-accent)"
+                      fill="var(--tp-accent)"
                     />
                   </svg>
                 ) : task.kind === "milestone" ? (
                   <div
                     className={cn(
-                      "pointer-events-none absolute left-[2px] top-[3px] size-[11px] rotate-45 border border-[var(--ks-ink-2)]",
+                      "pointer-events-none absolute left-[2px] top-[3px] size-[11px] rotate-45 border border-[var(--tp-ink-2)]",
                       task.scheduleHealth === "delayed" && "hazard"
                     )}
                     style={{
                       backgroundColor:
-                        pct === 100 ? "var(--ks-ink-2)" : "var(--ks-paper)",
+                        pct === 100 ? "var(--tp-ink-2)" : "var(--tp-paper)",
                     }}
                   />
                 ) : (
@@ -502,8 +502,8 @@ export function Timeline(props: TimelineProps) {
                       borderColor: tone,
                       backgroundColor:
                         task.kind === "sequence"
-                          ? "var(--ks-accent-soft)"
-                          : "var(--ks-gray-soft)",
+                          ? "var(--tp-accent-soft)"
+                          : "var(--tp-gray-soft)",
                     }}
                   >
                     <div
@@ -515,7 +515,7 @@ export function Timeline(props: TimelineProps) {
                     )}
                     {bar.width > 70 && (
                       <span
-                        className="num absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[2px] bg-[var(--ks-paper)] px-1 text-[10px] text-[var(--ks-ink)]"
+                        className="num absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[2px] bg-[var(--tp-paper)] px-1 text-[10px] text-[var(--tp-ink)]"
                       >
                         {Math.round(pct)}%
                       </span>
@@ -523,7 +523,7 @@ export function Timeline(props: TimelineProps) {
                   </div>
                 )}
                 {task.kind === "sequence" && !summary && (
-                  <span className="num pointer-events-none absolute left-full top-0 ml-5 whitespace-nowrap text-[10px] text-[var(--ks-ink-2)]">
+                  <span className="num pointer-events-none absolute left-full top-0 ml-5 whitespace-nowrap text-[10px] text-[var(--tp-ink-2)]">
                     {fmtTons(task.erectedTons)} / {fmtTons(task.plannedTons)}
                   </span>
                 )}
@@ -535,7 +535,7 @@ export function Timeline(props: TimelineProps) {
                         tabIndex={0}
                         aria-label={`Resize ${task.name}; use task drawer for keyboard date edits`}
                         title="Drag to resize duration"
-                        className="absolute inset-y-0 right-0 w-[7px] cursor-ew-resize border-x border-[var(--ks-graphite)]/40 bg-[var(--ks-graphite)]/20 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                        className="absolute inset-y-0 right-0 w-[7px] cursor-ew-resize border-x border-[var(--tp-graphite)]/40 bg-[var(--tp-graphite)]/20 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
                         onClick={event => event.stopPropagation()}
                         onKeyDown={event => {
                           if (event.key === "Enter") {
@@ -554,7 +554,7 @@ export function Timeline(props: TimelineProps) {
                       tabIndex={0}
                       aria-label={`Link ${task.name} to a successor; use task drawer for keyboard dependency edits`}
                       title="Drag onto another detail bar to create Finish → Start"
-                      className="absolute -right-3 top-1.5 size-[8px] cursor-crosshair rounded-full border border-[var(--ks-accent)] bg-[var(--ks-paper)] opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                      className="absolute -right-3 top-1.5 size-[8px] cursor-crosshair rounded-full border border-[var(--tp-accent)] bg-[var(--tp-paper)] opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
                       onClick={event => event.stopPropagation()}
                       onKeyDown={event => {
                         if (event.key === "Enter") {
@@ -573,7 +573,7 @@ export function Timeline(props: TimelineProps) {
             )}
             {activePreview && (
               <div
-                className="num pointer-events-none absolute z-30 whitespace-nowrap border border-[var(--ks-graphite)] bg-[var(--ks-paper)] px-2 py-0.5 text-[10px]"
+                className="num pointer-events-none absolute z-30 whitespace-nowrap border border-[var(--tp-graphite)] bg-[var(--tp-paper)] px-2 py-0.5 text-[10px]"
                 style={{ left: Math.max(0, bar?.x ?? 0), top: -15 }}
               >
                 {preview.shift ? (

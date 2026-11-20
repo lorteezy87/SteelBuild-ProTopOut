@@ -5,8 +5,8 @@ import {
   NumberInput,
   SimpleSelect,
   UserSelect,
-} from "@/components/ks/Controls";
-import { Panel } from "@/components/ks/Layout";
+} from "@/components/brand/Controls";
+import { Panel } from "@/components/brand/Layout";
 import { fmtPct } from "@/lib/format";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
 
@@ -105,7 +105,7 @@ export function ReportLines({
         }
       >
         <fieldset disabled={!editable} className="overflow-x-auto">
-          <table className="ks-table min-w-[660px]">
+          <table className="tp-table min-w-[660px]">
             <thead>
               <tr>
                 <th>Person</th>
@@ -216,7 +216,7 @@ export function ReportLines({
         }
       >
         <fieldset disabled={!editable} className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>Equipment</th>
@@ -279,7 +279,7 @@ export function ReportLines({
             </tbody>
           </table>
         </fieldset>
-        <p className="border-t border-[var(--ks-rule)] px-3 py-2 text-xs text-muted-foreground">
+        <p className="border-t border-[var(--tp-rule)] px-3 py-2 text-xs text-muted-foreground">
           Equipment cost is posted at approval. Equipment-to-task allocation is
           not supported on daily reports.
         </p>
@@ -305,7 +305,7 @@ export function ReportLines({
         }
       >
         <fieldset disabled={!editable} className="overflow-x-auto">
-          <table className="ks-table min-w-[660px]">
+          <table className="tp-table min-w-[660px]">
             <thead>
               <tr>
                 <th>Sequence</th>
@@ -407,7 +407,7 @@ export function ReportLines({
             </tbody>
           </table>
         </fieldset>
-        <p className="border-t border-[var(--ks-rule)] px-3 py-2 text-xs text-muted-foreground">
+        <p className="border-t border-[var(--tp-rule)] px-3 py-2 text-xs text-muted-foreground">
           * Cumulative tonnage % (pieces when no planned tons), including this
           report. Preview only until approved.
         </p>

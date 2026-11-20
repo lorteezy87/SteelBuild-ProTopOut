@@ -1,4 +1,4 @@
-import { PageHeader, TabStrip } from "@/components/ks/Layout";
+import { PageHeader, TabStrip } from "@/components/brand/Layout";
 import {
   DailyApprovalQueue,
   ExpenseApprovalQueue,

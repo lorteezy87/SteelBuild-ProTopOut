@@ -84,7 +84,7 @@ export function CfValue({ def, value, className }: { def: CfDef; value: unknown;
 export function CfInput({ def, value, onChange }: { def: CfDef; value: unknown; onChange: (v: unknown) => void }) {
   switch (def.fieldType) {
     case "richtext":
-      return <Textarea value={(value as string) ?? ""} onChange={e => onChange(e.target.value || null)} rows={3} className="bg-[var(--ks-paper)]" />;
+      return <Textarea value={(value as string) ?? ""} onChange={e => onChange(e.target.value || null)} rows={3} className="bg-[var(--tp-paper)]" />;
     case "number":
     case "decimal":
     case "currency":
@@ -110,7 +110,7 @@ export function CfInput({ def, value, onChange }: { def: CfDef; value: unknown; 
     case "multiselect": {
       const arr = Array.isArray(value) ? (value as string[]) : [];
       return (
-        <div className="flex flex-wrap gap-x-4 gap-y-1.5 rounded-md border border-input bg-[var(--ks-paper)] px-3 py-2">
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 rounded-md border border-input bg-[var(--tp-paper)] px-3 py-2">
           {(def.options ?? []).map(o => (
             <label key={o.value} className="flex items-center gap-1.5 text-[13px]">
               <Checkbox
@@ -133,7 +133,7 @@ export function CfInput({ def, value, onChange }: { def: CfDef; value: unknown; 
         </div>
       );
     default:
-      return <Input value={(value as string) ?? ""} onChange={e => onChange(e.target.value || null)} className="bg-[var(--ks-paper)]" />;
+      return <Input value={(value as string) ?? ""} onChange={e => onChange(e.target.value || null)} className="bg-[var(--tp-paper)]" />;
   }
 }
 
@@ -146,7 +146,7 @@ export function CfForm({ defs, values, onChange, columns = 2 }: { defs: CfDef[];
         <div key={def.key} className={cn(def.fieldType === "richtext" || def.fieldType === "multiselect" ? "sm:col-span-2" : "")}>
           <label className="label-caps mb-1 block">
             {def.label}
-            {def.required && <span className="ml-0.5 text-[var(--ks-red-strong)]">*</span>}
+            {def.required && <span className="ml-0.5 text-[var(--tp-red-strong)]">*</span>}
           </label>
           <CfInput def={def} value={values[def.key]} onChange={v => onChange({ ...values, [def.key]: v })} />
           {def.helpText && <div className="mt-1 text-[11.5px] text-muted-foreground">{def.helpText}</div>}

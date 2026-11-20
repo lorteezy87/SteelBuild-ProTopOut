@@ -7,8 +7,8 @@ import {
   RecordDrawer,
   ConfirmButton,
   SimpleSelect,
-} from "@/components/ks/Controls";
-import { Field, Panel, Loading, ErrorState } from "@/components/ks/Layout";
+} from "@/components/brand/Controls";
+import { Field, Panel, Loading, ErrorState } from "@/components/brand/Layout";
 import {
   PROJECT_PRIVILEGES,
   GLOBAL_PRIVILEGES,
@@ -81,14 +81,14 @@ export default function Roles() {
       </div>
       <Panel title="Privilege matrix · changes save immediately">
         <div className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th className="min-w-72">Privilege</th>
                 {roles.map(r => (
                   <th key={r.id} className="min-w-36">
                     <button
-                      className="text-left hover:text-[var(--ks-accent-ink)]"
+                      className="text-left hover:text-[var(--tp-accent-ink)]"
                       onClick={() => open(r)}
                     >
                       {r.name}
@@ -118,7 +118,7 @@ export default function Roles() {
           </table>
         </div>
       </Panel>
-      <details className="ks-panel p-4">
+      <details className="tp-panel p-4">
         <summary className="cursor-pointer font-medium">
           Access-type caps limit what any role can give
         </summary>
@@ -127,7 +127,7 @@ export default function Roles() {
           Timesheet-only and Passive have no project/global grants; their
           own-entry behavior is separate. Admin access is an explicit bypass.
         </p>
-        <table className="ks-table">
+        <table className="tp-table">
           <thead>
             <tr>
               <th>Access type</th>
@@ -230,7 +230,7 @@ function RoleGroup({
       <tr>
         <td
           colSpan={roles.length + 1}
-          className="label-caps bg-[var(--ks-bone)]"
+          className="label-caps bg-[var(--tp-bone)]"
         >
           {group}
         </td>

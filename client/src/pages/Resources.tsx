@@ -1,5 +1,5 @@
-import { NumberInput, SimpleSelect } from "@/components/ks/Controls";
-import { ErrorState, Kpi, Loading, PageHeader } from "@/components/ks/Layout";
+import { NumberInput, SimpleSelect } from "@/components/brand/Controls";
+import { ErrorState, Kpi, Loading, PageHeader } from "@/components/brand/Layout";
 import { WorkloadGrid } from "@/features/resources/WorkloadGrid";
 import { WeekPicker, sum } from "@/features/time/shared";
 import { fmtHours, weekStart } from "@/lib/format";

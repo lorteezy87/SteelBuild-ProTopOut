@@ -1,4 +1,4 @@
-import type { Tone } from "@/components/ks/Status";
+import type { Tone } from "@/components/brand/Status";
 import type { RouterOutputs } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { SHEET_STATUSES, type MatrixCell, type SheetStatus } from "@shared/drawings";

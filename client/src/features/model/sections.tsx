@@ -8,9 +8,9 @@ import { BookOpenCheck, ExternalLink, Loader2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { EmptyState, Panel } from "@/components/ks/Layout";
-import { SimpleSelect } from "@/components/ks/Controls";
-import { Pill } from "@/components/ks/Status";
+import { EmptyState, Panel } from "@/components/brand/Layout";
+import { SimpleSelect } from "@/components/brand/Controls";
+import { Pill } from "@/components/brand/Status";
 import { cn } from "@/lib/utils";
 import { fmtDateShort } from "@/lib/format";
 import { MD, STATES, elevText, plural, type PieceState, type ReadRec, type Row, type Settings, type SheetLite, type SheetTotal, type SizeTotal } from "./domain";
@@ -94,8 +94,8 @@ export function SheetsSection({
         Read a sheet to get its pieces: mark, size and length from the drawing’s own lines and text, each needing review in the viewer. Joist placement plans and fabricators’ erection plans read
         well; design sheets, stair plans and scans don’t, and their pieces can be drawn by hand in the viewer. Reading happens in this browser — the drawing doesn’t leave it.
       </Note>
-      <div className="ks-panel overflow-x-auto">
-        <table className="ks-table min-w-[820px]">
+      <div className="tp-panel overflow-x-auto">
+        <table className="tp-table min-w-[820px]">
           <thead>
             <tr>
               <th>Sheet</th>
@@ -129,7 +129,7 @@ export function SheetsSection({
                       <span className="inline-flex items-baseline gap-2">
                         <span className={cn(!r0.lvl && r0.tos == null && "text-muted-foreground")}>{[r0.lvl, r0.tos != null ? "T.O.S. " + elevText(r0.tos) : ""].filter(Boolean).join(" · ") || "Not set"}</span>
                         {canEdit && (
-                          <button type="button" className="text-[var(--ks-accent-ink)] hover:underline" onClick={() => onLevel(l, r0)}>
+                          <button type="button" className="text-[var(--tp-accent-ink)] hover:underline" onClick={() => onLevel(l, r0)}>
                             Set
                           </button>
                         )}
@@ -147,7 +147,7 @@ export function SheetsSection({
                           Reading…
                         </span>
                       ) : (
-                        <button type="button" className="text-[12px] font-medium text-[var(--ks-accent-ink)] hover:underline" onClick={() => onRead(l)}>
+                        <button type="button" className="text-[12px] font-medium text-[var(--tp-accent-ink)] hover:underline" onClick={() => onRead(l)}>
                           {l.recs.length ? "Read again" : "Read framing"}
                         </button>
                       ))}
@@ -185,7 +185,7 @@ export function Filters({ F, set, seqs, seqName }: { F: Filter; set: (p: Partial
       type="button"
       aria-pressed={F.f === k}
       onClick={() => set({ f: k })}
-      className={cn("rounded-[3px] border px-2.5 py-1 text-[12px] font-medium", F.f === k ? "border-[var(--ks-accent)] bg-[var(--ks-accent-soft)]" : "border-[var(--ks-rule)] bg-[var(--ks-paper)]")}
+      className={cn("rounded-[3px] border px-2.5 py-1 text-[12px] font-medium", F.f === k ? "border-[var(--tp-accent)] bg-[var(--tp-accent-soft)]" : "border-[var(--tp-rule)] bg-[var(--tp-paper)]")}
     >
       {l}
     </button>
@@ -219,7 +219,7 @@ export function Filters({ F, set, seqs, seqName }: { F: Filter; set: (p: Partial
       )}
       <div className="relative">
         <Search className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-        <Input aria-label="Search pieces" className="h-8 w-52 bg-[var(--ks-paper)] pl-7" placeholder="Mark, size or sheet" value={F.q} onChange={e => set({ q: e.target.value })} />
+        <Input aria-label="Search pieces" className="h-8 w-52 bg-[var(--tp-paper)] pl-7" placeholder="Mark, size or sheet" value={F.q} onChange={e => set({ q: e.target.value })} />
       </div>
     </div>
   );
@@ -252,8 +252,8 @@ export function PiecesTable({ rows, lift, seqName, onOpen, bulk }: {
   return (
     <>
     {!list.length ? <EmptyState title={lift ? "No pieces with a known weight yet" : "No pieces match"} body={lift ? "Beams get a weight from their size; joists need the joist list (Weights)." : undefined} /> : (
-    <div className="ks-panel overflow-x-auto">
-      <table className="ks-table min-w-[900px]">
+    <div className="tp-panel overflow-x-auto">
+      <table className="tp-table min-w-[900px]">
         <thead>
           <tr>
             {bulk && <th className="w-10"><Checkbox aria-label="Select all visible pieces" checked={allSelected ? true : selection.keys.length ? "indeterminate" : false} disabled={saving} onCheckedChange={v => {
@@ -304,9 +304,9 @@ export function PiecesTable({ rows, lift, seqName, onOpen, bulk }: {
         </tbody>
       </table>
       {list.length > limit && (
-        <div className="border-t border-[var(--ks-rule)] px-3 py-2 text-[12px]">
+        <div className="border-t border-[var(--tp-rule)] px-3 py-2 text-[12px]">
           {num(list.length - limit)} more.{" "}
-          <button type="button" className="text-[var(--ks-accent-ink)] hover:underline" onClick={() => setLimit(l => l + 400)}>
+          <button type="button" className="text-[var(--tp-accent-ink)] hover:underline" onClick={() => setLimit(l => l + 400)}>
             Show more
           </button>
         </div>
@@ -325,7 +325,7 @@ export function TotalsSection({ sizes, sheets, tot }: { sizes: SizeTotal[]; shee
     <div className="grid gap-4 xl:grid-cols-2">
       <Panel title="By size">
         <div className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>Size</th>
@@ -353,7 +353,7 @@ export function TotalsSection({ sizes, sheets, tot }: { sizes: SizeTotal[]; shee
       </Panel>
       <Panel title="By sheet">
         <div className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 <th>Sheet</th>
@@ -402,7 +402,7 @@ export function ProgressSection({ rows, recs, sheets, seqName }: { rows: Row[]; 
   const table = (list: typeof P.byLevel, first: string) => (
     <Panel title={"By " + first.toLowerCase()}>
       <div className="overflow-x-auto">
-        <table className="ks-table min-w-[640px]">
+        <table className="tp-table min-w-[640px]">
           <thead>
             <tr>
               <th>{first}</th>
@@ -453,11 +453,11 @@ export const settingsNote = (cfg: Settings) =>
 export function ReadAllBar({ progress, onStop }: { progress: { done: number; total: number } | null; onStop: () => void }) {
   if (!progress) return null;
   return (
-    <div role="status" className="flex items-center gap-3 border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-3 py-2 text-[13px]">
+    <div role="status" className="flex items-center gap-3 border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-3 py-2 text-[13px]">
       <Loader2 className="size-4 animate-spin" />
       Reading {progress.done + 1 > progress.total ? progress.total : progress.done + 1} of {progress.total} sheets…
-      <div className="h-1.5 w-40 overflow-hidden bg-[var(--ks-rule)]">
-        <div className="h-full bg-[var(--ks-accent)]" style={{ width: (progress.done / Math.max(1, progress.total)) * 100 + "%" }} />
+      <div className="h-1.5 w-40 overflow-hidden bg-[var(--tp-rule)]">
+        <div className="h-full bg-[var(--tp-accent)]" style={{ width: (progress.done / Math.max(1, progress.total)) * 100 + "%" }} />
       </div>
       <Button variant="outline" size="sm" onClick={onStop}>
         Stop

@@ -1,6 +1,6 @@
-import { CfDisplay, CfForm, type CfDef } from "@/components/ks/CustomFields";
-import { DateInput, SimpleSelect, UserSelect } from "@/components/ks/Controls";
-import { ErrorState, Field } from "@/components/ks/Layout";
+import { CfDisplay, CfForm, type CfDef } from "@/components/brand/CustomFields";
+import { DateInput, SimpleSelect, UserSelect } from "@/components/brand/Controls";
+import { ErrorState, Field } from "@/components/brand/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -116,7 +116,7 @@ export function LogFields({
           )}
         </div>
       </fieldset>
-      <div className="border-t border-[var(--ks-rule)] pt-4">
+      <div className="border-t border-[var(--tp-rule)] pt-4">
         <div className="label-caps mb-3">Log fields</div>
         {editable ? (
           <CfForm

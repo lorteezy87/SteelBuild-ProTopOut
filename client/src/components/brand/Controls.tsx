@@ -43,17 +43,17 @@ export function RecordDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col gap-0 border-l border-[var(--ks-rule)] bg-[var(--ks-paper)] p-0 shadow-[-12px_0_32px_rgba(16,24,40,0.10)] sm:max-w-none"
+        className="flex w-full flex-col gap-0 border-l border-[var(--tp-rule)] bg-[var(--tp-paper)] p-0 shadow-[-12px_0_32px_rgba(16,24,40,0.10)] sm:max-w-none"
         style={{ maxWidth: `min(${width}px, 100vw)` }}
       >
-        <SheetHeader className="gap-1 border-b border-[var(--ks-rule)] px-5 pb-3.5 pt-4 pr-12 text-left">
+        <SheetHeader className="gap-1 border-b border-[var(--tp-rule)] px-5 pb-3.5 pt-4 pr-12 text-left">
           {eyebrow && <div className="label-caps">{eyebrow}</div>}
           <SheetTitle className="text-[21px] leading-tight">{title}</SheetTitle>
           <SheetDescription className="sr-only">Record details</SheetDescription>
           {actions && <div className="mt-2 flex flex-wrap items-center gap-2">{actions}</div>}
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="border-t border-[var(--ks-rule)] px-5 py-3">{footer}</div>}
+        {footer && <div className="border-t border-[var(--tp-rule)] px-5 py-3">{footer}</div>}
       </SheetContent>
     </Sheet>
   );
@@ -88,7 +88,7 @@ export function SimpleSelect<T extends string>({
   const opts = Array.isArray(options) ? options : (Object.entries(options) as [T, string][]).map(([v, l]) => ({ value: v, label: l }));
   return (
     <Select value={value ?? (allowNone ? NONE : undefined)} onValueChange={v => onChange(v === NONE ? null : (v as T))} disabled={disabled}>
-      <SelectTrigger size={size} className={cn("w-full bg-[var(--ks-paper)]", className)}>
+      <SelectTrigger size={size} className={cn("w-full bg-[var(--tp-paper)]", className)}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -172,7 +172,7 @@ export function DateInput({ value, onChange, className, disabled }: { value: str
       value={value ?? ""}
       disabled={disabled}
       onChange={e => onChange(e.target.value || null)}
-      className={cn("num bg-[var(--ks-paper)]", className)}
+      className={cn("num bg-[var(--tp-paper)]", className)}
     />
   );
 }
@@ -205,7 +205,7 @@ export function NumberInput({
       placeholder={placeholder}
       disabled={disabled}
       onChange={e => onChange(e.target.value === "" ? null : Number(e.target.value))}
-      className={cn("num bg-[var(--ks-paper)]", className)}
+      className={cn("num bg-[var(--tp-paper)]", className)}
     />
   );
 }

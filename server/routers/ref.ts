@@ -100,7 +100,7 @@ export const refRouter = router({
         .where(eq(wfApps.isActive, true))
         .orderBy(asc(wfApps.sortOrder)),
       getSetting<OrgSettings>("org", {
-        name: "SteelBuild Pro",
+        name: "SteelBuild Pro TopOut",
         timezone: "America/Phoenix",
         deliveryLeadDays: 2,
         currency: "USD",
@@ -194,6 +194,6 @@ export const refRouter = router({
 
   orgName: publicProcedure.query(async () => {
     const org = await getSetting<OrgSettings | null>("org", null);
-    return org?.name ?? "SteelBuild Pro";
+    return org?.name ?? "SteelBuild Pro TopOut";
   }),
 });

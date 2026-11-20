@@ -7,8 +7,8 @@ import {
   RecordDrawer,
   NumberInput,
   SimpleSelect,
-} from "@/components/ks/Controls";
-import { EmptyState, Field, Panel } from "@/components/ks/Layout";
+} from "@/components/brand/Controls";
+import { EmptyState, Field, Panel } from "@/components/brand/Layout";
 import { trpc } from "@/lib/trpc";
 import { errMsg } from "@/lib/format";
 import { toast } from "sonner";
@@ -194,11 +194,11 @@ export function CopySecret({
 }) {
   return (
     <div
-      className="space-y-3 border border-[var(--ks-amber)] bg-[var(--ks-amber-soft)] p-4"
+      className="space-y-3 border border-[var(--tp-amber)] bg-[var(--tp-amber-soft)] p-4"
       role="status"
     >
       <p className="font-semibold">{label}</p>
-      <code className="block break-all select-all rounded border bg-[var(--ks-paper)] p-3 font-mono text-xs">
+      <code className="block break-all select-all rounded border bg-[var(--tp-paper)] p-3 font-mono text-xs">
         {value}
       </code>
       <div className="flex gap-2">
@@ -280,7 +280,7 @@ export function ReferenceEditor<T extends { id: number; name: string }>({
       </div>
       <Panel title={`${rows.length} records`}>
         <div className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 {columns.map(c => (
@@ -299,7 +299,7 @@ export function ReferenceEditor<T extends { id: number; name: string }>({
                     <td key={c.label}>
                       {i === 0 ? (
                         <button
-                          className="text-left font-medium hover:text-[var(--ks-accent-ink)]"
+                          className="text-left font-medium hover:text-[var(--tp-accent-ink)]"
                           onClick={e => {
                             e.stopPropagation();
                             open(r);
@@ -341,7 +341,7 @@ export function ReferenceEditor<T extends { id: number; name: string }>({
       >
         <DraftFields fields={fields} draft={draft} onChange={setDraft} />
         {selected && extra && (
-          <div className="mt-6 border-t border-[var(--ks-rule)] pt-4">
+          <div className="mt-6 border-t border-[var(--tp-rule)] pt-4">
             {extra(selected.id)}
           </div>
         )}

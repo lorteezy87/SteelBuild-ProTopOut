@@ -35,3 +35,6 @@ export const decodeOAuthState = (state: string): OAuthState => {
   }
   return { redirectUri: decoded };
 };
+
+/** Product name shown in the UI. */
+export const PRODUCT_NAME = "SteelBuild Pro TopOut";

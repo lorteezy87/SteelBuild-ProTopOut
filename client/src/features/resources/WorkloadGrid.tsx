@@ -1,5 +1,5 @@
-import { EmptyState, ErrorState, Loading, Panel } from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+import { EmptyState, ErrorState, Loading, Panel } from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { addDays, fmtDate, fmtHours, fmtNum } from "@/lib/format";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
 import { cn } from "@/lib/utils";
@@ -59,7 +59,7 @@ export function WorkloadGrid({
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th className="min-w-64">Person / craft</th>
@@ -97,13 +97,13 @@ export function WorkloadGrid({
                         <td
                           key={i}
                           className={cn(
-                            "right num border-l border-[var(--ks-rule)]",
+                            "right num border-l border-[var(--tp-rule)]",
                             person.overloaded[i]
-                              ? "hazard bg-[var(--ks-red-soft)] text-[var(--ks-red-strong)]"
+                              ? "hazard bg-[var(--tp-red-soft)] text-[var(--tp-red-strong)]"
                               : person.capacity[i] > 0 &&
                                   hours >= person.capacity[i] * 0.95
-                                ? "bg-[var(--ks-green-soft)]"
-                                : "bg-[var(--ks-gray-soft)] text-muted-foreground"
+                                ? "bg-[var(--tp-green-soft)]"
+                                : "bg-[var(--tp-gray-soft)] text-muted-foreground"
                           )}
                           title={`${person.name}: ${fmtHours(hours)} allocated / ${fmtHours(person.capacity[i])} capacity`}
                         >
@@ -126,7 +126,7 @@ export function WorkloadGrid({
                         person.tasks.map((task, index) => (
                           <tr
                             key={`${task.taskId}:${index}`}
-                            className="bg-[var(--ks-paper)]"
+                            className="bg-[var(--tp-paper)]"
                           >
                             <td className="pl-9">
                               <Link
@@ -174,7 +174,7 @@ export function WorkloadGrid({
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th className="min-w-64">Craft / work needing assignment</th>
@@ -207,7 +207,7 @@ export function WorkloadGrid({
                         key={i}
                         className={cn(
                           "right num",
-                          hours > 0 && "bg-[var(--ks-amber-soft)]"
+                          hours > 0 && "bg-[var(--tp-amber-soft)]"
                         )}
                       >
                         {hours ? fmtHours(hours) : "—"}
@@ -235,7 +235,7 @@ export function WorkloadGrid({
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th className="min-w-64">Equipment / assignments</th>
@@ -286,7 +286,7 @@ export function WorkloadGrid({
                           className={cn(
                             "right num",
                             conflict || equipment.doubleBooked[i]
-                              ? "hazard bg-[var(--ks-red-soft)] text-[var(--ks-red-strong)]"
+                              ? "hazard bg-[var(--tp-red-soft)] text-[var(--tp-red-strong)]"
                               : "text-muted-foreground"
                           )}
                         >
@@ -323,7 +323,7 @@ export function WorkloadGrid({
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>Unit</th>

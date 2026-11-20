@@ -2,9 +2,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RecordDrawer, ConfirmButton } from "@/components/ks/Controls";
-import { Panel, Loading, ErrorState, EmptyState } from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+import { RecordDrawer, ConfirmButton } from "@/components/brand/Controls";
+import { Panel, Loading, ErrorState, EmptyState } from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { ACCESS_TYPES } from "@shared/domain";
 import { trpc } from "@/lib/trpc";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
@@ -161,7 +161,7 @@ export default function Users() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Input
-          className="max-w-sm bg-[var(--ks-paper)]"
+          className="max-w-sm bg-[var(--tp-paper)]"
           placeholder="Find person by name or email"
           aria-label="Find person"
           value={search}
@@ -177,7 +177,7 @@ export default function Users() {
       </p>
       <Panel title={`${rows.length} people`}>
         <div className="overflow-x-auto">
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 {[

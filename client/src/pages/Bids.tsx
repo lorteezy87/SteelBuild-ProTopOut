@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Plus, Target } from "lucide-react";
-import { SimpleSelect } from "@/components/ks/Controls";
-import { CfValue } from "@/components/ks/CustomFields";
+import { SimpleSelect } from "@/components/brand/Controls";
+import { CfValue } from "@/components/brand/CustomFields";
 import {
   EmptyState,
   ErrorState,
@@ -10,8 +10,8 @@ import {
   Loading,
   PageHeader,
   Panel,
-} from "@/components/ks/Layout";
-import { StateChip } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { StateChip } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogItemDrawer } from "@/features/logs/LogItemDrawer";
@@ -149,10 +149,10 @@ export default function Bids({ params = {} }: { params?: { id?: string } }) {
             </div>
           }
         >
-          <div className="flex flex-wrap items-center gap-3 border-b border-[var(--ks-rule)] p-3">
+          <div className="flex flex-wrap items-center gap-3 border-b border-[var(--tp-rule)] p-3">
             <Input
               aria-label="Search bids"
-              className="max-w-xs bg-[var(--ks-paper)]"
+              className="max-w-xs bg-[var(--tp-paper)]"
               placeholder="Bid, GC, location…"
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -189,7 +189,7 @@ export default function Bids({ params = {} }: { params?: { id?: string } }) {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="ks-table whitespace-nowrap">
+              <table className="tp-table whitespace-nowrap">
                 <thead>
                   <tr>
                     {[
@@ -239,7 +239,7 @@ export default function Bids({ params = {} }: { params?: { id?: string } }) {
                         </td>
                         <td className="num">
                           <button
-                            className="text-[var(--ks-accent-ink)]"
+                            className="text-[var(--tp-accent-ink)]"
                             onClick={() => navigate(`/bids/${i.id}`)}
                           >
                             {i.label}

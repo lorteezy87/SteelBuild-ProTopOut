@@ -8,8 +8,8 @@ import {
   NumberInput,
   SimpleSelect,
   UserSelect,
-} from "@/components/ks/Controls";
-import { Field, Panel } from "@/components/ks/Layout";
+} from "@/components/brand/Controls";
+import { Field, Panel } from "@/components/brand/Layout";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { errMsg } from "@/lib/format";
@@ -80,7 +80,7 @@ export function TaskResources({
       {assignments.map((a, i) => (
         <div
           key={i}
-          className="grid items-end gap-2 border-b border-[var(--ks-rule)] pb-3 sm:grid-cols-[1fr_1fr_84px_32px]"
+          className="grid items-end gap-2 border-b border-[var(--tp-rule)] pb-3 sm:grid-cols-[1fr_1fr_84px_32px]"
         >
           <Field label="Person">
             {canEdit ? (

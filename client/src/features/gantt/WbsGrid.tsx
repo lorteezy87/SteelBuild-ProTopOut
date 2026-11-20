@@ -1,4 +1,4 @@
-import { ScheduleHealth } from "@/components/ks/Status";
+import { ScheduleHealth } from "@/components/brand/Status";
 import { fmtDateShort, fmtNum } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronRight, AlertTriangle, GripVertical } from "lucide-react";
@@ -36,7 +36,7 @@ export function WbsHeader({
   return (
     <div
       ref={headerRef}
-      className="sticky left-0 z-30 shrink-0 overflow-x-auto border-r border-[var(--ks-rule)] bg-[var(--ks-rule-soft)]"
+      className="sticky left-0 z-30 shrink-0 overflow-x-auto border-r border-[var(--tp-rule)] bg-[var(--tp-rule-soft)]"
       style={{ width: paneWidth, height: HEADER_HEIGHT }}
       onScroll={event => {
         if (gridRef.current)
@@ -44,7 +44,7 @@ export function WbsHeader({
       }}
     >
       <table
-        className="ks-table"
+        className="tp-table"
         style={{ width: GRID_MIN_WIDTH, tableLayout: "fixed" }}
         aria-label="Schedule columns"
       >
@@ -108,7 +108,7 @@ export function WbsGrid({
 }) {
   return (
     <div
-      className="sticky left-0 z-20 shrink-0 border-r border-[var(--ks-rule)] bg-[var(--ks-paper)]"
+      className="sticky left-0 z-20 shrink-0 border-r border-[var(--tp-rule)] bg-[var(--tp-paper)]"
       style={{ width: paneWidth }}
     >
       <div
@@ -120,7 +120,7 @@ export function WbsGrid({
         }}
       >
         <table
-          className="ks-table"
+          className="tp-table"
           style={{ width: GRID_MIN_WIDTH, tableLayout: "fixed" }}
           aria-label="Schedule WBS"
         >
@@ -161,7 +161,7 @@ export function WbsGrid({
                         tabIndex={-1}
                         aria-label={`Drag ${task.name}`}
                         title="Drag to reorder, or drop onto a sequence"
-                        className="ks-grip flex h-[36px] w-5 items-center justify-center"
+                        className="tp-grip flex h-[36px] w-5 items-center justify-center"
                       >
                         <GripVertical className="size-3.5" />
                       </span>
@@ -181,7 +181,7 @@ export function WbsGrid({
                       {summary ? (
                         <button
                           type="button"
-                          className="flex size-5 shrink-0 items-center justify-center hover:text-[var(--ks-accent-ink)]"
+                          className="flex size-5 shrink-0 items-center justify-center hover:text-[var(--tp-accent-ink)]"
                           aria-label={`${collapsed.has(task.id) ? "Expand" : "Collapse"} ${task.name}`}
                           aria-expanded={!collapsed.has(task.id)}
                           onClick={event => {
@@ -200,7 +200,7 @@ export function WbsGrid({
                       )}
                       <button
                         type="button"
-                        className="truncate text-left text-[12px] hover:text-[var(--ks-accent-ink)]"
+                        className="truncate text-left text-[12px] hover:text-[var(--tp-accent-ink)]"
                         title={task.name}
                         onClick={event => {
                           event.stopPropagation();
@@ -211,7 +211,7 @@ export function WbsGrid({
                       </button>
                       {task.constraintViolated && (
                         <AlertTriangle
-                          className="size-3.5 shrink-0 text-[var(--ks-red-strong)]"
+                          className="size-3.5 shrink-0 text-[var(--tp-red-strong)]"
                           aria-label="Schedule constraint violated"
                         />
                       )}

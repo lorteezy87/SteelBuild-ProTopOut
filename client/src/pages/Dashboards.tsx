@@ -12,9 +12,9 @@ import {
   Loading,
   ErrorState,
   EmptyState,
-} from "@/components/ks/Layout";
-import { ConfirmButton, RecordDrawer } from "@/components/ks/Controls";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { ConfirmButton, RecordDrawer } from "@/components/brand/Controls";
+import { Pill } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -82,7 +82,7 @@ export default function Dashboards() {
           onChange={e => setSearch(e.target.value)}
           placeholder="Find dashboard…"
           aria-label="Search dashboards"
-          className="w-72 bg-[var(--ks-paper)]"
+          className="w-72 bg-[var(--tp-paper)]"
         />
         <Panel>
           {q.isLoading ? (
@@ -97,7 +97,7 @@ export default function Dashboards() {
             />
           ) : (
             <div className="overflow-auto">
-              <table className="ks-table">
+              <table className="tp-table">
                 <thead>
                   <tr>
                     <th>Dashboard</th>
@@ -192,7 +192,7 @@ export default function Dashboards() {
               onChange={e => setName(e.target.value)}
               maxLength={200}
               autoFocus
-              className="bg-[var(--ks-paper)]"
+              className="bg-[var(--tp-paper)]"
             />
           </Field>
           <label className="flex items-center gap-2">

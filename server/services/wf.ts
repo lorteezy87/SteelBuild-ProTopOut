@@ -317,7 +317,7 @@ export async function sweepSla() {
     .innerJoin(wfStates, eq(wfStates.id, wfItems.stateId))
     .where(and(isNotNull(wfItems.slaDueAt), sql`${wfStates.category} <> 'end'`));
   const now = new Date();
-  const system = { user: { id: 0, name: "SteelBuild Pro" } };
+  const system = { user: { id: 0, name: "SteelBuild Pro TopOut" } };
   let changed = 0;
   const policyCache = new Map<number, (typeof wfSlaPolicies.$inferSelect)[]>();
   for (const { item } of open) {

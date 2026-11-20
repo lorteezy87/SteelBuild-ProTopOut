@@ -81,7 +81,7 @@ export function useWbsDrag({
           const ghost = document.createElement("div");
           ghost.textContent = `${ids.length} rows`;
           ghost.style.cssText =
-            "position:fixed;top:-100px;left:-100px;padding:4px 10px;background:var(--ks-solid);color:var(--ks-solid-ink);font:500 12px Inter,system-ui;border-left:3px solid var(--ks-brand);border-radius:6px";
+            "position:fixed;top:-100px;left:-100px;padding:4px 10px;background:var(--tp-solid);color:var(--tp-solid-ink);font:500 12px Inter,system-ui;border-left:3px solid var(--tp-brand);border-radius:6px";
           document.body.appendChild(ghost);
           event.dataTransfer.setDragImage(ghost, 12, 12);
           setTimeout(() => ghost.remove(), 0);
@@ -124,9 +124,9 @@ export function useWbsDrag({
 
   /** Row class for drop indicators and the faded dragged rows. */
   function rowClass(id: number) {
-    if (dragIds && blocked.has(id)) return "ks-dragging";
+    if (dragIds && blocked.has(id)) return "tp-dragging";
     if (over?.id !== id) return "";
-    return over.zone === "before" ? "ks-drop-before" : over.zone === "after" ? "ks-drop-after" : "ks-drop-into";
+    return over.zone === "before" ? "tp-drop-before" : over.zone === "after" ? "tp-drop-after" : "tp-drop-into";
   }
 
   return { dragging: !!dragIds, dragIds, over, handleProps, rowProps, rowClass };

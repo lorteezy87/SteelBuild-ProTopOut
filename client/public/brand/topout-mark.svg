@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SteelBuild Pro TopOut">
+  <rect width="64" height="64" rx="12" fill="#0B0E11"/>
+  <path d="M32 9 L46 21 H38 V24 H26 V21 H18 Z" fill="#F5BB00"/>
+  <path d="M17 30 H47 V35 H35 V47 H47 V52 H17 V47 H29 V35 H17 Z" fill="#E8EDF2"/>
+</svg>

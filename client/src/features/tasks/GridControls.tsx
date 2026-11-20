@@ -7,8 +7,8 @@ import {
   NumberInput,
   RecordDrawer,
   SimpleSelect,
-} from "@/components/ks/Controls";
-import { Field } from "@/components/ks/Layout";
+} from "@/components/brand/Controls";
+import { Field } from "@/components/brand/Layout";
 import { errMsg } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
 import { TASK_KINDS } from "@shared/domain";
@@ -73,7 +73,7 @@ export function InlineCell({
       max={max}
       step={type === "number" ? "0.1" : undefined}
       disabled={disabled || pending}
-      className={`h-7 w-full min-w-16 rounded-[3px] border border-transparent bg-transparent px-1 text-[12px] outline-none hover:border-[var(--ks-rule)] focus:border-[var(--ks-accent)] focus:bg-[var(--ks-paper)] disabled:hover:border-transparent ${type !== "text" ? "num" : ""}`}
+      className={`h-7 w-full min-w-16 rounded-[3px] border border-transparent bg-transparent px-1 text-[12px] outline-none hover:border-[var(--tp-rule)] focus:border-[var(--tp-accent)] focus:bg-[var(--tp-paper)] disabled:hover:border-transparent ${type !== "text" ? "num" : ""}`}
       onClick={e => e.stopPropagation()}
       onChange={e => setDraft(e.target.value)}
       onBlur={() => void commit()}

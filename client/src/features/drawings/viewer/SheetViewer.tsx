@@ -187,9 +187,9 @@ function TB({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "inline-flex h-[30px] min-w-[30px] items-center justify-center gap-1 rounded-[3px] border px-2 text-[12px] font-medium text-[var(--ks-solid-ink)]",
-        pressed ? "border-[var(--ks-accent)] bg-[var(--ks-sidebar-selected)]" : "border-[var(--ks-graphite-3)] bg-[var(--ks-graphite-2)] hover:bg-[var(--ks-graphite-3)]",
-        disabled && "cursor-default opacity-40 hover:bg-[var(--ks-graphite-2)]",
+        "inline-flex h-[30px] min-w-[30px] items-center justify-center gap-1 rounded-[3px] border px-2 text-[12px] font-medium text-[var(--tp-solid-ink)]",
+        pressed ? "border-[var(--tp-accent)] bg-[var(--tp-sidebar-selected)]" : "border-[var(--tp-graphite-3)] bg-[var(--tp-graphite-2)] hover:bg-[var(--tp-graphite-3)]",
+        disabled && "cursor-default opacity-40 hover:bg-[var(--tp-graphite-2)]",
         className
       )}
     >
@@ -197,9 +197,9 @@ function TB({
     </button>
   );
 }
-const Sep = () => <span className="mx-1 h-[22px] w-px bg-[var(--ks-graphite-3)]" />;
-const darkSelect = "h-[30px] rounded-[3px] border border-[var(--ks-graphite-3)] bg-[var(--ks-paper)] px-1.5 text-[12px] font-medium text-[var(--ks-ink)]";
-const card = "absolute z-[3] rounded-[4px] border border-[var(--ks-rule)] bg-[var(--ks-paper)] text-[var(--ks-ink)] shadow-[0_6px_24px_rgba(0,0,0,0.35)]";
+const Sep = () => <span className="mx-1 h-[22px] w-px bg-[var(--tp-graphite-3)]" />;
+const darkSelect = "h-[30px] rounded-[3px] border border-[var(--tp-graphite-3)] bg-[var(--tp-paper)] px-1.5 text-[12px] font-medium text-[var(--tp-ink)]";
+const card = "absolute z-[3] rounded-[4px] border border-[var(--tp-rule)] bg-[var(--tp-paper)] text-[var(--tp-ink)] shadow-[0_6px_24px_rgba(0,0,0,0.35)]";
 
 /* ------------------------------------------------------------------ */
 /* Viewer                                                              */
@@ -1399,10 +1399,10 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
       role="dialog"
       aria-modal="true"
       aria-label={`Drawing viewer${sheet ? " · " + sheet.sheetNumber : ""}`}
-      className="fixed inset-0 z-[45] flex flex-col bg-[var(--ks-graphite)] text-[var(--ks-solid-ink)]"
+      className="fixed inset-0 z-[45] flex flex-col bg-[var(--tp-graphite)] text-[var(--tp-solid-ink)]"
     >
       {/* top bar */}
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--ks-graphite-3)] px-2.5 py-2">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--tp-graphite-3)] px-2.5 py-2">
         <TB label="Back (Alt+Left)" onClick={() => void goBack()} disabled={!back.length}>
           <ArrowLeft className="size-4" />
         </TB>
@@ -1426,10 +1426,10 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
         )}
         <div className="mx-1.5 flex min-w-0 max-w-[340px] flex-col gap-0.5">
           <span className="num truncate text-[14px] font-semibold leading-tight">
-            {sheet ? sheet.sheetNumber : "—"} <span className="font-sans text-[13px] font-normal text-[var(--ks-sidebar-muted)]">{sheet?.title ?? ""}</span>
+            {sheet ? sheet.sheetNumber : "—"} <span className="font-sans text-[13px] font-normal text-[var(--tp-sidebar-muted)]">{sheet?.title ?? ""}</span>
           </span>
           {r && (
-            <span className={cn("text-[11px] font-medium leading-tight", warn || r.state === "superseded" ? "text-[var(--ks-sidebar-amber)]" : "text-[var(--ks-sidebar-muted)]")}>
+            <span className={cn("text-[11px] font-medium leading-tight", warn || r.state === "superseded" ? "text-[var(--tp-sidebar-amber)]" : "text-[var(--tp-sidebar-muted)]")}>
               Rev {r.number} · {revStateLabel(r.state)}
               {ld.pages > 1 ? ` · page ${cur.page} of ${ld.pages}` : ""}
               {ready && ld.kind === "image" ? " · preview image" : ""}
@@ -1481,7 +1481,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
             searchHere();
           }}
         >
-          <Search className="size-3.5 text-[var(--ks-sidebar-muted)]" aria-hidden />
+          <Search className="size-3.5 text-[var(--tp-sidebar-muted)]" aria-hidden />
           <input
             id="sv-search"
             type="search"
@@ -1490,10 +1490,10 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
             disabled={!hasText}
             value={q}
             onChange={e => setQ(e.target.value)}
-            className="h-[30px] w-[150px] rounded-[3px] border border-[var(--ks-graphite-3)] bg-[var(--ks-paper)] px-2 text-[12px] text-[var(--ks-ink)] outline-none disabled:opacity-60"
+            className="h-[30px] w-[150px] rounded-[3px] border border-[var(--tp-graphite-3)] bg-[var(--tp-paper)] px-2 text-[12px] text-[var(--tp-ink)] outline-none disabled:opacity-60"
           />
           {hits.length > 0 && (
-            <span className="num text-[11px] text-[var(--ks-sidebar-muted)]">
+            <span className="num text-[11px] text-[var(--tp-sidebar-muted)]">
               {hi + 1}/{hits.length}
             </span>
           )}
@@ -1534,7 +1534,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
               target="_blank"
               rel="noreferrer"
               title="Download the original PDF"
-              className="inline-flex h-[30px] items-center gap-1 rounded-[3px] border border-[var(--ks-graphite-3)] bg-[var(--ks-graphite-2)] px-2 text-[12px] font-medium hover:bg-[var(--ks-graphite-3)]"
+              className="inline-flex h-[30px] items-center gap-1 rounded-[3px] border border-[var(--tp-graphite-3)] bg-[var(--tp-graphite-2)] px-2 text-[12px] font-medium hover:bg-[var(--tp-graphite-3)]"
             >
               <Download className="size-4" />
               <span className="hidden xl:inline">Download</span>
@@ -1544,7 +1544,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
             type="button"
             aria-label="Close viewer (Esc)"
             onClick={onClose}
-            className="inline-flex h-[30px] items-center gap-1 rounded-[3px] border border-[var(--ks-graphite-3)] bg-[var(--ks-graphite-2)] px-3 text-[12px] font-semibold hover:bg-[var(--ks-graphite-3)]"
+            className="inline-flex h-[30px] items-center gap-1 rounded-[3px] border border-[var(--tp-graphite-3)] bg-[var(--tp-graphite-2)] px-3 text-[12px] font-semibold hover:bg-[var(--tp-graphite-3)]"
           >
             <X className="size-4" /> Close
           </button>
@@ -1556,7 +1556,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
         <div
           role="toolbar"
           aria-label="Markup tools"
-          className="flex flex-wrap items-center gap-1.5 border-b border-[var(--ks-graphite-3)] bg-[var(--ks-graphite-2)] px-2.5 py-1.5"
+          className="flex flex-wrap items-center gap-1.5 border-b border-[var(--tp-graphite-3)] bg-[var(--tp-graphite-2)] px-2.5 py-1.5"
         >
           {MARK_TOOLS.filter(t => t.id === "pan" || canMark).map(t => {
             const Icon = TOOL_ICONS[t.id];
@@ -1587,21 +1587,21 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
                   title={c.label}
                   aria-pressed={color === c.hex}
                   onClick={() => setColor(c.hex)}
-                  className={cn("size-[22px] rounded-full border-2", color === c.hex ? "border-[var(--ks-rule-soft)]" : "border-[var(--ks-graphite-3)]")}
+                  className={cn("size-[22px] rounded-full border-2", color === c.hex ? "border-[var(--tp-rule-soft)]" : "border-[var(--tp-graphite-3)]")}
                   style={{ background: c.hex }}
                 />
               ))}
             </span>
           )}
-          {md && !canMark && <span className="text-[12px] text-[var(--ks-sidebar-muted)]">View only. Markups need drawing upload access on this job.</span>}
-          <label className="ml-2.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[var(--ks-sidebar-muted)]">
+          {md && !canMark && <span className="text-[12px] text-[var(--tp-sidebar-muted)]">View only. Markups need drawing upload access on this job.</span>}
+          <label className="ml-2.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[var(--tp-sidebar-muted)]">
             <input type="checkbox" checked={otherRevs} onChange={e => setOtherRevs(e.target.checked)} />
             Markups from other revisions
           </label>
-          <span className="num ml-auto flex flex-wrap items-center gap-1 text-[12px] text-[var(--ks-sidebar-muted)]">
+          <span className="num ml-auto flex flex-wrap items-center gap-1 text-[12px] text-[var(--tp-sidebar-muted)]">
             {fpu ? `Scale ${scaleRow?.label ?? ""}` : "No scale set"}
             {fpu && canMark && (
-              <button type="button" onClick={() => void clearScale()} className="ml-1 font-sans text-[12px] font-semibold text-[var(--ks-sidebar-orange)] underline">
+              <button type="button" onClick={() => void clearScale()} className="ml-1 font-sans text-[12px] font-semibold text-[var(--tp-sidebar-orange)] underline">
                 Clear
               </button>
             )}
@@ -1612,7 +1612,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
                   key={sc.label}
                   type="button"
                   onClick={() => void saveScale(sc.fpu, sc.label + " (printed)")}
-                  className="ml-1.5 font-sans text-[12px] font-semibold text-[var(--ks-sidebar-orange)] underline"
+                  className="ml-1.5 font-sans text-[12px] font-semibold text-[var(--tp-sidebar-orange)] underline"
                 >
                   Use {sc.label}
                 </button>
@@ -1627,7 +1627,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
           role="status"
           className={cn(
             "flex flex-wrap items-center gap-2.5 px-3 py-1.5 text-[12px] font-medium leading-snug",
-            warn ? "bg-[var(--ks-amber-soft)] text-[var(--ks-amber)]" : "bg-[var(--ks-graphite-3)]"
+            warn ? "bg-[var(--tp-amber-soft)] text-[var(--tp-amber)]" : "bg-[var(--tp-graphite-3)]"
           )}
         >
           {r && bare && (
@@ -1660,11 +1660,11 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
           <aside
             aria-label="Viewer panel"
             className={cn(
-              "z-[4] flex w-[300px] max-w-[85vw] flex-none flex-col border-r border-[var(--ks-rule)] bg-[var(--ks-paper)] text-[var(--ks-ink)]",
+              "z-[4] flex w-[300px] max-w-[85vw] flex-none flex-col border-r border-[var(--tp-rule)] bg-[var(--tp-paper)] text-[var(--tp-ink)]",
               narrow && "absolute inset-y-0 left-0 shadow-[0_6px_24px_rgba(0,0,0,0.35)]"
             )}
           >
-            <div role="tablist" className="flex flex-wrap border-b border-[var(--ks-rule)]">
+            <div role="tablist" className="flex flex-wrap border-b border-[var(--tp-rule)]">
               {tabs.map(t => (
                 <button
                   key={t.id}
@@ -1677,7 +1677,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
                   }}
                   className={cn(
                     "flex-auto border-b-2 px-2 py-2 text-[12px] font-semibold",
-                    side === t.id ? "border-[var(--ks-accent)] text-[var(--ks-ink)]" : "border-transparent text-[var(--ks-ink-2)] hover:text-[var(--ks-ink)]"
+                    side === t.id ? "border-[var(--tp-accent)] text-[var(--tp-ink)]" : "border-transparent text-[var(--tp-ink-2)] hover:text-[var(--tp-ink)]"
                   )}
                 >
                   {t.label}
@@ -1758,16 +1758,16 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
           onPointerUp={onUp}
           onPointerCancel={onUp}
           onDoubleClick={onDouble}
-          className="relative min-w-0 flex-1 touch-none overflow-hidden bg-[var(--ks-graphite-3)] outline-none"
+          className="relative min-w-0 flex-1 touch-none overflow-hidden bg-[var(--tp-graphite-3)] outline-none"
           style={{ cursor: tool !== "pan" ? "crosshair" : hover >= 0 ? "pointer" : "grab" }}
         >
           <div
             ref={stageRef}
             className="absolute left-0 top-0 origin-top-left"
-            style={{ width: W || 1, height: H || 1, transform: stageT, visibility: ready ? "visible" : "hidden", boxShadow: "0 0 0 1px var(--ks-graphite-3)" }}
+            style={{ width: W || 1, height: H || 1, transform: stageT, visibility: ready ? "visible" : "hidden", boxShadow: "0 0 0 1px var(--tp-graphite-3)" }}
           >
-            <canvas ref={baseRef} className="absolute inset-0 bg-[var(--ks-drawing-paper)]" style={{ width: W || 1, height: H || 1 }} />
-            {cmp && <img alt="" src={cmp.url} className="absolute inset-0 bg-[var(--ks-drawing-paper)]" style={{ width: W, height: H }} />}
+            <canvas ref={baseRef} className="absolute inset-0 bg-[var(--tp-drawing-paper)]" style={{ width: W || 1, height: H || 1 }} />
+            {cmp && <img alt="" src={cmp.url} className="absolute inset-0 bg-[var(--tp-drawing-paper)]" style={{ width: W, height: H }} />}
           </div>
           <canvas ref={hiRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-full w-full" style={{ display: "none" }} />
           <svg
@@ -1843,7 +1843,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
             )}
           </svg>
           {ld.status === "loading" && (
-            <div role="status" className="absolute inset-0 grid place-items-center text-[13px] font-medium text-[var(--ks-sidebar-muted)]">
+            <div role="status" className="absolute inset-0 grid place-items-center text-[13px] font-medium text-[var(--tp-sidebar-muted)]">
               <span className="animate-pulse">Loading {sheet?.sheetNumber ?? "drawing"}…</span>
             </div>
           )}
@@ -1853,7 +1853,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
             </div>
           )}
           {hover >= 0 && links[hover] && (
-            <div className="pointer-events-none absolute bottom-2.5 left-2.5 border border-[var(--ks-graphite-3)] bg-[var(--ks-graphite)] px-2.5 py-1 text-[12px] font-medium">
+            <div className="pointer-events-none absolute bottom-2.5 left-2.5 border border-[var(--tp-graphite-3)] bg-[var(--tp-graphite)] px-2.5 py-1 text-[12px] font-medium">
               Go to {links[hover].detail ? `detail ${links[hover].detail} on ` : ""}
               {links[hover].sheet}
               {links[hover].same ? " (this sheet)" : ""}
@@ -1870,7 +1870,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
                 : "Click each item. Double-click or press Enter when done."}{" "}
               Backspace removes the last point.
             </span>
-            <button type="button" onClick={finishPoly} className="h-7 shrink-0 rounded-[3px] bg-[var(--ks-solid)] px-2.5 text-[12px] font-semibold text-white">
+            <button type="button" onClick={finishPoly} className="h-7 shrink-0 rounded-[3px] bg-[var(--tp-solid)] px-2.5 text-[12px] font-semibold text-white">
               Finish ({draft.p.length})
             </button>
           </div>
@@ -1901,20 +1901,20 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
               value={label}
               placeholder={pending.kind === "cal" ? `e.g. 20'-0"` : pending.kind === "length" && !fpu ? "Set a scale to get the length" : ""}
               onChange={e => setLabel(e.target.value)}
-              className="h-[30px] w-[260px] max-w-[60vw] rounded-[3px] border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-2 text-[13px] outline-none focus:border-[var(--ks-accent)]"
+              className="h-[30px] w-[260px] max-w-[60vw] rounded-[3px] border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-2 text-[13px] outline-none focus:border-[var(--tp-accent)]"
             />
-            {pending.kind === "area" && fpu && <span className="num text-[12px] text-[var(--ks-ink-2)]">{sqft(polyArea(pending.p) * fpu * fpu)}</span>}
+            {pending.kind === "area" && fpu && <span className="num text-[12px] text-[var(--tp-ink-2)]">{sqft(polyArea(pending.p) * fpu * fpu)}</span>}
             <button
               type="submit"
               disabled={saveM.isPending || scaleM.isPending}
-              className="h-[30px] rounded-[3px] bg-[var(--ks-solid)] px-3 text-[12px] font-semibold text-white disabled:opacity-60"
+              className="h-[30px] rounded-[3px] bg-[var(--tp-solid)] px-3 text-[12px] font-semibold text-white disabled:opacity-60"
             >
               {pending.kind === "cal" ? "Set scale" : "Save"}
             </button>
             <button
               type="button"
               onClick={() => setPending(null)}
-              className="h-[30px] rounded-[3px] border border-[var(--ks-rule)] px-2.5 text-[12px] font-medium"
+              className="h-[30px] rounded-[3px] border border-[var(--tp-rule)] px-2.5 text-[12px] font-medium"
             >
               Cancel
             </button>
@@ -1943,7 +1943,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
                   const t = e.currentTarget.value.trim();
                   if (t !== (selM.note ?? "") && !(selM.kind === "text" && !t)) void saveFields(selM, { note: t || null }, "note saved");
                 }}
-                className="h-[30px] rounded-[3px] border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-2 text-[13px] outline-none focus:border-[var(--ks-accent)]"
+                className="h-[30px] rounded-[3px] border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-2 text-[13px] outline-none focus:border-[var(--tp-accent)]"
               />
             ) : (
               <span className="text-[13px] leading-snug">{selM.note || "No note."}</span>
@@ -1959,23 +1959,23 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
                     onClick={() => void saveFields(selM, { color: c.hex }, "recoloured")}
                     className={cn(
                       "size-[18px] rounded-full border-2",
-                      selM.color.toUpperCase() === c.hex ? "border-[var(--ks-ink)]" : "border-[var(--ks-rule)]"
+                      selM.color.toUpperCase() === c.hex ? "border-[var(--tp-ink)]" : "border-[var(--tp-rule)]"
                     )}
                     style={{ background: c.hex }}
                   />
                 ))}
                 {selM.kind !== "note" && selM.kind !== "text" && (
-                  <span className="text-[11px] text-[var(--ks-ink-2)]">Drag to move; drag a square to reshape.</span>
+                  <span className="text-[11px] text-[var(--tp-ink-2)]">Drag to move; drag a square to reshape.</span>
                 )}
-                {(selM.kind === "note" || selM.kind === "text") && <span className="text-[11px] text-[var(--ks-ink-2)]">Drag to move.</span>}
+                {(selM.kind === "note" || selM.kind === "text") && <span className="text-[11px] text-[var(--tp-ink-2)]">Drag to move.</span>}
               </span>
             )}
-            <span className="text-[11px] text-[var(--ks-ink-2)]">
+            <span className="text-[11px] text-[var(--tp-ink-2)]">
               {userName(selM.createdBy)} · {fmtDateTime(selM.createdAt)}
             </span>
             <span className="flex gap-3 text-[12px] font-semibold">
               {mayEditSel && (
-                <button type="button" onClick={() => void delMark(selM)} className="text-[var(--ks-red-strong)] hover:underline">
+                <button type="button" onClick={() => void delMark(selM)} className="text-[var(--tp-red-strong)] hover:underline">
                   Delete
                 </button>
               )}
@@ -1989,7 +1989,7 @@ export function SheetViewer({ projectId, sheets, sheetId, rev: initialRev, plugi
         {msg && (
           <div
             role="status"
-            className="absolute bottom-4 left-1/2 z-[5] max-w-[90vw] -translate-x-1/2 rounded-[3px] bg-[var(--ks-solid)] px-3.5 py-2 text-[13px] font-medium leading-snug text-white shadow-lg"
+            className="absolute bottom-4 left-1/2 z-[5] max-w-[90vw] -translate-x-1/2 rounded-[3px] bg-[var(--tp-solid)] px-3.5 py-2 text-[13px] font-medium leading-snug text-white shadow-lg"
           >
             {msg}
           </div>

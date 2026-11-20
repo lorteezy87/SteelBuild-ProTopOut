@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { errMsg } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
@@ -73,13 +73,13 @@ let seq = 0;
 const uid = () => `im${Date.now().toString(36)}${(seq++).toString(36)}`;
 const blankF = (): RowFields => ({ sheet: "", title: "", rev: "", seqId: null, revDate: "", revDesc: "" });
 const MATCH_TONE: Record<Match["kind"], string> = {
-  new: "text-[var(--ks-blue)]",
-  rev: "text-[var(--ks-accent-ink)]",
+  new: "text-[var(--tp-blue)]",
+  rev: "text-[var(--tp-accent-ink)]",
   skip: "text-muted-foreground",
-  none: "text-[var(--ks-red-strong)]",
-  norev: "text-[var(--ks-red-strong)]",
-  older: "text-[var(--ks-amber)]",
-  clash: "text-[var(--ks-amber)]",
+  none: "text-[var(--tp-red-strong)]",
+  norev: "text-[var(--tp-red-strong)]",
+  older: "text-[var(--tp-amber)]",
+  clash: "text-[var(--tp-amber)]",
 };
 
 export function ImportDialog({
@@ -670,9 +670,9 @@ export function ImportDialog({
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" role="presentation">
-      <div role="dialog" aria-modal="true" aria-label="Import drawings" className="flex max-h-[calc(100vh-32px)] w-[min(1180px,100%)] flex-col border border-[var(--ks-rule)] bg-[var(--ks-paper)] shadow-xl">
+      <div role="dialog" aria-modal="true" aria-label="Import drawings" className="flex max-h-[calc(100vh-32px)] w-[min(1180px,100%)] flex-col border border-[var(--tp-rule)] bg-[var(--tp-paper)] shadow-xl">
         {/* Header */}
-        <div className="flex flex-wrap items-start gap-3 border-b border-[var(--ks-rule)] px-5 py-4">
+        <div className="flex flex-wrap items-start gap-3 border-b border-[var(--tp-rule)] px-5 py-4">
           <div className="min-w-[260px] flex-1">
             <div className="text-[17px] font-semibold">Import drawings</div>
             <div className="mt-1 text-[12.5px] text-muted-foreground">
@@ -706,14 +706,14 @@ export function ImportDialog({
 
         <div className="flex min-h-0 flex-col gap-3 overflow-auto px-5 py-4">
           {setChoice === "new" && !isBox && (
-            <div className="flex flex-wrap items-end gap-3 border border-[var(--ks-rule)] bg-[var(--ks-bone)] px-3 py-2.5">
+            <div className="flex flex-wrap items-end gap-3 border border-[var(--tp-rule)] bg-[var(--tp-bone)] px-3 py-2.5">
               <label className="w-[130px]">
                 <div className="label-caps mb-1">Set no.</div>
-                <Input value={newSet.number} maxLength={32} onChange={e => setNewSet(s => ({ ...s, number: e.target.value }))} className="num h-8 bg-[var(--ks-paper)]" />
+                <Input value={newSet.number} maxLength={32} onChange={e => setNewSet(s => ({ ...s, number: e.target.value }))} className="num h-8 bg-[var(--tp-paper)]" />
               </label>
               <label className="min-w-[220px] flex-1">
                 <div className="label-caps mb-1">New set name</div>
-                <Input value={newSet.name} maxLength={120} placeholder="Seq 4 framing · package S-007" onChange={e => setNewSet(s => ({ ...s, name: e.target.value }))} className="h-8 bg-[var(--ks-paper)]" />
+                <Input value={newSet.name} maxLength={120} placeholder="Seq 4 framing · package S-007" onChange={e => setNewSet(s => ({ ...s, name: e.target.value }))} className="h-8 bg-[var(--tp-paper)]" />
               </label>
               <label className="w-[170px]">
                 <div className="label-caps mb-1">Kind</div>
@@ -743,7 +743,7 @@ export function ImportDialog({
                         role="tab"
                         aria-selected={on}
                         onClick={() => setField(f.k)}
-                        className={cn("flex items-center gap-2 border px-2.5 py-1.5 text-[12px]", on ? "border-[var(--ks-graphite)] bg-[var(--ks-graphite)] font-semibold text-white" : "border-[var(--ks-rule)] bg-[var(--ks-paper)]")}
+                        className={cn("flex items-center gap-2 border px-2.5 py-1.5 text-[12px]", on ? "border-[var(--tp-graphite)] bg-[var(--tp-graphite)] font-semibold text-white" : "border-[var(--tp-rule)] bg-[var(--tp-paper)]")}
                       >
                         <span className="size-2.5 border-2" style={{ borderColor: f.color, background: done ? f.color : "transparent" }} />
                         {f.label}
@@ -774,7 +774,7 @@ export function ImportDialog({
                   </Button>
                 </div>
               </div>
-              <div ref={scrollEl} className="relative max-h-[58vh] overflow-auto overscroll-contain border border-[var(--ks-rule)] bg-[var(--ks-gray-soft)] p-3">
+              <div ref={scrollEl} className="relative max-h-[58vh] overflow-auto overscroll-contain border border-[var(--tp-rule)] bg-[var(--tp-gray-soft)] p-3">
                 <div
                   ref={boxEl}
                   onPointerDown={boxDown}
@@ -791,7 +791,7 @@ export function ImportDialog({
                       const a = im.naturalWidth / im.naturalHeight;
                       if (a && Math.abs(a - aspect) > 0.01) setAspect(a);
                     }}
-                    className="pointer-events-none block h-auto w-full bg-[var(--ks-drawing-paper)]"
+                    className="pointer-events-none block h-auto w-full bg-[var(--tp-drawing-paper)]"
                   />
                   {TB_FIELDS.map(f => {
                     const r = boxes[f.k],
@@ -809,7 +809,7 @@ export function ImportDialog({
                           background: `${f.color}1f`,
                         }}
                       >
-                        <span className="absolute bottom-full left-[-1px] whitespace-nowrap bg-[var(--ks-drawing-ink)] px-1 py-0.5 text-[10px] font-semibold leading-none text-[var(--ks-drawing-paper)]" style={{ borderBottom: `2px solid ${f.color}` }}>
+                        <span className="absolute bottom-full left-[-1px] whitespace-nowrap bg-[var(--tp-drawing-ink)] px-1 py-0.5 text-[10px] font-semibold leading-none text-[var(--tp-drawing-paper)]" style={{ borderBottom: `2px solid ${f.color}` }}>
                           {f.label}
                         </span>
                       </div>
@@ -819,7 +819,7 @@ export function ImportDialog({
               </div>
               <div className="text-[12px] text-muted-foreground">
                 Drawing the{" "}
-                <span className="font-semibold text-[var(--ks-accent-ink)]">
+                <span className="font-semibold text-[var(--tp-accent-ink)]">
                   {fieldOf.label}
                 </span>{" "}
                 box. Zoom with the buttons or Ctrl + scroll; when zoomed, scroll to move around, or hold Space and drag. Check a few pages with the arrows so the boxes land on every sheet. {pv.name} · page {pv.page}
@@ -836,7 +836,7 @@ export function ImportDialog({
                 if (!saving && !running) void importFiles(Array.from(e.dataTransfer.files));
               }}
               className={cn(
-                "relative flex cursor-pointer items-center justify-center gap-3 border border-dashed border-input bg-[var(--ks-paper)] px-4 text-center text-[13px]",
+                "relative flex cursor-pointer items-center justify-center gap-3 border border-dashed border-input bg-[var(--tp-paper)] px-4 text-center text-[13px]",
                 items.length ? "py-3" : "py-10"
               )}
             >
@@ -860,7 +860,7 @@ export function ImportDialog({
           )}
 
           {!isBox && !running && !saving && more.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 border border-[var(--ks-rule)] bg-[var(--ks-bone)] px-3 py-2 text-[12.5px]">
+            <div className="flex flex-wrap items-center gap-3 border border-[var(--tp-rule)] bg-[var(--tp-bone)] px-3 py-2 text-[12.5px]">
               <span className="min-w-[240px] flex-1">
                 {more[0].from > 1 ? `${more[0].file.name} has more pages (from page ${more[0].from})` : `${more[0].file.name} was not added`}
                 {more.length > 1 ? `, and ${more.length - 1} more file${more.length === 2 ? "" : "s"}` : ""} — over the {MAX_PAGES}-page limit for one import. Add these first, then continue.
@@ -890,7 +890,7 @@ export function ImportDialog({
           )}
 
           {!isBox && repeating && !running && (
-            <div className="flex flex-wrap items-center gap-3 border border-[color-mix(in_srgb,var(--ks-amber)_35%,var(--ks-rule))] bg-[var(--ks-amber-soft)] px-3 py-2 text-[12.5px]">
+            <div className="flex flex-wrap items-center gap-3 border border-[color-mix(in_srgb,var(--tp-amber)_35%,var(--tp-rule))] bg-[var(--tp-amber-soft)] px-3 py-2 text-[12.5px]">
               <span className="min-w-[240px] flex-1">
                 <span className="font-semibold">Many pages came back with the same {repeating === "sheet" ? "sheet number" : "title"}.</span> A box is probably catching text every sheet shares. Check the crops, tighten the boxes, and read again.
               </span>
@@ -901,8 +901,8 @@ export function ImportDialog({
           )}
 
           {!isBox && items.length > 0 && (
-            <div className="overflow-x-auto border border-[var(--ks-rule)] bg-[var(--ks-paper)]">
-              <table className="ks-table min-w-[1100px]">
+            <div className="overflow-x-auto border border-[var(--tp-rule)] bg-[var(--tp-paper)]">
+              <table className="tp-table min-w-[1100px]">
                 <thead>
                   <tr>
                     <th style={{ width: 28 }}></th>
@@ -927,7 +927,7 @@ export function ImportDialog({
                         <td>
                           <button
                             type="button"
-                            className="block h-[52px] w-[100px] cursor-zoom-in overflow-hidden border border-[var(--ks-rule)] bg-[var(--ks-drawing-paper)]"
+                            className="block h-[52px] w-[100px] cursor-zoom-in overflow-hidden border border-[var(--tp-rule)] bg-[var(--tp-drawing-paper)]"
                             onClick={() => (i.crop || i.thumb) && setView({ src: i.crop || i.thumb, caption: `${i.crop ? "Title block · " : ""}${i.name} · page ${i.page}` })}
                             title={`${i.name} · page ${i.page}`}
                           >
@@ -941,13 +941,13 @@ export function ImportDialog({
                         ) : (
                           <>
                             <td>
-                              <Input value={i.f.sheet} maxLength={64} disabled={lock} onChange={e => setF(i.key, "sheet", e.target.value)} placeholder="E-204" className="num h-7 bg-[var(--ks-paper)]" aria-label="Sheet no." />
+                              <Input value={i.f.sheet} maxLength={64} disabled={lock} onChange={e => setF(i.key, "sheet", e.target.value)} placeholder="E-204" className="num h-7 bg-[var(--tp-paper)]" aria-label="Sheet no." />
                             </td>
                             <td>
-                              <Input value={i.f.title} maxLength={255} disabled={lock} onChange={e => setF(i.key, "title", e.target.value)} placeholder="Sheet title" className="h-7 bg-[var(--ks-paper)]" aria-label="Title" />
+                              <Input value={i.f.title} maxLength={255} disabled={lock} onChange={e => setF(i.key, "title", e.target.value)} placeholder="Sheet title" className="h-7 bg-[var(--tp-paper)]" aria-label="Title" />
                             </td>
                             <td>
-                              <Input value={i.f.rev} inputMode="numeric" disabled={lock} onChange={e => setF(i.key, "rev", e.target.value.replace(/[^\d]/g, "").slice(0, 3))} className="num h-7 bg-[var(--ks-paper)]" aria-label="Revision" />
+                              <Input value={i.f.rev} inputMode="numeric" disabled={lock} onChange={e => setF(i.key, "rev", e.target.value.replace(/[^\d]/g, "").slice(0, 3))} className="num h-7 bg-[var(--tp-paper)]" aria-label="Revision" />
                             </td>
                             <td>
                               <SimpleSelect
@@ -960,34 +960,34 @@ export function ImportDialog({
                               />
                             </td>
                             <td>
-                              <Input type="date" value={i.f.revDate} max={reg.today} disabled={lock} onChange={e => setF(i.key, "revDate", e.target.value)} className="h-7 bg-[var(--ks-paper)]" aria-label="Revision date" />
+                              <Input type="date" value={i.f.revDate} max={reg.today} disabled={lock} onChange={e => setF(i.key, "revDate", e.target.value)} className="h-7 bg-[var(--tp-paper)]" aria-label="Revision date" />
                             </td>
                             <td>
-                              <Input value={i.f.revDesc} maxLength={600} disabled={lock} onChange={e => setF(i.key, "revDesc", e.target.value)} placeholder="What changed" className="h-7 bg-[var(--ks-paper)]" aria-label="Revision note" />
+                              <Input value={i.f.revDesc} maxLength={600} disabled={lock} onChange={e => setF(i.key, "revDesc", e.target.value)} placeholder="What changed" className="h-7 bg-[var(--tp-paper)]" aria-label="Revision note" />
                             </td>
                           </>
                         )}
                         <td className="text-[12px]">
                           {i.status === "added" ? (
-                            <span className="font-semibold text-[var(--ks-green)]">{i.note || "Added"}</span>
+                            <span className="font-semibold text-[var(--tp-green)]">{i.note || "Added"}</span>
                           ) : problem && i.status !== "queued" && i.status !== "reading" ? (
-                            <span className={cn("font-semibold", i.status === "error" || dupes.has(i.key) ? "text-[var(--ks-red-strong)]" : MATCH_TONE[m.kind])}>{problem}</span>
+                            <span className={cn("font-semibold", i.status === "error" || dupes.has(i.key) ? "text-[var(--tp-red-strong)]" : MATCH_TONE[m.kind])}>{problem}</span>
                           ) : i.status === "done" ? (
                             <span className={cn("font-semibold", MATCH_TONE[m.kind])}>{m.label}</span>
                           ) : null}
                           {m.kind === "clash" && i.status !== "error" && i.status !== "added" && (
-                            <button type="button" className="block text-[var(--ks-accent-ink)] underline" onClick={() => setF(i.key, "sheet", m.x.sheetNumber)}>
+                            <button type="button" className="block text-[var(--tp-accent-ink)] underline" onClick={() => setF(i.key, "sheet", m.x.sheetNumber)}>
                               Use {m.x.sheetNumber}
                             </button>
                           )}
-                          {m.kind === "new" && m.assumed && i.status === "done" && <div className="text-[11px] text-[var(--ks-amber)]">Rev 0 assumed (none read)</div>}
+                          {m.kind === "new" && m.assumed && i.status === "done" && <div className="text-[11px] text-[var(--tp-amber)]">Rev 0 assumed (none read)</div>}
                           {m.kind === "older" && i.status === "done" && (
                             <div className="text-[11px] text-muted-foreground">A new issue after lettered review rounds? Type the next number: R{m.top + 1}.</div>
                           )}
                           {i.letter && i.status === "done" && !i.edited && <div className="text-[11px] text-muted-foreground">Rev {i.letter} read as R{i.f.rev} (A=1, B=2)</div>}
-                          {i.note && i.status === "done" && !i.edited && <div className={cn("text-[11px]", i.noteWarn ? "text-[var(--ks-amber)]" : "text-muted-foreground")}>{i.note}</div>}
+                          {i.note && i.status === "done" && !i.edited && <div className={cn("text-[11px]", i.noteWarn ? "text-[var(--tp-amber)]" : "text-muted-foreground")}>{i.note}</div>}
                           {i.conf != null && i.status === "done" && (
-                            <div className={cn("text-[11px]", i.conf < 0.6 ? "text-[var(--ks-red-strong)]" : "text-muted-foreground")}>
+                            <div className={cn("text-[11px]", i.conf < 0.6 ? "text-[var(--tp-red-strong)]" : "text-muted-foreground")}>
                               {i.conf < 0.6 ? "Low confidence — check it" : `Read by AI · ${Math.round(i.conf * 100)}%`}
                             </div>
                           )}
@@ -1002,7 +1002,7 @@ export function ImportDialog({
         </div>
 
         {/* Footer */}
-        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--ks-rule)] px-5 py-3">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--tp-rule)] px-5 py-3">
           <span className="mr-auto text-[12px] text-muted-foreground">
             {isBox
               ? `${pages.length} page${pages.length === 1 ? "" : "s"} ready to read`
@@ -1045,7 +1045,7 @@ export function ImportDialog({
       {view && (
         <div className="fixed inset-0 z-[60] grid place-items-center bg-black/70 p-6" onClick={() => setView(null)} role="presentation">
           <figure className="max-h-full max-w-full" onClick={e => e.stopPropagation()}>
-            <img src={view.src} alt={view.caption} className="max-h-[85vh] max-w-[90vw] bg-[var(--ks-drawing-paper)] object-contain" />
+            <img src={view.src} alt={view.caption} className="max-h-[85vh] max-w-[90vw] bg-[var(--tp-drawing-paper)] object-contain" />
             <figcaption className="mt-2 flex items-center justify-between gap-4 text-[12.5px] text-white">
               {view.caption}
               <Button size="sm" variant="outline" onClick={() => setView(null)}>

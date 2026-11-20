@@ -47,7 +47,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { BrandGlyph, Wordmark } from "../ks/Status";
+import { BrandGlyph, Wordmark } from "../brand/Status";
 
 type NavItem = { href: string; label: string; icon: ReactNode; match?: (path: string) => boolean; badge?: number };
 
@@ -106,20 +106,20 @@ function Rail({ onNavigate }: { onNavigate?: () => void }) {
   const nav = useNav();
   const { ref } = useRefData();
   return (
-    <nav className="flex h-full w-[248px] flex-col bg-[var(--ks-graphite)] text-sidebar-foreground">
+    <nav className="flex h-full w-[248px] flex-col bg-[var(--tp-graphite)] text-sidebar-foreground">
       <div className="px-4 pb-4 pt-4">
-        <Link href="/" onClick={onNavigate} aria-label="SteelBuild Pro home" className="mx-auto block w-fit rounded-md focus-visible:outline-2 focus-visible:outline-[var(--ks-brand)]">
+        <Link href="/" onClick={onNavigate} aria-label="SteelBuild Pro TopOut home" className="mx-auto block w-fit rounded-md focus-visible:outline-2 focus-visible:outline-[var(--tp-brand)]">
           <Wordmark size="md" />
         </Link>
-        <div className="mt-3 flex items-center gap-2 rounded-md border border-[var(--ks-graphite-3)] bg-[var(--ks-graphite-2)] px-3 py-2">
-          <span className="size-1.5 shrink-0 rounded-full bg-[var(--ks-brand)]" />
+        <div className="mt-3 flex items-center gap-2 rounded-md border border-[var(--tp-graphite-3)] bg-[var(--tp-graphite-2)] px-3 py-2">
+          <span className="size-1.5 shrink-0 rounded-full bg-[var(--tp-brand)]" />
           <span className="truncate text-[12.5px] font-medium text-sidebar-foreground">{ref?.org.name ?? "—"}</span>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         {nav.map(sec => (
           <div key={sec.section} className="mt-5 first:mt-1">
-            <div className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--ks-sidebar-muted)]">{sec.section}</div>
+            <div className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--tp-sidebar-muted)]">{sec.section}</div>
             {sec.items.map(it => {
               const active = isActive(it, path);
               return (
@@ -129,14 +129,14 @@ function Rail({ onNavigate }: { onNavigate?: () => void }) {
                   onClick={onNavigate}
                   className={cn(
                     "relative flex items-center gap-3 rounded-md px-2.5 py-[7px] text-[13.5px] font-medium transition-colors",
-                    active ? "bg-[var(--ks-graphite-3)] text-white" : "text-sidebar-foreground hover:bg-[var(--ks-graphite-2)] hover:text-white"
+                    active ? "bg-[var(--tp-graphite-3)] text-white" : "text-sidebar-foreground hover:bg-[var(--tp-graphite-2)] hover:text-white"
                   )}
                 >
-                  {active && <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-[var(--ks-brand)]" />}
-                  <span className={cn("[&_svg]:size-[17px]", active ? "text-[var(--ks-brand)]" : "text-[var(--ks-sidebar-muted)]")}>{it.icon}</span>
+                  {active && <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-[var(--tp-brand)]" />}
+                  <span className={cn("[&_svg]:size-[17px]", active ? "text-[var(--tp-brand)]" : "text-[var(--tp-sidebar-muted)]")}>{it.icon}</span>
                   {it.label}
                   {it.badge ? (
-                    <span className="num ml-auto min-w-5 rounded-full bg-[var(--ks-brand)] px-1.5 text-center text-[11px] font-semibold leading-[18px] text-[var(--ks-graphite)]">{it.badge}</span>
+                    <span className="num ml-auto min-w-5 rounded-full bg-[var(--tp-brand)] px-1.5 text-center text-[11px] font-semibold leading-[18px] text-[var(--tp-graphite)]">{it.badge}</span>
                   ) : null}
                 </Link>
               );
@@ -144,7 +144,7 @@ function Rail({ onNavigate }: { onNavigate?: () => void }) {
           </div>
         ))}
       </div>
-      <div className="border-t border-[var(--ks-graphite-3)] px-5 py-3 text-[11.5px] text-[var(--ks-sidebar-muted)]">Erection only · Fabrication by others</div>
+      <div className="border-t border-[var(--tp-graphite-3)] px-5 py-3 text-[11.5px] text-[var(--tp-sidebar-muted)]">Erection only · Fabrication by others</div>
     </nav>
   );
 }
@@ -161,7 +161,7 @@ function BottomNav({ onMenu }: { onMenu: () => void }) {
     .filter((i): i is NavItem => !!i);
   const items = pick.length ? pick : all.slice(0, 4);
   return (
-    <nav className="grid h-14 shrink-0 border-t border-[var(--ks-rule)] bg-[var(--ks-paper)] md:hidden" style={{ gridTemplateColumns: `repeat(${items.length + 1}, minmax(0,1fr))` }}>
+    <nav className="grid h-14 shrink-0 border-t border-[var(--tp-rule)] bg-[var(--tp-paper)] md:hidden" style={{ gridTemplateColumns: `repeat(${items.length + 1}, minmax(0,1fr))` }}>
       {items.map(it => {
         const active = isActive(it, path);
         return (
@@ -170,19 +170,19 @@ function BottomNav({ onMenu }: { onMenu: () => void }) {
             href={it.href}
             className={cn(
               "relative flex min-h-12 flex-col items-center justify-center gap-0.5 text-[11.5px] font-medium",
-              active ? "text-[var(--ks-accent-ink)]" : "text-[var(--ks-muted)]"
+              active ? "text-[var(--tp-accent-ink)]" : "text-[var(--tp-muted)]"
             )}
           >
-            {active && <span className="absolute inset-x-5 top-0 h-[2px] rounded-full bg-[var(--ks-accent-ink)]" />}
+            {active && <span className="absolute inset-x-5 top-0 h-[2px] rounded-full bg-[var(--tp-accent-ink)]" />}
             <span className="[&_svg]:size-5">{it.icon}</span>
             {it.label}
             {it.badge ? (
-              <span className="num absolute right-[22%] top-1.5 min-w-4 rounded-full bg-[var(--ks-red-fill)] px-1 text-center text-[10px] leading-4 text-white">{it.badge}</span>
+              <span className="num absolute right-[22%] top-1.5 min-w-4 rounded-full bg-[var(--tp-red-fill)] px-1 text-center text-[10px] leading-4 text-white">{it.badge}</span>
             ) : null}
           </Link>
         );
       })}
-      <button type="button" onClick={onMenu} className="flex min-h-12 flex-col items-center justify-center gap-0.5 text-[11.5px] font-medium text-[var(--ks-muted)]">
+      <button type="button" onClick={onMenu} className="flex min-h-12 flex-col items-center justify-center gap-0.5 text-[11.5px] font-medium text-[var(--tp-muted)]">
         <Menu className="size-5" />
         Menu
       </button>
@@ -215,11 +215,11 @@ function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-9 w-full max-w-[420px] items-center gap-2 rounded-lg border border-[var(--ks-rule)] bg-[var(--ks-surface)] px-3 text-[13.5px] text-[var(--ks-muted)] transition-colors hover:border-input hover:bg-[var(--ks-paper)]"
+        className="flex h-9 w-full max-w-[420px] items-center gap-2 rounded-lg border border-[var(--tp-rule)] bg-[var(--tp-surface)] px-3 text-[13.5px] text-[var(--tp-muted)] transition-colors hover:border-input hover:bg-[var(--tp-paper)]"
       >
-        <Search className="size-4 text-[var(--ks-muted)]" />
+        <Search className="size-4 text-[var(--tp-muted)]" />
         <span className="truncate">Search jobs, sequences, tasks…</span>
-        <kbd className="ml-auto hidden rounded border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-1.5 text-[10.5px] font-medium text-[var(--ks-muted)] sm:block">Ctrl K</kbd>
+        <kbd className="ml-auto hidden rounded border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-1.5 text-[10.5px] font-medium text-[var(--tp-muted)] sm:block">Ctrl K</kbd>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="overflow-hidden p-0" showCloseButton={false}>
@@ -274,18 +274,18 @@ function NotificationsBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" className="relative flex size-9 items-center justify-center rounded-lg text-[var(--ks-ink-2)] hover:bg-[var(--ks-gray-soft)]" aria-label="Notifications">
+        <button type="button" className="relative flex size-9 items-center justify-center rounded-lg text-[var(--tp-ink-2)] hover:bg-[var(--tp-gray-soft)]" aria-label="Notifications">
           <Bell className="size-[18px]" />
           {n > 0 && (
-            <span className="num absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-[var(--ks-red-fill)] px-1 text-center text-[10px] font-semibold leading-4 text-white ring-2 ring-[var(--ks-paper)]">
+            <span className="num absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-[var(--tp-red-fill)] px-1 text-center text-[10px] font-semibold leading-4 text-white ring-2 ring-[var(--tp-paper)]">
               {n > 99 ? "99+" : n}
             </span>
           )}
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[380px] overflow-hidden rounded-xl p-0 shadow-[0_12px_32px_rgba(16,24,40,0.12)]">
-        <div className="flex items-center justify-between border-b border-[var(--ks-rule-soft)] px-4 py-2.5">
-          <div className="ks-section-title">Notifications</div>
+        <div className="flex items-center justify-between border-b border-[var(--tp-rule-soft)] px-4 py-2.5">
+          <div className="tp-section-title">Notifications</div>
           <Button variant="ghost" size="sm" className="h-7 text-[12px]" disabled={!n} onClick={() => mark.mutate({})}>
             Mark all read
           </Button>
@@ -296,7 +296,7 @@ function NotificationsBell() {
             <button
               key={it.id}
               type="button"
-              className={cn("flex w-full flex-col gap-0.5 border-b border-[var(--ks-rule-soft)] px-4 py-2.5 text-left hover:bg-[var(--ks-surface)]", !it.isRead && "bg-[var(--ks-checked)] shadow-[inset_2px_0_0_var(--ks-accent-ink)]")}
+              className={cn("flex w-full flex-col gap-0.5 border-b border-[var(--tp-rule-soft)] px-4 py-2.5 text-left hover:bg-[var(--tp-surface)]", !it.isRead && "bg-[var(--tp-checked)] shadow-[inset_2px_0_0_var(--tp-accent-ink)]")}
               onClick={() => {
                 if (!it.isRead) mark.mutate({ ids: [it.id] });
                 setOpen(false);
@@ -324,11 +324,11 @@ function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-[var(--ks-gray-soft)]">
+        <button type="button" className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-[var(--tp-gray-soft)]">
           <span className="flex size-8 items-center justify-center rounded-full bg-primary text-[12px] font-semibold text-white">
             {initials(user?.name)}
           </span>
-          <span className="hidden max-w-[160px] truncate text-[13.5px] font-medium text-[var(--ks-ink)] md:block">{user?.name}</span>
+          <span className="hidden max-w-[160px] truncate text-[13.5px] font-medium text-[var(--tp-ink)] md:block">{user?.name}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -369,7 +369,7 @@ function ThemeButton() {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button type="button" aria-label={label} onClick={toggleTheme} className="flex size-9 items-center justify-center rounded-lg text-[var(--ks-ink-2)] hover:bg-[var(--ks-gray-soft)] focus-visible:outline-2 focus-visible:outline-[var(--ring)]">
+        <button type="button" aria-label={label} onClick={toggleTheme} className="flex size-9 items-center justify-center rounded-lg text-[var(--tp-ink-2)] hover:bg-[var(--tp-gray-soft)] focus-visible:outline-2 focus-visible:outline-[var(--ring)]">
           {resolvedTheme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
         </button>
       </TooltipTrigger>
@@ -398,11 +398,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[var(--ks-rule)] bg-[var(--ks-paper)] px-3 lg:px-6">
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[var(--tp-rule)] bg-[var(--tp-paper)] px-3 lg:px-6">
           <button type="button" className="hidden size-10 items-center justify-center md:flex lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Open menu">
             <Menu className="size-5" />
           </button>
-          <Link href="/" className="md:hidden" aria-label="SteelBuild Pro home">
+          <Link href="/" className="md:hidden" aria-label="SteelBuild Pro TopOut home">
             <BrandGlyph size={32} />
           </Link>
           <GlobalSearch />
@@ -419,7 +419,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <UserMenu />
           </div>
         </header>
-        <main className="ks-touch min-h-0 flex-1 overflow-y-auto">{children}</main>
+        <main className="tp-touch min-h-0 flex-1 overflow-y-auto">{children}</main>
         <BottomNav onMenu={() => setMobileOpen(true)} />
       </div>
     </div>

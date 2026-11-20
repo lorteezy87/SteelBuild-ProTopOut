@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
-import { CommentsPanel, FollowButton } from "@/components/ks/Collab";
+import { CommentsPanel, FollowButton } from "@/components/brand/Collab";
 import {
   ConfirmButton,
   DateInput,
   NumberInput,
   RecordDrawer,
-} from "@/components/ks/Controls";
-import { ErrorState, Field, Loading, Panel } from "@/components/ks/Layout";
-import { SlaBadge, StateChip } from "@/components/ks/Status";
+} from "@/components/brand/Controls";
+import { ErrorState, Field, Loading, Panel } from "@/components/brand/Layout";
+import { SlaBadge, StateChip } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { errMsg, fmtDateTime, fmtMoney, fmtNum } from "@/lib/format";
@@ -141,12 +141,12 @@ function ItemDetails({
       {data.project && (
         <Link
           href={`/jobs/${data.project.id}/logs/${app.key}/${item.id}`}
-          className="block text-xs text-[var(--ks-accent-ink)]"
+          className="block text-xs text-[var(--tp-accent-ink)]"
         >
           {data.project.code} · {data.project.name}
         </Link>
       )}
-      <div className="grid gap-3 border-y border-[var(--ks-rule)] py-3 sm:grid-cols-3">
+      <div className="grid gap-3 border-y border-[var(--tp-rule)] py-3 sm:grid-cols-3">
         <Field label="Requestor">{userName(item.requestorId)}</Field>
         <Field label="Created">{fmtDateTime(item.createdAt)}</Field>
         <Field label="State entered">{fmtDateTime(item.stateEnteredAt)}</Field>
@@ -364,7 +364,7 @@ function ItemDetails({
         <Panel title="Linked field records" bodyClassName="space-y-2 p-3">
           {data.linkedTask && (
             <Link
-              className="block text-[var(--ks-accent-ink)] underline"
+              className="block text-[var(--tp-accent-ink)] underline"
               href={`/jobs/${item.projectId}/tasks?task=${data.linkedTask.id}`}
             >
               {data.linkedTask.wbs} · {data.linkedTask.name}
@@ -372,7 +372,7 @@ function ItemDetails({
           )}
           {data.linkedDelivery && (
             <Link
-              className="block text-[var(--ks-accent-ink)] underline"
+              className="block text-[var(--tp-accent-ink)] underline"
               href={`/jobs/${item.projectId}/deliveries/${data.linkedDelivery.id}`}
             >
               Fabricator load {data.linkedDelivery.loadNumber} · Ticket{" "}
@@ -384,7 +384,7 @@ function ItemDetails({
       <Panel title="Workflow history" bodyClassName="p-3">
         <ol className="space-y-3">
           {data.events.map(({ ev, userName: name }) => (
-            <li key={ev.id} className="border-l-2 border-[var(--ks-rule)] pl-3">
+            <li key={ev.id} className="border-l-2 border-[var(--tp-rule)] pl-3">
               <div className="flex flex-wrap gap-2 text-xs">
                 <span className="num text-muted-foreground">
                   {fmtDateTime(ev.createdAt)}

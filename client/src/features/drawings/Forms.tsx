@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { DateInput, NumberInput, SimpleSelect } from "@/components/ks/Controls";
+import { DateInput, NumberInput, SimpleSelect } from "@/components/brand/Controls";
 import { errMsg, fileToBase64, fmtDate } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
 import {
@@ -29,7 +29,7 @@ function FormRow({ label, error, hint, children, span }: { label: string; error?
     <label className={span ? "col-span-2 block" : "block"}>
       <div className="label-caps mb-1">{label}</div>
       {children}
-      {error ? <div className="mt-1 text-[12px] text-[var(--ks-red-strong)]">{error}</div> : hint ? <div className="mt-1 text-[12px] text-muted-foreground">{hint}</div> : null}
+      {error ? <div className="mt-1 text-[12px] text-[var(--tp-red-strong)]">{error}</div> : hint ? <div className="mt-1 text-[12px] text-muted-foreground">{hint}</div> : null}
     </label>
   );
 }
@@ -57,7 +57,7 @@ function Shell({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[var(--ks-paper)] sm:max-w-[560px]">
+      <DialogContent className="bg-[var(--tp-paper)] sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description ? <DialogDescription asChild><div>{description}</div></DialogDescription> : <DialogDescription className="sr-only">{title}</DialogDescription>}
@@ -128,16 +128,16 @@ export function SetForm({
       onSubmit={() => save.mutate({ projectId, id: set?.id, number: v.number, name: v.name, kind: v.kind, description: v.description || null })}
     >
       <FormRow label="Set no." error={dup ? `Set ${dup.number} already exists on this job` : undefined}>
-        <Input value={v.number} onChange={e => setV({ ...v, number: e.target.value })} placeholder="E-SET-01" className="bg-[var(--ks-paper)]" autoFocus />
+        <Input value={v.number} onChange={e => setV({ ...v, number: e.target.value })} placeholder="E-SET-01" className="bg-[var(--tp-paper)]" autoFocus />
       </FormRow>
       <FormRow label="Kind">
         <SimpleSelect value={v.kind} onChange={k => setV({ ...v, kind: k ?? "erection" })} options={SET_KINDS} />
       </FormRow>
       <FormRow label="Name" span>
-        <Input value={v.name} onChange={e => setV({ ...v, name: e.target.value })} placeholder="Erection drawings — Seq 1–3" className="bg-[var(--ks-paper)]" />
+        <Input value={v.name} onChange={e => setV({ ...v, name: e.target.value })} placeholder="Erection drawings — Seq 1–3" className="bg-[var(--tp-paper)]" />
       </FormRow>
       <FormRow label="Description" span>
-        <Textarea value={v.description} onChange={e => setV({ ...v, description: e.target.value })} rows={2} className="bg-[var(--ks-paper)]" />
+        <Textarea value={v.description} onChange={e => setV({ ...v, description: e.target.value })} rows={2} className="bg-[var(--tp-paper)]" />
       </FormRow>
     </Shell>
   );
@@ -249,7 +249,7 @@ export function SheetForm({
       onSubmit={() => void submit()}
     >
       <FormRow label="Sheet no." error={numberErr}>
-        <Input value={v.sheetNumber} onChange={e => setV({ ...v, sheetNumber: e.target.value })} placeholder="E-204" className="num bg-[var(--ks-paper)]" autoFocus />
+        <Input value={v.sheetNumber} onChange={e => setV({ ...v, sheetNumber: e.target.value })} placeholder="E-204" className="num bg-[var(--tp-paper)]" autoFocus />
       </FormRow>
       <FormRow label="Drawing set">
         <SimpleSelect
@@ -261,7 +261,7 @@ export function SheetForm({
         />
       </FormRow>
       <FormRow label="Title" span>
-        <Input value={v.title} onChange={e => setV({ ...v, title: e.target.value })} placeholder="Seq 3 roof framing plan" className="bg-[var(--ks-paper)]" />
+        <Input value={v.title} onChange={e => setV({ ...v, title: e.target.value })} placeholder="Seq 3 roof framing plan" className="bg-[var(--tp-paper)]" />
       </FormRow>
       <FormRow label="Erection sequence" hint={reg.sequences.length ? undefined : "No erection sequences on this job yet"}>
         <SimpleSelect
@@ -289,12 +289,12 @@ export function SheetForm({
             <NumberInput value={v.startRev} onChange={x => setV({ ...v, startRev: x })} min={0} step={1} />
           </FormRow>
           <FormRow label="Drawing (optional)" hint="PDF or image, up to 25 MB">
-            <Input type="file" accept=".pdf,image/*" className="bg-[var(--ks-paper)]" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+            <Input type="file" accept=".pdf,image/*" className="bg-[var(--tp-paper)]" onChange={e => setFile(e.target.files?.[0] ?? null)} />
           </FormRow>
         </>
       )}
       <FormRow label="Description" span>
-        <Textarea value={v.description} onChange={e => setV({ ...v, description: e.target.value })} rows={2} className="bg-[var(--ks-paper)]" />
+        <Textarea value={v.description} onChange={e => setV({ ...v, description: e.target.value })} rows={2} className="bg-[var(--tp-paper)]" />
       </FormRow>
     </Shell>
   );
@@ -336,7 +336,7 @@ export function HoldForm({ reg, sheet, open, onOpenChange }: { reg: Register & {
         <SimpleSelect value={rfi} onChange={setRfi} options={reg.openRfis.map(r => ({ value: String(r.id), label: `${r.label} · ${r.title}` }))} allowNone noneLabel="— Placed by hand —" />
       </FormRow>
       <FormRow label="Reason" span>
-        <Textarea value={reason} onChange={e => setReason(e.target.value)} rows={2} placeholder="Embed plate conflict at grid C/4" className="bg-[var(--ks-paper)]" maxLength={500} />
+        <Textarea value={reason} onChange={e => setReason(e.target.value)} rows={2} placeholder="Embed plate conflict at grid C/4" className="bg-[var(--tp-paper)]" maxLength={500} />
       </FormRow>
     </Shell>
   );
@@ -402,11 +402,11 @@ export function RevisionForm({
       onSubmit={() => void submit()}
     >
       <FormRow label={mode === "start" ? "Drawing (optional)" : "Drawing"} span hint="PDF or image, up to 25 MB">
-        <Input type="file" accept=".pdf,image/*" className="bg-[var(--ks-paper)]" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+        <Input type="file" accept=".pdf,image/*" className="bg-[var(--tp-paper)]" onChange={e => setFile(e.target.files?.[0] ?? null)} />
       </FormRow>
       {mode === "start" && (
         <FormRow label="What changed" span>
-          <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} maxLength={500} placeholder="Clouded revisions per RFI-014 response" className="bg-[var(--ks-paper)]" />
+          <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} maxLength={500} placeholder="Clouded revisions per RFI-014 response" className="bg-[var(--tp-paper)]" />
         </FormRow>
       )}
     </Shell>
@@ -475,13 +475,13 @@ export function IssueForm({
         span
         hint={isWorkPurpose(v.purpose) ? "Only released sheets with an issued revision are recorded; held and unreleased sheets are left out." : "Records the issued revision of every sheet in the set; drafts are left out."}
       >
-        <Textarea value={v.note} onChange={e => setV({ ...v, note: e.target.value })} rows={2} maxLength={1000} placeholder="Who it went to, what changed" className="bg-[var(--ks-paper)]" />
+        <Textarea value={v.note} onChange={e => setV({ ...v, note: e.target.value })} rows={2} maxLength={1000} placeholder="Who it went to, what changed" className="bg-[var(--tp-paper)]" />
       </FormRow>
       {snap.skipped.length > 0 && (
-        <div className="col-span-2 max-h-28 overflow-y-auto border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-2 py-1.5 text-[12px] text-muted-foreground">
+        <div className="col-span-2 max-h-28 overflow-y-auto border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-2 py-1.5 text-[12px] text-muted-foreground">
           {snap.skipped.map(s => (
             <div key={s.sheet}>
-              <span className="num text-[var(--ks-ink)]">{s.sheet}</span> — {s.why}
+              <span className="num text-[var(--tp-ink)]">{s.sheet}</span> — {s.why}
             </div>
           ))}
         </div>

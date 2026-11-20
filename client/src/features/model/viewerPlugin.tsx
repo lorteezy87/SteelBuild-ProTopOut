@@ -10,7 +10,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/ks/Controls";
+import { ConfirmButton } from "@/components/brand/Controls";
 import { useRefData } from "@/lib/ref";
 import { errMsg, fmtDateShort } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -36,8 +36,8 @@ type Handle = { pid: string; i: 0 | 1; a: Line4 };
 const S = (v: ViewerCtx) => v.state as MState;
 
 /** colours by review state: needs review amber, accepted or fixed green, added by hand blue, rejected grey */
-const COLOR_TOKEN: Record<PieceState, string> = { auto: "--ks-amber", ok: "--ks-green", edit: "--ks-green", add: "--ks-blue", no: "--ks-muted" };
-const COLOR: Record<PieceState, string> = { auto: "var(--ks-amber)", ok: "var(--ks-green)", edit: "var(--ks-green)", add: "var(--ks-blue)", no: "var(--ks-muted)" };
+const COLOR_TOKEN: Record<PieceState, string> = { auto: "--tp-amber", ok: "--tp-green", edit: "--tp-green", add: "--tp-blue", no: "--tp-muted" };
+const COLOR: Record<PieceState, string> = { auto: "var(--tp-amber)", ok: "var(--tp-green)", edit: "var(--tp-green)", add: "var(--tp-blue)", no: "var(--tp-muted)" };
 // PDF export expects concrete hex colors. These theme tokens are hex in both app themes.
 const pdfColor = (st: PieceState) => typeof document === "undefined" ? "" : getComputedStyle(document.documentElement).getPropertyValue(COLOR_TOKEN[st]).trim();
 
@@ -206,7 +206,7 @@ function FramingPanel({ v }: { v: ViewerCtx }) {
       type="button"
       aria-pressed={show === k}
       onClick={() => v.setState({ show: k })}
-      className={cn("rounded-[3px] border px-2 py-0.5 text-[11px] font-medium", show === k ? "border-[var(--ks-accent)] bg-[var(--ks-accent-soft)]" : "border-[var(--ks-rule)] bg-[var(--ks-paper)]")}
+      className={cn("rounded-[3px] border px-2 py-0.5 text-[11px] font-medium", show === k ? "border-[var(--tp-accent)] bg-[var(--tp-accent-soft)]" : "border-[var(--tp-rule)] bg-[var(--tp-paper)]")}
     >
       {l}
       {k === "all" ? "" : " · " + n(k)}
@@ -243,7 +243,7 @@ function FramingPanel({ v }: { v: ViewerCtx }) {
         </Button>
       </div>
       {again && (
-        <div className="mx-3 flex flex-col gap-2 border border-[var(--ks-amber)] bg-[var(--ks-amber-soft)] p-2.5 text-[12px]">
+        <div className="mx-3 flex flex-col gap-2 border border-[var(--tp-amber)] bg-[var(--tp-amber-soft)] p-2.5 text-[12px]">
           <span>
             {plural(reviewed, "piece")} on this revision {reviewed === 1 ? "was" : "were"} already reviewed. Reading again replaces them all with new suggestions that need review.
           </span>
@@ -269,7 +269,7 @@ function FramingPanel({ v }: { v: ViewerCtx }) {
         (M.edit === sel.id ? (
           <PieceForm title="Fix piece" sub={v.sheetNumber + " Rev " + v.rev + " · " + MD.feet(sel.len)} init={{ k: sel.k, mark: sel.mark, size: sel.size, note: sel.note }} saveLabel="Save piece" onSave={fix} onCancel={() => v.setState({ edit: null })} />
         ) : (
-          <div className="mx-3 flex flex-col gap-1.5 border border-[var(--ks-rule)] bg-[var(--ks-paper)] p-2.5 text-[12px]">
+          <div className="mx-3 flex flex-col gap-1.5 border border-[var(--tp-rule)] bg-[var(--tp-paper)] p-2.5 text-[12px]">
             <span className="num text-[13px] font-semibold">{MD.pieceName(sel)}</span>
             <span>{(sel.k === "joist" ? "Joist" : "Beam") + " · " + MD.feet(sel.len) + " · " + weightText(sel, api.cfg)}</span>
             {sel.ends.some(e => e.length) && <span className="text-muted-foreground">Ends at {sel.ends.map(e => (e.length ? e.filter(Boolean).join(", ") : "—")).join(" and ")}</span>}
@@ -283,12 +283,12 @@ function FramingPanel({ v }: { v: ViewerCtx }) {
             {can && (
               <span className="flex flex-wrap gap-3">
                 {!MD.accepted(sel) && (
-                  <button type="button" className="font-medium text-[var(--ks-green)] hover:underline" onClick={() => void review([sel.id], "ok")}>
+                  <button type="button" className="font-medium text-[var(--tp-green)] hover:underline" onClick={() => void review([sel.id], "ok")}>
                     Accept
                   </button>
                 )}
                 {sel.st !== "no" && (
-                  <button type="button" className="font-medium text-[var(--ks-red-strong)] hover:underline" onClick={() => void review([sel.id], "no")}>
+                  <button type="button" className="font-medium text-[var(--tp-red-strong)] hover:underline" onClick={() => void review([sel.id], "no")}>
                     Reject
                   </button>
                 )}
@@ -316,8 +316,8 @@ function FramingPanel({ v }: { v: ViewerCtx }) {
                 role="option"
                 aria-selected={on}
                 onClick={() => pick(p)}
-                className={cn("flex w-full items-baseline justify-between gap-2 border-l-[3px] px-3 py-1.5 text-left", on ? "bg-[var(--ks-accent-soft)]" : "hover:bg-[var(--ks-bone)]")}
-                style={{ borderLeftColor: on ? "var(--ks-accent)" : COLOR[p.st] }}
+                className={cn("flex w-full items-baseline justify-between gap-2 border-l-[3px] px-3 py-1.5 text-left", on ? "bg-[var(--tp-accent-soft)]" : "hover:bg-[var(--tp-bone)]")}
+                style={{ borderLeftColor: on ? "var(--tp-accent)" : COLOR[p.st] }}
               >
                 <span className={cn("num text-[12px] font-semibold", p.st === "no" && "text-muted-foreground line-through")}>{MD.pieceName(p)}</span>
                 <span className="num whitespace-nowrap text-[11px] text-muted-foreground">
@@ -351,7 +351,7 @@ function FramingPanel({ v }: { v: ViewerCtx }) {
                     {can && at ? (
                       <button
                         type="button"
-                        className="text-[12px] text-[var(--ks-accent-ink)] hover:underline"
+                        className="text-[12px] text-[var(--tp-accent-ink)] hover:underline"
                         onClick={() => {
                           v.setState({ place: { label: u.label, mark: u.mark, k: u.k, x: u.x, y: u.y }, sel: null });
                           v.zoomTo(pad(b, 120));
@@ -387,9 +387,9 @@ function FramingOverlay({ v }: { v: ViewerCtx }) {
   const snapMark = (q: [number, number, string] | null | undefined) =>
     q && q[2] ? (
       q[2] === "end" ? (
-        <rect x={q[0] - hs} y={q[1] - hs} width={hs * 2} height={hs * 2} fill="none" stroke="var(--ks-accent)" strokeWidth={1.6 / k} />
+        <rect x={q[0] - hs} y={q[1] - hs} width={hs * 2} height={hs * 2} fill="none" stroke="var(--tp-accent)" strokeWidth={1.6 / k} />
       ) : (
-        <circle cx={q[0]} cy={q[1]} r={hs} fill="none" stroke="var(--ks-accent)" strokeWidth={1.6 / k} />
+        <circle cx={q[0]} cy={q[1]} r={hs} fill="none" stroke="var(--tp-accent)" strokeWidth={1.6 / k} />
       )
     ) : null;
   return (
@@ -402,7 +402,7 @@ function FramingOverlay({ v }: { v: ViewerCtx }) {
           <g key={p.id}>
             <line x1={a[0]} y1={a[1]} x2={a[2]} y2={a[3]} stroke={c} strokeOpacity={on ? 1 : 0.75} strokeWidth={on ? sw * 2.2 : sw} strokeLinecap="round" strokeDasharray={p.st === "no" ? 6 / k + " " + 4 / k : undefined} />
             {(on || k > 0.9) && (
-              <text x={(a[0] + a[2]) / 2} y={(a[1] + a[3]) / 2 - 5 / k} fontSize={fs} fill={c} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" stroke="var(--ks-paper)" strokeWidth={3 / k} paintOrder="stroke">
+              <text x={(a[0] + a[2]) / 2} y={(a[1] + a[3]) / 2 - 5 / k} fontSize={fs} fill={c} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" stroke="var(--tp-paper)" strokeWidth={3 / k} paintOrder="stroke">
                 {MD.pieceName(p)}
               </text>
             )}
@@ -416,14 +416,14 @@ function FramingOverlay({ v }: { v: ViewerCtx }) {
           return [
             [a[0], a[1]],
             [a[2], a[3]],
-          ].map((q, i) => <rect key={"h" + i} x={q[0] - hs / 1.4} y={q[1] - hs / 1.4} width={hs * 1.43} height={hs * 1.43} fill="var(--ks-paper)" stroke="var(--ks-accent)" strokeWidth={1.6 / k} />);
+          ].map((q, i) => <rect key={"h" + i} x={q[0] - hs / 1.4} y={q[1] - hs / 1.4} width={hs * 1.43} height={hs * 1.43} fill="var(--tp-paper)" stroke="var(--tp-accent)" strokeWidth={1.6 / k} />);
         })()}
       {M.drag && snapMark(M.drag.end)}
       {M.draft && <line x1={M.draft.a[0]} y1={M.draft.a[1]} x2={M.draft.a[2]} y2={M.draft.a[3]} stroke={COLOR.add} strokeWidth={sw} strokeDasharray={4 / k + " " + 3 / k} />}
       {M.left &&
         rec.left
           .filter(u => (u.x || u.y) && !/by others/.test(u.note))
-          .map((u, i) => <circle key={"u" + i} cx={u.x} cy={u.y} r={8 / k} fill="none" stroke="var(--ks-red-strong)" strokeWidth={1.6 / k} />)}
+          .map((u, i) => <circle key={"u" + i} cx={u.x} cy={u.y} r={8 / k} fill="none" stroke="var(--tp-red-strong)" strokeWidth={1.6 / k} />)}
     </g>
   );
 }

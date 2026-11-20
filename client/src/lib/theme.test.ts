@@ -25,26 +25,26 @@ describe("executive theme palette", () => {
 
   for (const [name, palette] of Object.entries({ light, dark })) {
     it(`${name}: primary, secondary, muted, and link text pass on every work surface`, () => {
-      const surfaces = ["--ks-bone", "--ks-paper", "--ks-raised", "--ks-surface", "--ks-gray-soft", "--ks-accent-soft", "--ks-green-soft", "--ks-amber-soft", "--ks-red-soft", "--ks-blue-soft", "--ks-orange-soft"];
-      for (const fg of ["--ks-ink", "--ks-ink-2", "--ks-muted", "--ks-accent-ink"]) {
+      const surfaces = ["--tp-bone", "--tp-paper", "--tp-raised", "--tp-surface", "--tp-gray-soft", "--tp-accent-soft", "--tp-green-soft", "--tp-amber-soft", "--tp-red-soft", "--tp-blue-soft", "--tp-orange-soft"];
+      for (const fg of ["--tp-ink", "--tp-ink-2", "--tp-muted", "--tp-accent-ink"]) {
         for (const bg of surfaces) {
-          expect(contrastRatio(value(palette, fg), value(palette, bg)), `${fg} / ${bg}`).toBeGreaterThanOrEqual(fg === "--ks-ink" ? 7 : 4.5);
+          expect(contrastRatio(value(palette, fg), value(palette, bg)), `${fg} / ${bg}`).toBeGreaterThanOrEqual(fg === "--tp-ink" ? 7 : 4.5);
         }
       }
     });
 
     it(`${name}: all status pills, primary actions, and always-dark chrome pass`, () => {
       const pairs = [
-        ["--ks-green", "--ks-green-soft"], ["--ks-amber", "--ks-amber-soft"], ["--ks-red-strong", "--ks-red-soft"],
-        ["--ks-blue", "--ks-blue-soft"], ["--ks-ink-2", "--ks-gray-soft"], ["--ks-accent-ink", "--ks-accent-soft"],
-        ["--ks-orange", "--ks-orange-soft"], ["--ks-solid-ink", "--ks-solid"], ["--ks-solid-ink", "--ks-hold"],
-        ["--ks-solid-ink", "--ks-red-fill"], ["--primary-foreground", "--primary"], ["--primary-foreground", "--ks-accent-deep"],
-        ["--ks-sidebar-muted", "--ks-graphite-3"], ["--ks-sidebar-link", "--ks-graphite-3"],
-        ["--ks-sidebar-amber", "--ks-graphite-3"], ["--ks-sidebar-orange", "--ks-graphite-3"],
-        ["--ks-brand", "--ks-graphite"], ["--ks-graphite", "--ks-brand"],
+        ["--tp-green", "--tp-green-soft"], ["--tp-amber", "--tp-amber-soft"], ["--tp-red-strong", "--tp-red-soft"],
+        ["--tp-blue", "--tp-blue-soft"], ["--tp-ink-2", "--tp-gray-soft"], ["--tp-accent-ink", "--tp-accent-soft"],
+        ["--tp-orange", "--tp-orange-soft"], ["--tp-solid-ink", "--tp-solid"], ["--tp-solid-ink", "--tp-hold"],
+        ["--tp-solid-ink", "--tp-red-fill"], ["--primary-foreground", "--primary"], ["--primary-foreground", "--tp-accent-deep"],
+        ["--tp-sidebar-muted", "--tp-graphite-3"], ["--tp-sidebar-link", "--tp-graphite-3"],
+        ["--tp-sidebar-amber", "--tp-graphite-3"], ["--tp-sidebar-orange", "--tp-graphite-3"],
+        ["--tp-brand", "--tp-graphite"], ["--tp-graphite", "--tp-brand"],
       ];
       for (const [fg, bg] of pairs) expect(contrastRatio(value(palette, fg), value(palette, bg)), `${fg} / ${bg}`).toBeGreaterThanOrEqual(4.5);
-      expect(value(palette, "--ks-drawing-paper")).toBe("#ffffff");
+      expect(value(palette, "--tp-drawing-paper")).toBe("#ffffff");
     });
   }
 });

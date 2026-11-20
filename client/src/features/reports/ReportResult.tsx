@@ -16,16 +16,16 @@ import {
   YAxis,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ks/Layout";
+import { EmptyState } from "@/components/brand/Layout";
 import { fmtNum } from "@/lib/format";
 import { useThemeTokens } from "@/hooks/useThemeTokens";
 import { formatCell, type ReportConfig, type ReportData } from "./model";
 
 const PALETTE_TOKENS = [
   "--chart-1", "--chart-2", "--chart-3", "--chart-5", "--chart-4",
-  "--ks-muted", "--ks-red-strong", "--ks-blue", "--ks-ink-2", "--ks-orange", "--ks-accent-ink",
+  "--tp-muted", "--tp-red-strong", "--tp-blue", "--tp-ink-2", "--tp-orange", "--tp-accent-ink",
 ] as const;
-const CHART_TOKENS = [...PALETTE_TOKENS, "--ks-rule", "--ks-paper"] as const;
+const CHART_TOKENS = [...PALETTE_TOKENS, "--tp-rule", "--tp-paper"] as const;
 
 function recordLink(row: Record<string, unknown>, config?: ReportConfig) {
   const id = Number(row.id),
@@ -70,11 +70,11 @@ export function ReportResult({
     return (
       <div>
         {!!result.groups?.length && (
-          <div className="flex max-h-40 flex-wrap gap-2 overflow-auto border-b border-[var(--ks-rule)] p-3">
+          <div className="flex max-h-40 flex-wrap gap-2 overflow-auto border-b border-[var(--tp-rule)] p-3">
             {result.groups.map(g => (
               <div
                 key={g.key}
-                className="border border-[var(--ks-rule)] bg-[var(--ks-bone)] px-2 py-1 text-xs"
+                className="border border-[var(--tp-rule)] bg-[var(--tp-bone)] px-2 py-1 text-xs"
               >
                 <strong>{g.label}</strong>
                 <span className="num ml-2">{fmtNum(g.count)} records</span>
@@ -95,7 +95,7 @@ export function ReportResult({
           className="overflow-auto"
           style={{ maxHeight: compact ? 360 : 620 }}
         >
-          <table className="ks-table">
+          <table className="tp-table">
             <thead>
               <tr>
                 {result.columns.map(c => (
@@ -133,7 +133,7 @@ export function ReportResult({
                           {j === 0 && link ? (
                             <Link
                               href={link}
-                              className="font-medium hover:text-[var(--ks-accent-ink)] hover:underline"
+                              className="font-medium hover:text-[var(--tp-accent-ink)] hover:underline"
                             >
                               {formatCell(row[c.key], c)}
                             </Link>
@@ -148,7 +148,7 @@ export function ReportResult({
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--ks-rule)] px-3 py-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--tp-rule)] px-3 py-2 text-xs text-muted-foreground">
           <span className="num">
             {fmtNum(result.rows.length)} shown / {fmtNum(result.totalRows)}{" "}
             matching{result.truncated ? " · 15,000-row cap reached" : ""}
@@ -195,13 +195,13 @@ export function ReportResult({
           ? "Records"
           : (metricColumn?.label ?? "Value"),
       ]}
-      labelStyle={{ color: "var(--ks-ink)" }}
-      itemStyle={{ color: "var(--ks-ink-2)" }}
-      cursor={{ fill: "var(--ks-gray-soft)", stroke: "var(--ks-muted)" }}
+      labelStyle={{ color: "var(--tp-ink)" }}
+      itemStyle={{ color: "var(--tp-ink-2)" }}
+      cursor={{ fill: "var(--tp-gray-soft)", stroke: "var(--tp-muted)" }}
       contentStyle={{
         background: "var(--popover)",
         color: "var(--popover-foreground)",
-        border: "1px solid var(--ks-rule)",
+        border: "1px solid var(--tp-rule)",
         borderRadius: 3,
         fontSize: 12,
       }}
@@ -225,7 +225,7 @@ export function ReportResult({
                 innerRadius={compact ? 45 : 65}
                 outerRadius={compact ? 80 : 110}
                 paddingAngle={1}
-                stroke={colors["--ks-paper"]}
+                stroke={colors["--tp-paper"]}
                 isAnimationActive={false}
               >
                 {series.map((s, i) => (
@@ -233,20 +233,20 @@ export function ReportResult({
                 ))}
               </Pie>
               {tooltip}
-              <Legend wrapperStyle={{ fontSize: 11 }} formatter={value => <span className="text-[var(--ks-ink-2)]">{value}</span>} />
+              <Legend wrapperStyle={{ fontSize: 11 }} formatter={value => <span className="text-[var(--tp-ink-2)]">{value}</span>} />
             </PieChart>
           ) : result.output === "line" ? (
             <LineChart
               data={series}
               margin={{ top: 8, right: 12, left: 0, bottom: 12 }}
             >
-              <CartesianGrid stroke={colors["--ks-rule"]} vertical={false} />
+              <CartesianGrid stroke={colors["--tp-rule"]} vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 11, fill: colors["--ks-muted"] }}
+                tick={{ fontSize: 11, fill: colors["--tp-muted"] }}
                 minTickGap={24}
               />
-              <YAxis tick={{ fontSize: 11, fill: colors["--ks-muted"] }} width={60} />
+              <YAxis tick={{ fontSize: 11, fill: colors["--tp-muted"] }} width={60} />
               {tooltip}
               <Line
                 dataKey="value"
@@ -262,13 +262,13 @@ export function ReportResult({
               data={series}
               margin={{ top: 8, right: 12, left: 0, bottom: 12 }}
             >
-              <CartesianGrid stroke={colors["--ks-rule"]} vertical={false} />
+              <CartesianGrid stroke={colors["--tp-rule"]} vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 11, fill: colors["--ks-muted"] }}
+                tick={{ fontSize: 11, fill: colors["--tp-muted"] }}
                 minTickGap={12}
               />
-              <YAxis tick={{ fontSize: 11, fill: colors["--ks-muted"] }} width={60} />
+              <YAxis tick={{ fontSize: 11, fill: colors["--tp-muted"] }} width={60} />
               {tooltip}
               <Bar
                 dataKey="value"
@@ -281,7 +281,7 @@ export function ReportResult({
           )}
         </ResponsiveContainer>
       </div>
-      <div className="num border-t border-[var(--ks-rule)] py-2 text-[11px] text-muted-foreground">
+      <div className="num border-t border-[var(--tp-rule)] py-2 text-[11px] text-muted-foreground">
         {fmtNum(result.totalRows)} matching records
         {result.truncated && " · 15,000-row cap reached"}
       </div>

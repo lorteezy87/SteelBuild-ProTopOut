@@ -19,8 +19,8 @@ import {
   Loading,
   ErrorState,
   EmptyState,
-} from "@/components/ks/Layout";
-import { SimpleSelect } from "@/components/ks/Controls";
+} from "@/components/brand/Layout";
+import { SimpleSelect } from "@/components/brand/Controls";
 import {
   ScheduleHealth,
   CostHealth,
@@ -30,7 +30,7 @@ import {
   SlaBadge,
   scheduleTone,
   costTone,
-} from "@/components/ks/Status";
+} from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { SCHEDULE_HEALTH, COST_HEALTH } from "@shared/domain";
 import { CrewChart, RfiChart, TonsChart } from "@/features/portfolio/Charts";
@@ -204,7 +204,7 @@ export default function Portfolio() {
                 />
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="ks-table">
+                  <table className="tp-table">
                     <thead>
                       <tr>
                         <th>Job / PM</th>
@@ -267,7 +267,7 @@ export default function Portfolio() {
                               <div className="text-xs text-muted-foreground">
                                 Due {fmtDate(j.deadline)}
                                 {slip > 0 && (
-                                  <span className="num ml-2 text-[var(--ks-red-strong)]">
+                                  <span className="num ml-2 text-[var(--tp-red-strong)]">
                                     +{slip}d
                                   </span>
                                 )}
@@ -334,7 +334,7 @@ export default function Portfolio() {
             <div className="grid items-start gap-4 xl:grid-cols-2">
               <Panel title={`Loads / late & at risk (${d.deliveries.length})`}>
                 <div className="max-h-80 overflow-auto">
-                  <table className="ks-table">
+                  <table className="tp-table">
                     <thead>
                       <tr>
                         <th>Load / job</th>
@@ -383,7 +383,7 @@ export default function Portfolio() {
               </Panel>
               <Panel title="Tasks / slipping or blocked">
                 <div className="max-h-80 overflow-auto">
-                  <table className="ks-table">
+                  <table className="tp-table">
                     <thead>
                       <tr>
                         <th>Job / task</th>
@@ -406,7 +406,7 @@ export default function Portfolio() {
                               {t.name}
                             </Link>
                             {t.isCritical && (
-                              <div className="label-caps text-[var(--ks-red-strong)]">
+                              <div className="label-caps text-[var(--tp-red-strong)]">
                                 Critical path
                               </div>
                             )}
@@ -434,7 +434,7 @@ export default function Portfolio() {
               </Panel>
               <Panel title="Milestones / next 30 days">
                 <div className="max-h-72 overflow-auto">
-                  <table className="ks-table">
+                  <table className="tp-table">
                     <thead>
                       <tr>
                         <th>Job / milestone</th>
@@ -474,7 +474,7 @@ export default function Portfolio() {
               </Panel>
               <Panel title="Crew hours / this week">
                 <CrewChart data={d.crewHours.byJob} />
-                <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--ks-rule)] px-3 py-2">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--tp-rule)] px-3 py-2">
                   {d.crewHours.byJob.map(j => (
                     <Link
                       key={j.projectId}
@@ -489,7 +489,7 @@ export default function Portfolio() {
             </div>
             <Panel title="Delay notices / notice window">
               <div className="overflow-auto">
-                <table className="ks-table">
+                <table className="tp-table">
                   <thead>
                     <tr>
                       <th>Job / notice</th>

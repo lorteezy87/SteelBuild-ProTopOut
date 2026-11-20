@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ErrorState, Loading } from "@/components/ks/Layout";
+import { ErrorState, Loading } from "@/components/brand/Layout";
 import { errMsg, fileToBase64, fmtDateTime } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
 
@@ -65,7 +65,7 @@ export function ReportAttachments({
               href={doc.latest?.url ?? undefined}
               target="_blank"
               rel="noopener noreferrer"
-              className="overflow-hidden border border-[var(--ks-rule)] bg-[var(--ks-paper)]"
+              className="overflow-hidden border border-[var(--tp-rule)] bg-[var(--tp-paper)]"
             >
               {doc.latest?.mimeType?.startsWith("image/") && (
                 <img
@@ -76,7 +76,7 @@ export function ReportAttachments({
                 />
               )}
               <div className="p-2">
-                <div className="flex items-center gap-2 text-[var(--ks-accent-ink)]">
+                <div className="flex items-center gap-2 text-[var(--tp-accent-ink)]">
                   <Paperclip className="size-3.5" />
                   {doc.name}
                 </div>

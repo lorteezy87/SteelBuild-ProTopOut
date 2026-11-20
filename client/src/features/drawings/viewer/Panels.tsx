@@ -17,17 +17,17 @@ export function Row({ on, onClick, a, b, disabled }: { on?: boolean; onClick: ()
       aria-current={on ? "true" : undefined}
       className={cn(
         "flex w-full flex-col gap-0.5 border-l-[3px] px-3 py-1.5 text-left",
-        on ? "border-[var(--ks-accent)] bg-[var(--ks-accent-soft)]" : "border-transparent hover:bg-[var(--ks-gray-soft)]",
+        on ? "border-[var(--tp-accent)] bg-[var(--tp-accent-soft)]" : "border-transparent hover:bg-[var(--tp-gray-soft)]",
         disabled && "cursor-default opacity-50 hover:bg-transparent"
       )}
     >
-      <span className="num text-[12px] font-semibold leading-tight text-[var(--ks-ink)]">{a}</span>
-      {b != null && <span className="text-[12px] leading-snug text-[var(--ks-ink-2)]">{b}</span>}
+      <span className="num text-[12px] font-semibold leading-tight text-[var(--tp-ink)]">{a}</span>
+      {b != null && <span className="text-[12px] leading-snug text-[var(--tp-ink-2)]">{b}</span>}
     </button>
   );
 }
 
-const Hint = ({ children }: { children: ReactNode }) => <p className="px-3 py-3 text-[12px] leading-relaxed text-[var(--ks-ink-2)]">{children}</p>;
+const Hint = ({ children }: { children: ReactNode }) => <p className="px-3 py-3 text-[12px] leading-relaxed text-[var(--tp-ink-2)]">{children}</p>;
 
 export function SheetsPanel({ sheets, currentId, onOpen }: { sheets: Sheet[]; currentId: number; onOpen: (id: number) => void }) {
   const [filter, setFilter] = useState("");
@@ -42,7 +42,7 @@ export function SheetsPanel({ sheets, currentId, onOpen }: { sheets: Sheet[]; cu
           placeholder="Filter sheets"
           value={filter}
           onChange={e => setFilter(e.target.value)}
-          className="h-8 w-full rounded-[3px] border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-2 text-[12px] outline-none focus:border-[var(--ks-accent)]"
+          className="h-8 w-full rounded-[3px] border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-2 text-[12px] outline-none focus:border-[var(--tp-accent)]"
         />
       </div>
       {shown.map(q => {
@@ -87,7 +87,7 @@ export function LinksPanel({
   return (
     <>
       {groups.map(ls => (
-        <div key={ls[0].sid} className="border-b border-[var(--ks-rule)] py-1">
+        <div key={ls[0].sid} className="border-b border-[var(--tp-rule)] py-1">
           <div className="label-caps px-3 pb-0.5 pt-1.5">
             To {ls[0].sheet}
             {ls[0].same ? " (this sheet)" : ""}
@@ -97,7 +97,7 @@ export function LinksPanel({
               <button
                 type="button"
                 onClick={() => onFollow(l)}
-                className="num flex-1 truncate text-left text-[12px] font-medium text-[var(--ks-ink)] underline underline-offset-[3px] hover:text-[var(--ks-accent-ink)]"
+                className="num flex-1 truncate text-left text-[12px] font-medium text-[var(--tp-ink)] underline underline-offset-[3px] hover:text-[var(--tp-accent-ink)]"
               >
                 {l.detail ? `${l.kind === "bubble" ? "Bubble" : "Detail"} ${l.detail} / ${l.sheet}` : l.text}
               </button>
@@ -105,7 +105,7 @@ export function LinksPanel({
                 type="button"
                 aria-label={`Show this callout on ${sheetNumber}`}
                 onClick={() => onShow(l)}
-                className="text-[11px] text-[var(--ks-ink-2)] hover:text-[var(--ks-ink)]"
+                className="text-[11px] text-[var(--tp-ink-2)] hover:text-[var(--tp-ink)]"
               >
                 show
               </button>
@@ -184,20 +184,20 @@ export function SearchAllPanel({
           placeholder="Text on any sheet"
           value={all.q}
           onChange={e => onQ(e.target.value)}
-          className="h-8 min-w-0 flex-1 rounded-[3px] border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-2 text-[12px] outline-none focus:border-[var(--ks-accent)]"
+          className="h-8 min-w-0 flex-1 rounded-[3px] border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-2 text-[12px] outline-none focus:border-[var(--tp-accent)]"
         />
         {all.running ? (
-          <button type="button" onClick={onStop} className="h-8 rounded-[3px] border border-[var(--ks-rule)] px-2.5 text-[12px] font-medium">
+          <button type="button" onClick={onStop} className="h-8 rounded-[3px] border border-[var(--tp-rule)] px-2.5 text-[12px] font-medium">
             Stop
           </button>
         ) : (
-          <button type="submit" className="h-8 rounded-[3px] bg-[var(--ks-solid)] px-2.5 text-[12px] font-semibold text-white">
+          <button type="submit" className="h-8 rounded-[3px] bg-[var(--tp-solid)] px-2.5 text-[12px] font-semibold text-white">
             Search
           </button>
         )}
       </form>
       {all.ran && (
-        <p role="status" className="px-3 pb-2 text-[12px] leading-snug text-[var(--ks-ink-2)]">
+        <p role="status" className="px-3 pb-2 text-[12px] leading-snug text-[var(--tp-ink-2)]">
           {all.running ? `Searching ${all.done} of ${all.total} sheets… ` : `Searched ${all.done} of ${all.total} sheets with a PDF. `}
           {n} match{n === 1 ? "" : "es"}
           {n >= SEARCH_RESULT_CAP ? ` (first ${SEARCH_RESULT_CAP})` : ""}.

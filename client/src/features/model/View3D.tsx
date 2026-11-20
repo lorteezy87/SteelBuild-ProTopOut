@@ -102,7 +102,7 @@ export function PlanView({
         ? toneVar(q.tone)
         : colorBy === "sequence"
           ? sequenceColor(q.seq, model.seqs)
-          : "var(--ks-ink-2, #76818b)";
+          : "var(--tp-ink-2, #76818b)";
   return (
     <svg
       role="img"
@@ -114,7 +114,7 @@ export function PlanView({
       onClick={() => onPick(null)}
       viewBox={[x0, -y1, x1 - x0, y1 - y0].join(" ")}
       preserveAspectRatio="xMidYMid meet"
-      className="block h-full w-full outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ks-accent)]"
+      className="block h-full w-full outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--tp-accent)]"
     >
       {model.pieces.map(q => (
         <g

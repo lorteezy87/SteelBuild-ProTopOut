@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@shared/reports";
 import { DATE_RANGES, FILTER_OPS } from "@shared/filters";
-import { SimpleSelect } from "@/components/ks/Controls";
+import { SimpleSelect } from "@/components/brand/Controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, X } from "lucide-react";
@@ -54,7 +54,7 @@ export function FilterBuilder({
               placeholder ??
               (col?.type === "date" ? "YYYY-MM-DD or today+7" : "Value")
             }
-            className="bg-[var(--ks-paper)]"
+            className="bg-[var(--tp-paper)]"
             maxLength={2000}
             list={col?.type === "date" ? "relative-date-tokens" : undefined}
           />
@@ -125,7 +125,7 @@ export function FilterBuilder({
                   })
                 }
                 placeholder="Values, separated, by commas"
-                className="bg-[var(--ks-paper)]"
+                className="bg-[var(--tp-paper)]"
               />
             ) : col?.type === "boolean" ? (
               <SimpleSelect

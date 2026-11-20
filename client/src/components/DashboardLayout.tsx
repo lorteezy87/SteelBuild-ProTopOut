@@ -189,7 +189,7 @@ function DashboardLayoutContent({
                       className={`h-10 transition-all font-normal`}
                     >
                       <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-[var(--ks-accent-ink)]" : ""}`}
+                        className={`h-4 w-4 ${isActive ? "text-[var(--tp-accent-ink)]" : ""}`}
                       />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
@@ -221,7 +221,7 @@ function DashboardLayoutContent({
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem
                   onClick={logout}
-                  className="cursor-pointer text-[var(--ks-red-strong)] focus:text-[var(--ks-red-strong)]"
+                  className="cursor-pointer text-[var(--tp-red-strong)] focus:text-[var(--tp-red-strong)]"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign out</span>

@@ -12,9 +12,9 @@ import {
   ErrorState,
   EmptyState,
   TabStrip,
-} from "@/components/ks/Layout";
-import { ConfirmButton, RecordDrawer } from "@/components/ks/Controls";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { ConfirmButton, RecordDrawer } from "@/components/brand/Controls";
+import { Pill } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { REPORT_SOURCES, type SourceKey } from "@shared/reports";
@@ -98,7 +98,7 @@ export default function Reports() {
             placeholder="Find report…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-64 bg-[var(--ks-paper)]"
+            className="w-64 bg-[var(--tp-paper)]"
           />
         </div>
         <Panel>
@@ -114,7 +114,7 @@ export default function Reports() {
             />
           ) : (
             <div className="overflow-auto">
-              <table className="ks-table">
+              <table className="tp-table">
                 <thead>
                   <tr>
                     <th className="w-10">Star</th>
@@ -140,7 +140,7 @@ export default function Reports() {
                           }
                         >
                           <Star
-                            className={`size-4 ${r.starred ? "fill-[var(--ks-accent)] text-[var(--ks-accent-ink)]" : "text-muted-foreground"}`}
+                            className={`size-4 ${r.starred ? "fill-[var(--tp-accent)] text-[var(--tp-accent-ink)]" : "text-muted-foreground"}`}
                           />
                         </button>
                       </td>

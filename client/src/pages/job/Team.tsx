@@ -7,15 +7,15 @@ import {
   RecordDrawer,
   SimpleSelect,
   UserSelect,
-} from "@/components/ks/Controls";
+} from "@/components/brand/Controls";
 import {
   EmptyState,
   ErrorState,
   Field,
   Loading,
   Panel,
-} from "@/components/ks/Layout";
-import { Pill } from "@/components/ks/Status";
+} from "@/components/brand/Layout";
+import { Pill } from "@/components/brand/Status";
 import { errMsg } from "@/lib/format";
 import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
@@ -71,7 +71,7 @@ export default function Team() {
           )
         }
       >
-        <div className="border-b border-[var(--ks-rule)] px-4 py-3 text-[12px] text-muted-foreground">
+        <div className="border-b border-[var(--tp-rule)] px-4 py-3 text-[12px] text-muted-foreground">
           Security roles below apply to this job. Project Manager and Assignee
           access is automatic; workspace and global roles remain in effect. Deny
           wins.
@@ -87,7 +87,7 @@ export default function Team() {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>Person</th>

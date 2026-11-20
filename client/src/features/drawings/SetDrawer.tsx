@@ -2,8 +2,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ConfirmButton, RecordDrawer } from "@/components/ks/Controls";
-import { Pill } from "@/components/ks/Status";
+import { ConfirmButton, RecordDrawer } from "@/components/brand/Controls";
+import { Pill } from "@/components/brand/Status";
 import { errMsg, fmtDate, fmtDateTime } from "@/lib/format";
 import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
@@ -110,7 +110,7 @@ export function SetDrawer({ reg, set, onClose, onOpenSheet }: { reg: Register & 
           )}
         </div>
         {changed.length > 0 && (
-          <div className="border border-[var(--ks-rule)] bg-[var(--ks-amber-soft)] px-3 py-2 text-[12.5px]">
+          <div className="border border-[var(--tp-rule)] bg-[var(--tp-amber-soft)] px-3 py-2 text-[12.5px]">
             {changed.length} sheet{changed.length === 1 ? "" : "s"} changed since issue {last!.number}: {changed.slice(0, 8).map(x => `${x.sheetNumber} R${x.currentRev}`).join(", ")}
             {changed.length > 8 ? "…" : ""}.
           </div>
@@ -123,9 +123,9 @@ export function SetDrawer({ reg, set, onClose, onOpenSheet }: { reg: Register & 
         )}
 
         <section>
-          <div className="label-caps mb-2 text-[11px] text-[var(--ks-ink)]">Sheets</div>
+          <div className="label-caps mb-2 text-[11px] text-[var(--tp-ink)]">Sheets</div>
           {kids.length ? (
-            <table className="ks-table">
+            <table className="tp-table">
               <thead>
                 <tr>
                   <th>Sheet</th>
@@ -143,7 +143,7 @@ export function SetDrawer({ reg, set, onClose, onOpenSheet }: { reg: Register & 
                       <td className="max-w-[260px] truncate">{x.title}</td>
                       <td className="num">
                         {revLabel(x)}
-                        {p && <span className="ml-1 text-[var(--ks-accent-ink)]">→{p.number}</span>}
+                        {p && <span className="ml-1 text-[var(--tp-accent-ink)]">→{p.number}</span>}
                       </td>
                       <td>
                         <Pill tone={STATUS_TONE[x.status as keyof typeof STATUS_TONE] ?? "gray"} dot>
@@ -161,11 +161,11 @@ export function SetDrawer({ reg, set, onClose, onOpenSheet }: { reg: Register & 
         </section>
 
         <section>
-          <div className="label-caps mb-2 text-[11px] text-[var(--ks-ink)]">Issues</div>
+          <div className="label-caps mb-2 text-[11px] text-[var(--tp-ink)]">Issues</div>
           {issues.length ? (
             <div className="space-y-2">
               {issues.map(q => (
-                <details key={q.id} className="border border-[var(--ks-rule)] bg-[var(--ks-paper)] px-3 py-2 text-[12.5px]">
+                <details key={q.id} className="border border-[var(--tp-rule)] bg-[var(--tp-paper)] px-3 py-2 text-[12.5px]">
                   <summary className="cursor-pointer">
                     <span className="font-semibold">Issue {q.number}</span> · {fmtDate(q.issueDate)} · {q.purpose} · {q.sheets.length} sheet{q.sheets.length === 1 ? "" : "s"}
                     {q.issuedBy ? ` · ${userName(q.issuedBy)}` : ""}
@@ -175,7 +175,7 @@ export function SetDrawer({ reg, set, onClose, onOpenSheet }: { reg: Register & 
                     {q.sheets.map(s => (
                       <span key={s.sheetId} className="num">
                         {s.fileUrl ? (
-                          <a href={s.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[var(--ks-accent-ink)] hover:underline">
+                          <a href={s.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[var(--tp-accent-ink)] hover:underline">
                             {s.sheet} R{s.rev} <ExternalLink className="size-3" />
                           </a>
                         ) : (
@@ -199,7 +199,7 @@ export function SetDrawer({ reg, set, onClose, onOpenSheet }: { reg: Register & 
         </section>
 
         <section>
-          <div className="label-caps mb-2 text-[11px] text-[var(--ks-ink)]">History</div>
+          <div className="label-caps mb-2 text-[11px] text-[var(--tp-ink)]">History</div>
           {history.data?.length ? (
             <ul className="space-y-1.5 text-[12.5px]">
               {history.data.map(h => (

@@ -5,7 +5,7 @@ import {
   EmptyState,
   Loading,
   ErrorState,
-} from "@/components/ks/Layout";
+} from "@/components/brand/Layout";
 import { useRefData } from "@/lib/ref";
 import Users from "@/features/admin/Users";
 import Roles from "@/features/admin/Roles";
@@ -119,14 +119,14 @@ export default function AdminLayout({
   return (
     <div>
       <PageHeader
-        eyebrow={`${ref?.org.name ?? "SteelBuild Pro"} · Administration`}
+        eyebrow={`${ref?.org.name ?? "SteelBuild Pro TopOut"} · Administration`}
         title={current?.label ?? "Administration"}
         subtitle="Organization-wide configuration. Changes apply to every job."
       />
       <div className="flex flex-col md:flex-row">
         <nav
           aria-label="Administration sections"
-          className="shrink-0 border-b border-[var(--ks-rule)] bg-[var(--ks-paper)] p-3 md:w-52 md:border-b-0 md:border-r"
+          className="shrink-0 border-b border-[var(--tp-rule)] bg-[var(--tp-paper)] p-3 md:w-52 md:border-b-0 md:border-r"
         >
           <div className="flex flex-wrap gap-1 md:block">
             {sections.map((s, i) => (
@@ -139,7 +139,7 @@ export default function AdminLayout({
                 <Link
                   href={`/admin/${s.key}`}
                   aria-current={key === s.key ? "page" : undefined}
-                  className={`flex items-center justify-between gap-2 border-l-2 px-3 py-2 text-[12px] ${key === s.key ? "border-[var(--ks-accent)] bg-[var(--ks-accent-soft)] font-semibold text-[var(--ks-ink)]" : "border-transparent text-muted-foreground hover:bg-[var(--ks-bone)] hover:text-foreground"}`}
+                  className={`flex items-center justify-between gap-2 border-l-2 px-3 py-2 text-[12px] ${key === s.key ? "border-[var(--tp-accent)] bg-[var(--tp-accent-soft)] font-semibold text-[var(--tp-ink)]" : "border-transparent text-muted-foreground hover:bg-[var(--tp-bone)] hover:text-foreground"}`}
                 >
                   {s.label}
                   {key === s.key && <ChevronRight className="size-3.5" />}
@@ -158,7 +158,7 @@ export default function AdminLayout({
               action={
                 <Link
                   href="/admin/users"
-                  className="text-[var(--ks-accent-ink)] underline"
+                  className="text-[var(--tp-accent-ink)] underline"
                 >
                   Open people
                 </Link>
