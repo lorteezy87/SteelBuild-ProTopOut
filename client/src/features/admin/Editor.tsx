@@ -27,7 +27,8 @@ export type EditorField = {
     | "select"
     | "check"
     | "days"
-    | "color";
+    | "color"
+    | "date";
   options?: Record<string, string> | { value: string; label: string }[];
   nullable?: boolean;
   min?: number;
@@ -146,7 +147,9 @@ export function DraftFields({
                   ? "color"
                   : f.type === "email"
                     ? "email"
-                    : "text"
+                    : f.type === "date"
+                      ? "date"
+                      : "text"
               }
               required={f.required}
               value={text(draft, f.key)}

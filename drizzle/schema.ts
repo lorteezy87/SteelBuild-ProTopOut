@@ -424,6 +424,77 @@ export const tmTicketLines = mysqlTable(
   t => [index("tml_ticket").on(t.ticketId)]
 );
 
+/* ------------------------------------------------------------------ */
+/* QC logs (Phase 3) — rules in shared/qc.ts                           */
+/* ------------------------------------------------------------------ */
+
+export const qcBoltLogs = mysqlTable(
+  "qc_bolt_logs",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    taskId: int("taskId"),
+    logDate: day("logDate").notNull(),
+    location: varchar("location", { length: 200 }).notNull(),
+    grade: varchar("grade", { length: 16 }).notNull(),
+    method: varchar("method", { length: 24 }).notNull(),
+    lotNumber: varchar("lotNumber", { length: 64 }),
+    boltCount: int("boltCount"),
+    inspectorName: varchar("inspectorName", { length: 120 }),
+    /** pending | pass | fail */
+    result: varchar("result", { length: 8 }).default("pending").notNull(),
+    notes: text("notes"),
+    /** Punch item created from this entry. 0 while it is being created. */
+    punchItemId: int("punchItemId"),
+    createdAt: createdAt(),
+  },
+  t => [index("qcb_project_task").on(t.projectId, t.taskId)]
+);
+
+export const qcWeldLogs = mysqlTable(
+  "qc_weld_logs",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    taskId: int("taskId"),
+    logDate: day("logDate").notNull(),
+    location: varchar("location", { length: 200 }).notNull(),
+    welderUserId: int("welderUserId"),
+    welderName: varchar("welderName", { length: 120 }),
+    wps: varchar("wps", { length: 64 }),
+    process: varchar("process", { length: 8 }).notNull(),
+    weldSize: varchar("weldSize", { length: 32 }),
+    ndt: varchar("ndt", { length: 8 }).default("none").notNull(),
+    inspectorName: varchar("inspectorName", { length: 120 }),
+    result: varchar("result", { length: 8 }).default("pending").notNull(),
+    notes: text("notes"),
+    punchItemId: int("punchItemId"),
+    createdAt: createdAt(),
+  },
+  t => [index("qcw_project_task").on(t.projectId, t.taskId)]
+);
+
+export const specialInspections = mysqlTable(
+  "special_inspections",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    taskId: int("taskId"),
+    type: varchar("type", { length: 16 }).notNull(),
+    agency: varchar("agency", { length: 120 }),
+    requestedDate: day("requestedDate"),
+    scheduledDate: day("scheduledDate"),
+    inspectedDate: day("inspectedDate"),
+    /** requested | scheduled | passed | failed | na */
+    result: varchar("result", { length: 12 }).default("requested").notNull(),
+    reportNumber: varchar("reportNumber", { length: 64 }),
+    notes: text("notes"),
+    punchItemId: int("punchItemId"),
+    createdAt: createdAt(),
+  },
+  t => [index("si_project_task").on(t.projectId, t.taskId)]
+);
+
 export type BaselineTaskSnapshot = {
   taskId: number;
   name: string;
