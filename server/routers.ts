@@ -13,6 +13,7 @@ import { cranesRouter } from "./routers/cranes";
 import { tmRouter } from "./routers/tm";
 import { gcReportRouter } from "./routers/gcReport";
 import { qcRouter } from "./routers/qc";
+import { safetyRouter } from "./routers/safety";
 import { dashboardRouter } from "./routers/dashboard";
 import { deliveriesRouter } from "./routers/deliveries";
 import { drawingsRouter } from "./routers/drawings";
@@ -57,6 +58,7 @@ export const appRouter = router({
   tm: tmRouter,
   gcReport: gcReportRouter,
   qc: qcRouter,
+  safety: safetyRouter,
   resources: resourcesRouter,
   time: timeRouter,
   expenses: expensesRouter,

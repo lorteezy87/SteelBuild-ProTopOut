@@ -12,6 +12,7 @@ import {
   wfStates,
   wfTransitions,
 } from "../../drizzle/schema";
+import { missingFields } from "@shared/safety";
 import { usHolidays } from "../engine/calendar";
 import { db, type Db } from "../db";
 import {
@@ -146,6 +147,34 @@ async function step1(d: Db) {
   ]);
 }
 
+/**
+ * Add preset fields that a log created by an older version doesn't have (e.g. the Phase 3 incident fields
+ * on the Safety log). Runs on every boot; never changes or removes a field that exists.
+ */
+export async function ensureAppFields(d: Db) {
+  for (const p of APP_PRESETS) {
+    const [app] = await d.select({ id: wfApps.id }).from(wfApps).where(eq(wfApps.key, p.key)).limit(1);
+    if (!app) continue;
+    const have = await d.select({ key: customFieldDefs.key }).from(customFieldDefs).where(eq(customFieldDefs.entityType, `app:${p.key}`));
+    for (const f of missingFields(have.map(h => h.key), p.fields)) {
+      await d.insert(customFieldDefs).values({
+        entityType: `app:${p.key}`,
+        key: f.key,
+        label: f.label,
+        fieldType: f.fieldType,
+        options: f.options ?? null,
+        formula: f.formula ?? null,
+        required: f.required ?? false,
+        isFinancial: f.isFinancial ?? false,
+        showInList: f.showInList ?? false,
+        helpText: f.helpText ?? null,
+        sortOrder: p.fields.indexOf(f),
+      });
+      console.log(`[bootstrap] added field ${f.key} to ${p.key}`);
+    }
+  }
+}
+
 let running: Promise<void> | null = null;
 
 export function ensureBootstrap(): Promise<void> {
@@ -159,6 +188,7 @@ export function ensureBootstrap(): Promise<void> {
         console.log("[bootstrap] installed steel-erector defaults v1");
       }
       if (version > BOOTSTRAP_VERSION) console.warn("[bootstrap] database is ahead of code version");
+      await ensureAppFields(d);
     })().catch(e => {
       running = null;
       throw e;

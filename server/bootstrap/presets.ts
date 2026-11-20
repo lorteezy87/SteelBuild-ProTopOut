@@ -529,6 +529,16 @@ export const APP_PRESETS: AppPreset[] = [
       },
       { key: "location", label: "Location", fieldType: "text", showInList: true },
       { key: "corrective_action", label: "Corrective Action", fieldType: "richtext" },
+      { key: "injured_person", label: "Injured Person (incidents)", fieldType: "text" },
+      {
+        key: "treatment",
+        label: "Treatment",
+        fieldType: "select",
+        options: opts([["none", "None"], ["first_aid", "First Aid"], ["medical", "Medical Treatment"], ["lost_time", "Lost Time"]]),
+      },
+      { key: "osha_recordable", label: "OSHA Recordable", fieldType: "select", showInList: true, options: opts([["yes", "Yes", C.red], ["no", "No", C.green], ["tbd", "TBD", C.amber]]) },
+      { key: "days_away", label: "Days Away From Work", fieldType: "number" },
+      { key: "reported_to_gc_on", label: "Reported to GC On", fieldType: "date" },
     ],
   },
   {

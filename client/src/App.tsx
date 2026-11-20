@@ -31,6 +31,9 @@ const TmTicket = lazy(() => import("./pages/print/TmTicket"));
 const Lookahead = lazy(() => import("./pages/print/Lookahead"));
 const GcWeekly = lazy(() => import("./pages/print/GcWeekly"));
 const QcLog = lazy(() => import("./pages/print/QcLog"));
+const JhaPrint = lazy(() => import("./pages/print/Jha"));
+const PtpPrint = lazy(() => import("./pages/print/Ptp"));
+const ToolboxPrint = lazy(() => import("./pages/print/Toolbox"));
 
 function Routes() {
   return (
@@ -75,6 +78,9 @@ function PrintRoutes() {
         <Route path="/print/lookahead/:projectId/:from">{p => <Lookahead params={p} />}</Route>
         <Route path="/print/gc/:projectId/:weekStart">{p => <GcWeekly params={p} />}</Route>
         <Route path="/print/qc/:projectId">{p => <QcLog params={p} />}</Route>
+        <Route path="/print/jha/:id">{p => <JhaPrint params={p} />}</Route>
+        <Route path="/print/ptp/:id">{p => <PtpPrint params={p} />}</Route>
+        <Route path="/print/toolbox/:id">{p => <ToolboxPrint params={p} />}</Route>
         <Route component={NotFound} />
       </Switch>
     </Suspense>

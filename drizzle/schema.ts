@@ -495,6 +495,65 @@ export const specialInspections = mysqlTable(
   t => [index("si_project_task").on(t.projectId, t.taskId)]
 );
 
+/* ------------------------------------------------------------------ */
+/* Safety (Phase 3) — rules in shared/safety.ts                        */
+/* ------------------------------------------------------------------ */
+
+export type SafetyStep = { step: string; hazards: string; controls: string };
+export type SafetyAttendee = { userId: number | null; name: string };
+
+export const jhas = mysqlTable(
+  "jhas",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    taskId: int("taskId"),
+    title: varchar("title", { length: 200 }).notNull(),
+    /** draft | active | archived */
+    status: varchar("status", { length: 12 }).default("draft").notNull(),
+    steps: json("steps").$type<SafetyStep[]>().notNull(),
+    ppe: json("ppe").$type<string[]>().notNull(),
+    competentPerson: varchar("competentPerson", { length: 120 }),
+    reviewedOn: day("reviewedOn"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("jha_project").on(t.projectId)]
+);
+
+export const preTaskPlans = mysqlTable(
+  "pre_task_plans",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    planDate: day("planDate").notNull(),
+    foremanId: int("foremanId"),
+    taskId: int("taskId"),
+    jhaId: int("jhaId"),
+    workDescription: text("workDescription"),
+    steps: json("steps").$type<SafetyStep[]>().notNull(),
+    ppe: json("ppe").$type<string[]>().notNull(),
+    attendees: json("attendees").$type<SafetyAttendee[]>().notNull(),
+    createdAt: createdAt(),
+  },
+  t => [index("ptp_project").on(t.projectId, t.planDate)]
+);
+
+export const toolboxTalks = mysqlTable(
+  "toolbox_talks",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    talkDate: day("talkDate").notNull(),
+    topic: varchar("topic", { length: 200 }).notNull(),
+    presenter: varchar("presenter", { length: 120 }),
+    notes: text("notes"),
+    attendees: json("attendees").$type<SafetyAttendee[]>().notNull(),
+    createdAt: createdAt(),
+  },
+  t => [index("tbt_project").on(t.projectId, t.talkDate)]
+);
+
 export type BaselineTaskSnapshot = {
   taskId: number;
   name: string;
