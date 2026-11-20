@@ -1,3 +1,4 @@
+import type { BallInCourt } from "@shared/ballInCourt";
 import { trpc } from "@/lib/trpc";
 import type { RouterOutputs } from "@/lib/ref";
 
@@ -9,6 +10,7 @@ export type LogDraft = {
   priority: string;
   assigneeId: number | null;
   responsibleParty: string | null;
+  ballInCourt: BallInCourt;
   dueDate: string | null;
   linkedTaskId: number | null;
   linkedDeliveryId: number | null;
@@ -21,6 +23,7 @@ export function newLogDraft(): LogDraft {
     priority: "normal",
     assigneeId: null,
     responsibleParty: "erector",
+    ballInCourt: "us",
     dueDate: null,
     linkedTaskId: null,
     linkedDeliveryId: null,

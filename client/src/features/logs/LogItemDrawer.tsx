@@ -1,3 +1,4 @@
+import { isBallInCourt } from "@shared/ballInCourt";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -82,6 +83,7 @@ function ItemDetails({
     priority: item.priority,
     assigneeId: item.assigneeId,
     responsibleParty: item.responsibleParty,
+    ballInCourt: isBallInCourt(item.ballInCourt) ? item.ballInCourt : "us",
     dueDate: item.dueDate,
     linkedTaskId: item.linkedTaskId,
     linkedDeliveryId: item.linkedDeliveryId,

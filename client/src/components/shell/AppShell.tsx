@@ -28,6 +28,7 @@ import {
   ClipboardList,
   Code2,
   FileStack,
+  CalendarCheck,
   Gauge,
   HardHat,
   KeyRound,
@@ -57,7 +58,8 @@ function useNav(): { section: string; items: NavItem[] }[] {
       {
         section: "Operations",
         items: [
-          { href: "/", label: "Portfolio", icon: <Gauge className="size-4" />, match: (p: string) => p === "/" },
+          { href: "/", label: "Today", icon: <CalendarCheck className="size-4" />, match: (p: string) => p === "/" },
+          { href: "/portfolio", label: "Portfolio", icon: <Gauge className="size-4" /> },
           { href: "/jobs", label: "Jobs", icon: <Briefcase className="size-4" />, match: (p: string) => p.startsWith("/jobs") },
           { href: "/logs", label: "Logs", icon: <FileStack className="size-4" />, match: (p: string) => p.startsWith("/logs") },
           { href: "/bids", label: "Bids", icon: <Target className="size-4" />, match: (p: string) => p.startsWith("/bids") },

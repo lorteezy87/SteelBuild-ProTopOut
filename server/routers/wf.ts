@@ -1,3 +1,4 @@
+import { BALL_IN_COURT } from "@shared/ballInCourt";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, inArray, like, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -62,6 +63,7 @@ const itemFields = {
   priority: enumOf(PRIORITIES),
   assigneeId: zId.nullable(),
   responsibleParty: enumOf(RESPONSIBLE_PARTIES).nullable(),
+  ballInCourt: z.enum(BALL_IN_COURT),
   dueDate: zDayOpt,
   linkedTaskId: zId.nullable(),
   linkedDeliveryId: zId.nullable(),
@@ -210,6 +212,7 @@ export const wfRouter = router({
         priority: enumOf(PRIORITIES).optional(),
         assigneeId: zId.nullable().optional(),
         responsibleParty: enumOf(RESPONSIBLE_PARTIES).nullable().optional(),
+        ballInCourt: z.enum(BALL_IN_COURT).optional(),
         dueDate: zDayOpt,
         linkedTaskId: zId.nullable().optional(),
         linkedDeliveryId: zId.nullable().optional(),
@@ -227,6 +230,7 @@ export const wfRouter = router({
         priority: input.priority,
         assigneeId: input.assigneeId ?? null,
         responsibleParty: input.responsibleParty ?? null,
+        ballInCourt: input.ballInCourt,
         dueDate: input.dueDate ?? null,
         linkedTaskId: input.linkedTaskId ?? null,
         linkedDeliveryId: input.linkedDeliveryId ?? null,

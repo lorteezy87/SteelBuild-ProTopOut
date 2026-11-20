@@ -1,3 +1,4 @@
+import { BALL_IN_COURT_LABELS, isBallInCourt } from "@shared/ballInCourt";
 import { CfValue, type CfDef } from "@/components/brand/CustomFields";
 import { PriorityBadge, SlaBadge, StateChip } from "@/components/brand/Status";
 import { diffDays, fmtDateShort, toDay } from "@/lib/format";
@@ -33,6 +34,7 @@ export function LogTable({
             <th>State</th>
             <th>Priority</th>
             <th>Assignee</th>
+            <th>Ball in court</th>
             <th>Responsible party</th>
             <th>Due / SLA</th>
             <th className="right">Age days</th>
@@ -88,6 +90,7 @@ export function LogTable({
                   <PriorityBadge value={item.priority} />
                 </td>
                 <td>{item.assigneeName ?? "Unassigned"}</td>
+                <td>{isBallInCourt(item.ballInCourt) ? BALL_IN_COURT_LABELS[item.ballInCourt] : "—"}</td>
                 <td>
                   {item.responsibleParty
                     ? (RESPONSIBLE_PARTIES[

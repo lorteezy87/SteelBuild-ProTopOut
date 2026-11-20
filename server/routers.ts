@@ -19,6 +19,7 @@ import { refRouter } from "./routers/ref";
 import { reportsRouter } from "./routers/reports";
 import { resourcesRouter } from "./routers/resources";
 import { tasksRouter } from "./routers/tasks";
+import { todayRouter } from "./routers/today";
 import { timeRouter } from "./routers/time";
 import { wfRouter } from "./routers/wf";
 
@@ -40,6 +41,7 @@ export const appRouter = router({
   admin: adminRouter,
   projects: projectsRouter,
   tasks: tasksRouter,
+  today: todayRouter,
   baselines: baselinesRouter,
   deliveries: deliveriesRouter,
   drawings: drawingsRouter,

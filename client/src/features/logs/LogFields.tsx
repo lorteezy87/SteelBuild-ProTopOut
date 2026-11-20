@@ -1,3 +1,4 @@
+import { BALL_IN_COURT_LABELS, type BallInCourt } from "@shared/ballInCourt";
 import { CfDisplay, CfForm, type CfDef } from "@/components/brand/CustomFields";
 import { DateInput, SimpleSelect, UserSelect } from "@/components/brand/Controls";
 import { ErrorState, Field } from "@/components/brand/Layout";
@@ -66,6 +67,13 @@ export function LogFields({
             <UserSelect
               value={draft.assigneeId}
               onChange={v => set("assigneeId", v)}
+            />
+          </Field>
+          <Field label="Ball in court">
+            <SimpleSelect
+              value={draft.ballInCourt}
+              onChange={v => v && set("ballInCourt", v as BallInCourt)}
+              options={BALL_IN_COURT_LABELS}
             />
           </Field>
           <Field label="Responsible party">

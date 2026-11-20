@@ -180,6 +180,7 @@ export async function createItem(
     priority?: string;
     assigneeId?: number | null;
     responsibleParty?: string | null;
+    ballInCourt?: string;
     dueDate?: string | null;
     linkedTaskId?: number | null;
     linkedDeliveryId?: number | null;
@@ -215,6 +216,7 @@ export async function createItem(
       assigneeId: input.assigneeId ?? null,
       requestorId: ctx.user.id,
       responsibleParty: input.responsibleParty ?? null,
+      ballInCourt: input.ballInCourt ?? "us",
       dueDate: input.dueDate ?? null,
       linkedTaskId: input.linkedTaskId ?? null,
       linkedDeliveryId: input.linkedDeliveryId ?? null,

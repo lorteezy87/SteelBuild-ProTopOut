@@ -587,6 +587,8 @@ export const wfItems = mysqlTable(
     assigneeId: int("assigneeId"),
     requestorId: int("requestorId"),
     responsibleParty: varchar("responsibleParty", { length: 32 }),
+    /** us | gc | eor | architect | fabricator | other — see shared/ballInCourt.ts */
+    ballInCourt: varchar("ballInCourt", { length: 16 }).default("us").notNull(),
     dueDate: day("dueDate"),
     stateEnteredAt: timestamp("stateEnteredAt").defaultNow().notNull(),
     slaDueAt: timestamp("slaDueAt"),

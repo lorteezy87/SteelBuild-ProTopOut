@@ -11,6 +11,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
+const Today = lazy(() => import("./pages/Today"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const JobLayout = lazy(() => import("./pages/job/JobLayout"));
@@ -30,7 +31,8 @@ function Routes() {
   return (
     <Suspense fallback={<Loading />}>
       <Switch>
-        <Route path="/" component={Portfolio} />
+        <Route path="/" component={Today} />
+        <Route path="/portfolio" component={Portfolio} />
         <Route path="/jobs" component={Jobs} />
         <Route path="/jobs/:id">{p => <JobLayout params={p} />}</Route>
         <Route path="/jobs/:id/:tab">{p => <JobLayout params={p} />}</Route>
