@@ -11,7 +11,11 @@ const env = () => ({
   accessKeyId: process.env.R2_ACCESS_KEY_ID ?? "",
   secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? "",
   bucket: process.env.R2_BUCKET ?? "",
+  /** Optional, for local testing against an S3-compatible server; leave unset in production. */
+  endpoint: process.env.R2_ENDPOINT ?? "",
 });
+
+export const r2Endpoint = (e: { accountId: string; endpoint: string }) => e.endpoint || `https://${e.accountId}.r2.cloudflarestorage.com`;
 
 export const r2Configured = () => {
   const e = env();
@@ -25,7 +29,7 @@ function s3() {
   return new S3Client({
     region: "auto",
     forcePathStyle: true,
-    endpoint: `https://${e.accountId}.r2.cloudflarestorage.com`,
+    endpoint: r2Endpoint(e),
     credentials: { accessKeyId: e.accessKeyId, secretAccessKey: e.secretAccessKey },
   });
 }

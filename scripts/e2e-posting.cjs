@@ -43,7 +43,9 @@ const ok = (cond, msg) => {
 
   // 1. Double-click: two finalize calls at once must post exactly once.
   const rep = await save();
-  const both = await Promise.all([call("daily.finalize", { id: rep.id }), call("daily.finalize", { id: rep.id })]);
+  // Phase 2: the sequence starts with its ready-to-erect gate open, so finalize carries a reason.
+  const why = { [seq.id]: "e2e: gate reviewed in the field" };
+  const both = await Promise.all([call("daily.finalize", { id: rep.id, gateReasons: why }), call("daily.finalize", { id: rep.id, gateReasons: why })]);
   ok(both.filter(r => r.ok).length === 1, `concurrent finalize: exactly one succeeds (${both.map(r => (r.ok ? "ok" : "refused")).join(", ")})`);
   const tasks1 = (await must("tasks.list", { projectId: job.id }, "GET")).tasks.find(t => t.id === seq.id);
   ok(tasks1.erectedTons === 7, `tons posted once (${tasks1.erectedTons} t)`);
@@ -59,7 +61,7 @@ const ok = (cond, msg) => {
 
   // 3. A report with recorded (not invoiced) hours still reopens cleanly.
   const rep2 = await save();
-  await must("daily.finalize", { id: rep2.id });
+  await must("daily.finalize", { id: rep2.id, gateReasons: why });
   const re2 = await call("daily.reopen", { id: rep2.id });
   ok(re2.ok, "reopen of a non-invoiced report works");
   const tasks3 = (await must("tasks.list", { projectId: job.id }, "GET")).tasks.find(t => t.id === seq.id);
