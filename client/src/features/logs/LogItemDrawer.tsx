@@ -9,6 +9,7 @@ import {
   RecordDrawer,
 } from "@/components/brand/Controls";
 import { ErrorState, Field, Loading, Panel } from "@/components/brand/Layout";
+import { RecordPhotos } from "@/features/photos/RecordPhotos";
 import { SlaBadge, StateChip } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -379,6 +380,11 @@ function ItemDetails({
               {data.linkedDelivery.ticketNumber ?? "—"}
             </Link>
           )}
+        </Panel>
+      )}
+      {item.projectId != null && (
+        <Panel title="Photos" bodyClassName="p-3">
+          <RecordPhotos projectId={item.projectId} entityType="logItem" entityId={item.id} canUpload />
         </Panel>
       )}
       <Panel title="Workflow history" bodyClassName="p-3">

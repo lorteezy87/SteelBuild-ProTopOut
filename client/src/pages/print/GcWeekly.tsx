@@ -88,13 +88,13 @@ export default function GcWeekly({ params }: { params: { projectId: string; week
       ))}
       <h2>Photos</h2>
       {!r.photos.length ? (
-        <p className="italic text-neutral-600">No photos attached to this week's final daily reports.</p>
+        <p className="italic text-neutral-600">No photos in the photo log for this week.</p>
       ) : (
         <div className="grid grid-cols-3 gap-2">
           {r.photos.map(p => (
             <figure key={p.id} className="avoid-break">
               <img src={p.url} alt={p.name} className="h-40 w-full border object-cover" />
-              <figcaption className="text-[10px]">{p.reportDate ? fmtDate(p.reportDate) : ""} · {p.name}</figcaption>
+              <figcaption className="text-[10px]">{p.reportDate ? `${p.estimated ? "uploaded " : ""}${fmtDate(p.reportDate)}` : ""} · {p.name}</figcaption>
             </figure>
           ))}
         </div>

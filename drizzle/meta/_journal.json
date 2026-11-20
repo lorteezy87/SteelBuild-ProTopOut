@@ -64,6 +64,13 @@
       "when": 1795207881453,
       "tag": "0008_equipment_rentals",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1795208113277,
+      "tag": "0009_photo_log",
+      "breakpoints": true
     }
   ]
 }

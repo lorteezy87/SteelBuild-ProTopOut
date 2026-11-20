@@ -3,6 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { TM_LINE_KINDS, TM_KIND_KEYS, lineAmount, ticketTotals, type Markup, type TmKind, type TmLine } from "@shared/tm";
 import { ErrorState, Field, Panel } from "@/components/brand/Layout";
+import { RecordPhotos } from "@/features/photos/RecordPhotos";
 import { ConfirmButton, NumberInput, RecordDrawer, SimpleSelect } from "@/components/brand/Controls";
 import { Pill } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
@@ -130,6 +131,9 @@ export function TicketEditor({ id, projectId, onClose }: { id: number; projectId
               <tr><td colSpan={4} className="font-semibold">Ticket total</td><td className="right num font-semibold">{fmtMoney(totals.grandTotal, { cents: true })}</td></tr>
             </tbody>
           </table>
+        </Panel>
+        <Panel title="Photos" bodyClassName="p-3">
+          <RecordPhotos projectId={projectId} entityType="tmTicket" entityId={id} canUpload={t.status !== "void"} />
         </Panel>
         {signing && draft && (
           <Panel title={`GC acknowledgement — ${fmtMoney(totals.grandTotal, { cents: true })}`} bodyClassName="space-y-3 p-3">

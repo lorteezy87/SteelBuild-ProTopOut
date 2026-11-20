@@ -13,13 +13,14 @@ import {
   wfApps,
   wfItems,
 } from "../../drizzle/schema";
+import { assertPhotoEntity } from "./photos";
 import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
 import { hasJobModuleAccess, requireJobModule, requirePriv, sec, visibleProjects } from "../security/guard";
 import { follow, logActivity, notify, notifyFollowers } from "../services/events";
 import { getApp } from "../services/wf";
 import { storagePut } from "../storage";
-import { bad, zId, zText } from "./_util";
+import { bad, zDay, zId, zText } from "./_util";
 
 const entityType = z.enum(["project", "task", "logItem", "dailyReport"]);
 type EntityType = z.infer<typeof entityType>;
@@ -135,13 +136,22 @@ export const collabRouter = router({
         sheetNumber: zText(64).nullable().optional(),
         revision: zText(16).min(1),
         notes: zText(500).nullable().optional(),
-        entityType: z.enum(["task", "logItem", "dailyReport", "delivery"]).optional(),
+        entityType: z.enum(["task", "logItem", "dailyReport", "delivery", "tmTicket"]).optional(),
         entityId: zId.optional(),
+        /** Photo log fields (Phase 3). */
+        caption: zText(500).nullable().optional(),
+        takenOn: zDay.nullable().optional(),
+        sequenceTaskId: zId.nullable().optional(),
         file: z.object({ fileName: zText(255).min(1), mimeType: zText(128), base64: z.string().min(1) }),
       })
     )
     .mutation(async ({ ctx, input }) => {
       await requireJobModule(ctx, input.projectId, "document.upload");
+      if (input.entityType === "tmTicket" && input.entityId) await assertPhotoEntity(input.projectId, "tmTicket", input.entityId);
+      if (input.sequenceTaskId) {
+        const [t] = await (await db()).select({ projectId: tasks.projectId }).from(tasks).where(eq(tasks.id, input.sequenceTaskId)).limit(1);
+        if (!t || t.projectId !== input.projectId) bad("Pick a sequence on this job");
+      }
       const buf = Buffer.from(input.file.base64, "base64");
       if (buf.length > MAX_FILE_BYTES) bad("File is larger than 25 MB");
       const d = await db();
@@ -166,6 +176,9 @@ export const collabRouter = router({
             sheetNumber: input.sheetNumber ?? null,
             entityType: input.entityType ?? null,
             entityId: input.entityId ?? null,
+            caption: input.caption ?? null,
+            takenOn: input.takenOn ?? null,
+            sequenceTaskId: input.sequenceTaskId ?? null,
             currentRevision: input.revision,
             createdBy: ctx.user.id,
           })

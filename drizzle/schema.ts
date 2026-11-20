@@ -1099,12 +1099,29 @@ export const documents = mysqlTable(
     category: varchar("category", { length: 32 }).default("other").notNull(),
     sheetNumber: varchar("sheetNumber", { length: 64 }),
     currentRevision: varchar("currentRevision", { length: 16 }),
+    /** Photo log (Phase 3): caption, the day it was taken (NULL = not entered), and its sequence. */
+    caption: varchar("caption", { length: 500 }),
+    takenOn: day("takenOn"),
+    sequenceTaskId: int("sequenceTaskId"),
     isDeleted: boolean("isDeleted").default(false).notNull(),
     createdBy: int("createdBy"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   t => [index("doc_project").on(t.projectId)]
+);
+
+/** A photo attached to another record from the photo log (its owner stays documents.entityType/entityId). */
+export const photoLinks = mysqlTable(
+  "photo_links",
+  {
+    id: id(),
+    documentId: int("documentId").notNull(),
+    entityType: varchar("entityType", { length: 32 }).notNull(),
+    entityId: int("entityId").notNull(),
+    createdAt: createdAt(),
+  },
+  t => [uniqueIndex("pl_doc_entity").on(t.documentId, t.entityType, t.entityId), index("pl_entity").on(t.entityType, t.entityId)]
 );
 
 export const documentVersions = mysqlTable(
