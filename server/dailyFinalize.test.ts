@@ -22,7 +22,7 @@ describe("daily report finalize posting", () => {
 
   it("sums erected tons and pieces per sequence", () => {
     expect(progressByTask([{ taskId: 5, tons: 12.5, pieces: 40 }, { taskId: 5, tons: 0.25, pieces: 1 }, { taskId: 6, tons: 3, pieces: 9 }])).toEqual(
-      new Map([[5, { tons: 12.75, pieces: 41 }], [6, { tons: 3, pieces: 9 }]]),
+      new Map([["5:set", { taskId: 5, stage: "set", tons: 12.75, pieces: 41 }], ["6:set", { taskId: 6, stage: "set", tons: 3, pieces: 9 }]]),
     );
   });
 });

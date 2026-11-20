@@ -1,4 +1,5 @@
 /** Pure rules for finalizing a daily field report (draft → final). */
+import { isStage, type Stage } from "./stages";
 
 export const DAILY_STATUSES = { draft: "Draft", final: "Final" } as const;
 export type DailyStatus = keyof typeof DAILY_STATUSES;
@@ -24,12 +25,16 @@ export function crewTimeLines(crew: CrewHours[]): TimeLine[] {
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-/** Erected tons/pieces summed per sequence task. */
-export function progressByTask(progress: { taskId: number; tons: number; pieces: number }[]): Map<number, { tons: number; pieces: number }> {
-  const m = new Map<number, { tons: number; pieces: number }>();
+/** Erected tons/pieces summed per sequence task and erection stage (a line without a stage is "set"). */
+export function progressByTask(
+  progress: { taskId: number; stage?: string | null; tons: number; pieces: number }[],
+): Map<string, { taskId: number; stage: Stage; tons: number; pieces: number }> {
+  const m = new Map<string, { taskId: number; stage: Stage; tons: number; pieces: number }>();
   for (const p of progress) {
-    const cur = m.get(p.taskId) ?? { tons: 0, pieces: 0 };
-    m.set(p.taskId, { tons: round2(cur.tons + p.tons), pieces: cur.pieces + p.pieces });
+    const stage: Stage = isStage(p.stage) ? p.stage : "set";
+    const key = `${p.taskId}:${stage}`;
+    const cur = m.get(key) ?? { taskId: p.taskId, stage, tons: 0, pieces: 0 };
+    m.set(key, { taskId: p.taskId, stage, tons: round2(cur.tons + p.tons), pieces: cur.pieces + p.pieces });
   }
   return m;
 }

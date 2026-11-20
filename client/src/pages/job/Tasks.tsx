@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { StageCell } from "@/features/tasks/StageCell";
 import { useLocation, useSearch } from "wouter";
 import {
   ArrowDown,
@@ -515,7 +516,7 @@ export default function Tasks() {
                 <th>Status</th>
                 <th>Schedule</th>
                 <th>CP</th>
-                <th>Tons erected / planned</th>
+                <th>Tons by stage / planned</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -791,10 +792,8 @@ export default function Tasks() {
                         </span>
                       )}
                     </td>
-                    <td className="num whitespace-nowrap">
-                      {t.kind === "sequence"
-                        ? `${fmtTons(t.erectedTons)} / ${fmtTons(t.plannedTons)}`
-                        : "—"}
+                    <td>
+                      {t.kind === "sequence" ? <StageCell t={t} /> : "—"}
                     </td>
                     <td onClick={e => e.stopPropagation()}>
                       <div className="flex gap-1">

@@ -24,6 +24,7 @@ import {
 import { JobFormDrawer } from "@/features/jobs/JobFormDrawer";
 import { deadlineVariance, varianceLabel } from "@/features/jobs/metrics";
 import { TaskDrawer } from "@/features/tasks/TaskDrawer";
+import { ProductionChart } from "@/features/daily/ProductionChart";
 import {
   errMsg,
   fmtDate,
@@ -154,6 +155,7 @@ export default function Overview() {
           </div>
         </Panel>
       )}
+      <ProductionChart projectId={p.id} />
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
         <div className="space-y-4">
           <Panel

@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
+import { STAGE_KEYS, type Stage } from "@shared/stages";
 import { CONTRACT_TYPES, PROGRESS_METHODS, PROJECT_STATES, PROJECT_COMPANY_ROLES } from "@shared/domain";
 import {
   activities,
@@ -70,6 +71,7 @@ const projectFields = z.object({
   noticeHours: z.number().int().min(1).max(24 * 60).optional(),
   siteAddress: z.string().max(2000).nullable().optional(),
   progressMethod: enumOf(PROGRESS_METHODS).optional(),
+  progressStage: z.enum(STAGE_KEYS as [Stage, ...Stage[]]).optional(),
   customFields: z.record(z.string(), z.unknown()).optional(),
 });
 

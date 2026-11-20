@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isStage } from "@shared/stages";
 import { toast } from "sonner";
 import {
   ConfirmButton,
@@ -135,6 +136,7 @@ function ReportForm({
       tons: p.tons,
       pieces: p.pieces,
       note: p.note,
+      stage: isStage(p.stage) ? p.stage : "set",
     }))
   );
   const [busy, setBusy] = useState(false);
@@ -200,7 +202,7 @@ function ReportForm({
         </Pill>
         <span className="num text-xs text-muted-foreground">
           {fmtHours(crew.reduce((s, c) => s + c.stHours + c.otHours, 0))} crew ·{" "}
-          {fmtTons(progress.reduce((s, p) => s + p.tons, 0))} erected
+          {fmtTons(progress.filter(p => p.stage === "set").reduce((s, p) => s + p.tons, 0))} set
         </span>
         <div className="ml-auto flex flex-wrap gap-2">
           {editable && (

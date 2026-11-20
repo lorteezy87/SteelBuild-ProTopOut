@@ -45,6 +45,7 @@ const progressLine = z.object({
   tons: z.number().min(0).max(100000),
   pieces: z.number().int().min(0).max(100000),
   note: zText(500).nullable().optional(),
+  stage: z.enum(STAGE_KEYS as [Stage, ...Stage[]]).default("set"),
 });
 
 /** Rows changed by a conditional UPDATE (mysql2 returns [ResultSetHeader, …]). */
@@ -80,8 +81,38 @@ async function rateFor(userId: number) {
 
 import { assertFinalizable, assertReopenable, crewTimeLines, progressByTask } from "@shared/dailyPosting";
 import { crewInsertValues } from "../services/crew";
+import { STAGE_KEYS, stageColumns, type Stage } from "@shared/stages";
+import { productionSeries } from "@shared/production";
 
 export const dailyReportsRouter = router({
+  /** Production chart: posted tons/pieces per day by foreman at one stage, against the planned daily rate of dated sequences. */
+  production: protectedProcedure
+    .input(z.object({ projectId: zId, stage: z.enum(STAGE_KEYS as [Stage, ...Stage[]]).default("set") }))
+    .query(async ({ ctx, input }) => {
+      await requireJobModule(ctx, input.projectId, "project.view");
+      const d = await db();
+      const rows = await d
+        .select({ reportDate: dailyReportProgress.reportDate, foremanId: dailyReports.foremanId, tons: dailyReportProgress.tons, pieces: dailyReportProgress.pieces })
+        .from(dailyReportProgress)
+        .innerJoin(dailyReports, eq(dailyReports.id, dailyReportProgress.reportId))
+        .where(
+          and(
+            eq(dailyReportProgress.projectId, input.projectId),
+            eq(dailyReportProgress.stage, input.stage),
+            eq(dailyReportProgress.posted, true),
+            eq(dailyReports.status, "final"),
+          ),
+        );
+      const seqs = await d
+        .select({ plannedTons: tasks.plannedTons, plannedPieces: tasks.plannedPieces, durationDays: tasks.durationDays, startDate: tasks.startDate, finishDate: tasks.finishDate })
+        .from(tasks)
+        .where(and(eq(tasks.projectId, input.projectId), eq(tasks.kind, "sequence"), eq(tasks.isSummary, false)));
+      const dated = seqs.filter(t => t.startDate && t.finishDate && t.durationDays > 0);
+      const tonsPerDay = dated.some(t => t.plannedTons > 0) ? round2(dated.reduce((s, t) => s + t.plannedTons / t.durationDays, 0)) : null;
+      const piecesPerDay = dated.some(t => t.plannedPieces > 0) ? round2(dated.reduce((s, t) => s + t.plannedPieces / t.durationDays, 0)) : null;
+      return productionSeries(rows, { tonsPerDay, piecesPerDay });
+    }),
+
   list: protectedProcedure
     .input(z.object({ projectId: zId }))
     .query(async ({ ctx, input }) => {
@@ -335,9 +366,18 @@ export const dailyReportsRouter = router({
           });
         }
         const byTask = progressByTask(progress);
-        for (const [taskId, add] of Array.from(byTask)) {
-          const [t] = await tx.select().from(tasks).where(eq(tasks.id, taskId)).limit(1).for("update");
+        for (const add of Array.from(byTask.values())) {
+          const [t] = await tx.select().from(tasks).where(eq(tasks.id, add.taskId)).limit(1).for("update");
           if (!t) continue;
+          if (add.stage !== "set") {
+            // Later stages only add their own quantities; starting and completing a sequence follow "set" (hung) steel.
+            const c = stageColumns(add.stage);
+            await tx
+              .update(tasks)
+              .set({ [c.tons]: round2(t[c.tons] + add.tons), [c.pieces]: t[c.pieces] + add.pieces })
+              .where(eq(tasks.id, t.id));
+            continue;
+          }
           const erectedTons = round2(t.erectedTons + add.tons);
           // Sequences that reach planned tonnage are complete.
           const complete = t.kind === "sequence" && t.plannedTons > 0 && erectedTons >= t.plannedTons - 1e-6 && t.status !== "done";
@@ -353,7 +393,7 @@ export const dailyReportsRouter = router({
             .where(eq(tasks.id, t.id));
         }
         if (progress.length) await tx.update(dailyReportProgress).set({ posted: true }).where(eq(dailyReportProgress.reportId, r.id));
-        const totals = Array.from(byTask.values());
+        const totals = Array.from(byTask.values()).filter(p => p.stage === "set");
         return { hours: round2(hours), tons: round2(totals.reduce((s, p) => s + p.tons, 0)), pieces: totals.reduce((s, p) => s + p.pieces, 0), crew: crew.length };
       });
       await recomputeProject(r.projectId);
@@ -400,6 +440,15 @@ export const dailyReportsRouter = router({
         for (const p of progress.filter(x => x.posted)) {
           const [t] = await tx.select().from(tasks).where(eq(tasks.id, p.taskId)).limit(1).for("update");
           if (!t) continue;
+          if (p.stage && p.stage !== "set") {
+            const c = stageColumns(p.stage as Stage);
+            await tx
+              .update(tasks)
+              .set({ [c.tons]: Math.max(0, round2(t[c.tons] - p.tons)), [c.pieces]: Math.max(0, t[c.pieces] - p.pieces) })
+              .where(eq(tasks.id, t.id));
+            await tx.update(dailyReportProgress).set({ posted: false }).where(eq(dailyReportProgress.id, p.id));
+            continue;
+          }
           const tons = Math.max(0, round2(t.erectedTons - p.tons));
           const reopened = t.status === "done" && tons < t.plannedTons;
           await tx

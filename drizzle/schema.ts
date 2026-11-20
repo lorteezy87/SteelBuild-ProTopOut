@@ -159,6 +159,8 @@ export const projects = mysqlTable(
     noticeHours: int("noticeHours").default(72).notNull(),
     siteAddress: text("siteAddress"),
     progressMethod: varchar("progressMethod", { length: 16 }).default("tonnage").notNull(),
+    /** Which erection stage drives tonnage/pieces percent complete. */
+    progressStage: varchar("progressStage", { length: 16 }).default("set").notNull(),
     percentComplete: double("percentComplete").default(0).notNull(),
     projectedFinish: day("projectedFinish"),
     projectedCost: double("projectedCost"),
@@ -219,6 +221,13 @@ export const tasks = mysqlTable(
     plannedPieces: int("plannedPieces").default(0).notNull(),
     erectedTons: double("erectedTons").default(0).notNull(),
     erectedPieces: int("erectedPieces").default(0).notNull(),
+    /** Later erection stages (Set = erectedTons/erectedPieces above). See shared/stages.ts. */
+    plumbedTons: double("plumbedTons").default(0).notNull(),
+    plumbedPieces: int("plumbedPieces").default(0).notNull(),
+    boltedTons: double("boltedTons").default(0).notNull(),
+    boltedPieces: int("boltedPieces").default(0).notNull(),
+    finalTons: double("finalTons").default(0).notNull(),
+    finalPieces: int("finalPieces").default(0).notNull(),
     totalFloat: double("totalFloat"),
     isCritical: boolean("isCritical").default(false).notNull(),
     constraintViolated: boolean("constraintViolated").default(false).notNull(),
@@ -411,6 +420,8 @@ export const dailyReportProgress = mysqlTable(
     tons: double("tons").default(0).notNull(),
     pieces: int("pieces").default(0).notNull(),
     note: varchar("note", { length: 500 }),
+    /** set | plumbed | bolted | final */
+    stage: varchar("stage", { length: 16 }).default("set").notNull(),
     posted: boolean("posted").default(false).notNull(),
   },
   t => [index("drp_report").on(t.reportId), index("drp_task").on(t.taskId)]
