@@ -34,6 +34,7 @@ const QcLog = lazy(() => import("./pages/print/QcLog"));
 const JhaPrint = lazy(() => import("./pages/print/Jha"));
 const PtpPrint = lazy(() => import("./pages/print/Ptp"));
 const ToolboxPrint = lazy(() => import("./pages/print/Toolbox"));
+const CertMatrix = lazy(() => import("./pages/print/CertMatrix"));
 
 function Routes() {
   return (
@@ -81,6 +82,7 @@ function PrintRoutes() {
         <Route path="/print/jha/:id">{p => <JhaPrint params={p} />}</Route>
         <Route path="/print/ptp/:id">{p => <PtpPrint params={p} />}</Route>
         <Route path="/print/toolbox/:id">{p => <ToolboxPrint params={p} />}</Route>
+        <Route path="/print/certs" component={CertMatrix} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

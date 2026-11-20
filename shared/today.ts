@@ -1,3 +1,4 @@
+import { certsDue } from "./certs";
 import type { BallInCourt } from "./ballInCourt";
 
 /** Work days ahead that still count as "due soon" on the Today screen. */
@@ -51,7 +52,9 @@ type GateIn = { id: number; projectId: number; name: string; status: string; sta
 /** Look this far ahead (calendar days) for sequences about to start without a ready gate. */
 export const GATE_LOOKAHEAD_DAYS = 14;
 
-export function todaySummary(input: { today: string; sequences: SeqIn[]; deliveries: LoadIn[]; logs: LogIn[]; gates?: GateIn[] }) {
+type CertIn = { id: number; userId: number; name: string; certType: string; expiresOn: string | null };
+
+export function todaySummary(input: { today: string; sequences: SeqIn[]; deliveries: LoadIn[]; logs: LogIn[]; gates?: GateIn[]; certs?: CertIn[] }) {
   const week = plusDays(input.today, 7);
   const sequencesAtRisk = input.sequences
     .filter(s => SLIPPING.has(s.scheduleHealth))
@@ -75,5 +78,5 @@ export function todaySummary(input: { today: string; sequences: SeqIn[]; deliver
     .filter(g => g.status === "not_started" && g.gate !== "ready" && g.startDate != null && g.startDate <= horizon)
     .map(g => ({ id: g.id, projectId: g.projectId, label: g.name, date: g.startDate }))
     .sort(byDate);
-  return { sequencesAtRisk, loadsDue7, logsNeedingAction, noticeDeadlines, sequencesNotReady };
+  return { sequencesAtRisk, loadsDue7, logsNeedingAction, noticeDeadlines, sequencesNotReady, certsDue: certsDue(input.certs ?? [], input.today) };
 }

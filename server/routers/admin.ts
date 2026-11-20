@@ -1,3 +1,4 @@
+import { CERT_TYPE_KEYS } from "@shared/certs";
 import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, inArray, isNull, ne } from "drizzle-orm";
@@ -95,6 +96,7 @@ export const adminRouter = router({
           costRate: z.number().min(0),
           billRate: z.number().min(0),
           isActive: z.boolean().optional(),
+          requiredCerts: z.array(z.enum(CERT_TYPE_KEYS as [string, ...string[]])).max(CERT_TYPE_KEYS.length).optional(),
         })
       )
       .mutation(async ({ input }) => {

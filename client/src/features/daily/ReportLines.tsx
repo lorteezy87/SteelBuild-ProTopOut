@@ -57,7 +57,10 @@ export function ReportLines({
   onCrew,
   onEquipment,
   onProgress,
+  certGaps,
 }: {
+  /** Missing / lapsed required certifications per crew member (userId), as of the saved report. Warning only. */
+  certGaps?: Record<string, string[]>;
   crew: CrewLine[];
   equipment: EquipmentLine[];
   progress: ProgressLine[];
@@ -134,6 +137,11 @@ export function ReportLines({
                         })
                       }
                     />
+                    {line.userId > 0 && certGaps?.[String(line.userId)]?.length ? (
+                      <p className="mt-1 text-xs text-[var(--tp-amber-ink,var(--tp-amber))]" role="note">
+                        Missing: {certGaps[String(line.userId)].join(", ")}
+                      </p>
+                    ) : null}
                   </td>
                   <td className="min-w-40">
                     <SimpleSelect

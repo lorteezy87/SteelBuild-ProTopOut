@@ -343,6 +343,7 @@ function ReportForm({
         onCrew={setCrew}
         onEquipment={setEquipment}
         onProgress={setProgress}
+        certGaps={data?.certGaps}
       />
       <fieldset disabled={!editable || busy} className="space-y-3">
         <Field label="Work performed">

@@ -2,7 +2,8 @@ import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { fmtMoney } from "@/lib/format";
 import { Pill } from "@/components/brand/Status";
-import { ReferenceEditor, text, number, flag } from "./Editor";
+import { CERT_TYPE_LABELS, certTypeLabel } from "@shared/certs";
+import { ReferenceEditor, text, number, flag, checks } from "./Editor";
 export default function JobRoles() {
   const { ref } = useRefData();
   const save = trpc.admin.jobRoles.upsert.useMutation();
@@ -26,6 +27,10 @@ export default function JobRoles() {
           ),
         },
         {
+          label: "Required certifications",
+          cell: r => (r.requiredCerts?.length ? r.requiredCerts.map(certTypeLabel).join(", ") : "—"),
+        },
+        {
           label: "Status",
           cell: r => (
             <Pill tone={r.isActive ? "green" : "gray"}>
@@ -39,6 +44,13 @@ export default function JobRoles() {
         { key: "costRate", label: "Cost rate / hr", type: "number" },
         { key: "billRate", label: "Bill rate / hr", type: "number" },
         { key: "isActive", label: "Active", type: "check" },
+        {
+          key: "requiredCerts",
+          label: "Required certifications",
+          type: "checks",
+          options: CERT_TYPE_LABELS,
+          help: "Daily reports warn when a crew member in this classification has no current card.",
+        },
       ]}
       defaults={{ name: "", costRate: 0, billRate: 0, isActive: true }}
       onSave={(d, id) =>
@@ -48,6 +60,7 @@ export default function JobRoles() {
           costRate: number(d, "costRate"),
           billRate: number(d, "billRate"),
           isActive: flag(d, "isActive"),
+          requiredCerts: checks(d, "requiredCerts") as never,
         })
       }
     />

@@ -63,6 +63,8 @@ export const jobRoles = mysqlTable("job_roles", {
   name: varchar("name", { length: 128 }).notNull(),
   costRate: double("costRate").default(0).notNull(),
   billRate: double("billRate").default(0).notNull(),
+  /** Certification types (shared/certs.ts) a crew member in this classification must hold. */
+  requiredCerts: json("requiredCerts").$type<string[]>(),
   isActive: boolean("isActive").default(true).notNull(),
 });
 
@@ -552,6 +554,30 @@ export const toolboxTalks = mysqlTable(
     createdAt: createdAt(),
   },
   t => [index("tbt_project").on(t.projectId, t.talkDate)]
+);
+
+/* ------------------------------------------------------------------ */
+/* Crew certifications (Phase 3) — rules in shared/certs.ts            */
+/* ------------------------------------------------------------------ */
+
+export const certifications = mysqlTable(
+  "certifications",
+  {
+    id: id(),
+    userId: int("userId").notNull(),
+    certType: varchar("certType", { length: 32 }).notNull(),
+    certNumber: varchar("certNumber", { length: 64 }),
+    issuer: varchar("issuer", { length: 120 }),
+    issuedOn: day("issuedOn"),
+    expiresOn: day("expiresOn"),
+    fileKey: varchar("fileKey", { length: 500 }),
+    fileUrl: varchar("fileUrl", { length: 1000 }),
+    fileName: varchar("fileName", { length: 255 }),
+    notes: varchar("notes", { length: 500 }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("cert_user").on(t.userId)]
 );
 
 export type BaselineTaskSnapshot = {

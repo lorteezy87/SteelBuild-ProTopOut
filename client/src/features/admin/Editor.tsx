@@ -28,7 +28,8 @@ export type EditorField = {
     | "check"
     | "days"
     | "color"
-    | "date";
+    | "date"
+    | "checks";
   options?: Record<string, string> | { value: string; label: string }[];
   nullable?: boolean;
   min?: number;
@@ -42,9 +43,14 @@ export const number = (d: Draft, k: string) => Number(d[k] ?? 0);
 export const nullableNumber = (d: Draft, k: string) =>
   d[k] == null || d[k] === "" ? null : Number(d[k]);
 export const flag = (d: Draft, k: string) => !!d[k];
+/** Comma-joined draft value of a "checks" field (string-array columns). */
+export const checks = (d: Draft, k: string) =>
+  text(d, k).split(",").map(x => x.trim()).filter(Boolean);
 export function toDraft(row: object): Draft {
   return Object.fromEntries(
-    Object.entries(row).filter(
+    Object.entries(row)
+      .map(([k, v]) => [k, Array.isArray(v) && v.length && v.every(x => typeof x === "string") ? v.join(",") : v] as const)
+      .filter(
       ([, v]) =>
         v == null ||
         ["string", "number", "boolean"].includes(typeof v) ||
@@ -86,7 +92,7 @@ export function DraftFields({
           key={f.key}
           label={f.label}
           className={
-            f.type === "textarea" || f.type === "days" ? "sm:col-span-2" : ""
+            f.type === "textarea" || f.type === "days" || f.type === "checks" ? "sm:col-span-2" : ""
           }
         >
           {f.type === "check" ? (
@@ -102,6 +108,25 @@ export function DraftFields({
               allowNone={f.nullable}
               onChange={v => put(f.key, v)}
             />
+          ) : f.type === "checks" ? (
+            <div className="grid gap-x-4 sm:grid-cols-2">
+              {(Array.isArray(f.options)
+                ? f.options
+                : Object.entries(f.options ?? {}).map(([value, label]) => ({ value, label }))
+              ).map(o => {
+                const on = checks(draft, f.key);
+                return (
+                  <Check
+                    key={o.value}
+                    label={o.label}
+                    checked={on.includes(o.value)}
+                    onChange={v =>
+                      put(f.key, (v ? [...on, o.value] : on.filter(x => x !== o.value)).join(","))
+                    }
+                  />
+                );
+              })}
+            </div>
           ) : f.type === "number" ? (
             <NumberInput
               value={nullableNumber(draft, f.key)}
