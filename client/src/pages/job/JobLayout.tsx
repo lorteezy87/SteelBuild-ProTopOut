@@ -28,6 +28,7 @@ const TABS: Tab[] = [
   { key: "lifts", label: "Cranes & Lifts", component: lazy(() => import("./Lifts")) },
   { key: "qc", label: "QC", component: lazy(() => import("./Qc")) },
   { key: "safety", label: "Safety", component: lazy(() => import("./Safety")) },
+  { key: "rentals", label: "Rentals", component: lazy(() => import("./Rentals")) },
   { key: "financials", label: "Financials", component: lazy(() => import("./Financials")), fin: true },
   { key: "documents", label: "Documents", component: lazy(() => import("./Documents")) },
   { key: "baselines", label: "Baselines", component: lazy(() => import("./Baselines")) },

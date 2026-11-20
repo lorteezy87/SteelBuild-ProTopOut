@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { AlertTriangle, BadgeCheck, ClipboardList, Hourglass, ShieldAlert, Truck } from "lucide-react";
+import { AlertTriangle, BadgeCheck, ClipboardList, PhoneCall, Hourglass, ShieldAlert, Truck } from "lucide-react";
 import type { ReactNode } from "react";
 import { ErrorState, Kpi, Loading, PageHeader, Panel } from "@/components/brand/Layout";
 import { fmtDate } from "@/lib/format";
@@ -73,13 +73,14 @@ export default function Today() {
     <>
       <PageHeader eyebrow={`Today · ${fmtDate(d.today)}`} title="What needs you" subtitle="Across every active job: slipping sequences, loads coming in, items in your court, notice deadlines and sequences not ready to erect." />
       <div className="space-y-5 p-6">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
           <Kpi label="Sequences at risk" value={d.sequencesAtRisk.length} />
           <Kpi label="Loads due in 7 days" value={d.loadsDue7.length} />
           <Kpi label="Logs needing action" value={d.logsNeedingAction.length} />
           <Kpi label="Notice deadlines" value={d.noticeDeadlines.length} />
           <Kpi label="Not ready to erect" value={d.sequencesNotReady.length} />
           <Kpi label="Certifications due" value={d.certsDue.length} />
+          <Kpi label="Rentals to call off" value={d.rentalsToCallOff.length} />
         </div>
         <div className="grid gap-5 lg:grid-cols-2">
           <TodayPanel
@@ -131,6 +132,15 @@ export default function Today() {
             dateLabel={r => (r.status === "expired" ? "Expired" : r.status === "unknown" ? "Enter the expiry date" : "Expires")}
             dateText={r => (r.status === "unknown" ? "Expiry unknown" : fmtDate(r.date))}
             empty="No certifications expired, expiring within 30 days, or missing an expiry date."
+          />
+          <TodayPanel
+            title="Rentals to call off"
+            icon={<PhoneCall className="size-4 text-[var(--tp-amber)]" />}
+            rows={d.rentalsToCallOff}
+            jobLabel={jobLabel}
+            href={r => `/jobs/${r.projectId}/rentals`}
+            dateLabel={r => (r.status === "overdue" ? "Overdue — still on rent" : r.status === "call_off_now" ? "Call off today" : "Call off by")}
+            empty="No rentals due to be called off in the next few days."
           />
         </div>
       </div>

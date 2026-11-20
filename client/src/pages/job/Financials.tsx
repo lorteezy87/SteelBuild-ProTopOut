@@ -90,7 +90,7 @@ export default function Financials() {
           ]}
         />
       </Panel>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Kpi
           label="Actual job cost"
           value={fmtMoney(data.costs.total)}
@@ -105,7 +105,17 @@ export default function Financials() {
         <Kpi
           label="Equipment cost"
           value={fmtMoney(data.costs.equipmentCost)}
-          sub="Final daily reports · operating + standby"
+          sub="Final daily reports · owned / unrented units"
+        />
+        <Kpi
+          label="Rentals"
+          value={fmtMoney(data.costs.rentalCost)}
+          sub={
+            data.costs.rentalsUnpriced
+              ? `${data.costs.rentalsUnpriced} rental${data.costs.rentalsUnpriced === 1 ? "" : "s"} unpriced — not included`
+              : "On-rent charges to date + delivery / pickup"
+          }
+          tone={data.costs.rentalsUnpriced ? "amber" : "gray"}
         />
         <Kpi
           label="Expense cost"
@@ -303,6 +313,11 @@ export default function Financials() {
               </tbody>
             </table>
           </div>
+          {data.costs.equipmentCoveredByRental > 0 && (
+            <p className="px-4 py-2 text-xs text-muted-foreground">
+              {fmtMoney(data.costs.equipmentCoveredByRental)} of this was on days the unit was on rent to the job — it is costed once, under Rentals.
+            </p>
+          )}
           {!data.byEquipment.length && (
             <EmptyState
               title="No equipment use posted."

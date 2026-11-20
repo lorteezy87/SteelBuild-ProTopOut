@@ -1,9 +1,11 @@
+import { coveredByRental, rentalCost as rentalCost_, type RentalIn } from "@shared/rentals";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import {
   baselines,
   dailyReportEquipment,
   dailyReports,
   deliveries,
+  equipmentRentals,
   expenses,
   projectSnapshots,
   projects,
@@ -41,6 +43,28 @@ const HEALTH_RANK: Record<ScheduleHealth, number> = {
   not_active: 0,
 };
 
+/**
+ * Rented equipment is costed once, through its rental: daily-report equipment rows on dates the same
+ * equipment is on rent to the job are left out of equipment cost. Unpriced rentals add nothing and are counted.
+ */
+export function rentalCosts(rentals: RentalIn[], equipRows: { equipmentId: number; cost: number; reportDate: string }[], today: string) {
+  let equipmentCost = 0;
+  let coveredCost = 0;
+  for (const r of equipRows) {
+    if (coveredByRental(rentals, r.equipmentId, r.reportDate)) coveredCost += Number(r.cost);
+    else equipmentCost += Number(r.cost);
+  }
+  let rentalCost = 0;
+  let rentalsUnpriced = 0;
+  for (const r of rentals) {
+    const c = rentalCost_(r, today);
+    if (c.total == null) rentalsUnpriced++;
+    else rentalCost += c.total;
+  }
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  return { equipmentCost: r2(equipmentCost), coveredCost: r2(coveredCost), rentalCost: r2(rentalCost), rentalsUnpriced };
+}
+
 export async function projectCosts(projectId: number) {
   const d = await db();
   const [labor] = await d
@@ -60,22 +84,29 @@ export async function projectCosts(projectId: number) {
     })
     .from(expenses)
     .where(and(eq(expenses.projectId, projectId), inArray(expenses.state, ["recorded", "invoiced"])));
-  const [equip] = await d
-    .select({ cost: sql<number>`coalesce(sum(${dailyReportEquipment.cost}),0)` })
-    .from(dailyReportEquipment)
-    .innerJoin(dailyReports, eq(dailyReports.id, dailyReportEquipment.reportId))
-    .where(and(eq(dailyReports.projectId, projectId), eq(dailyReports.status, "final")));
+  const [equipRows, rentals, today] = await Promise.all([
+    d
+      .select({ equipmentId: dailyReportEquipment.equipmentId, cost: dailyReportEquipment.cost, reportDate: dailyReports.reportDate })
+      .from(dailyReportEquipment)
+      .innerJoin(dailyReports, eq(dailyReports.id, dailyReportEquipment.reportId))
+      .where(and(eq(dailyReports.projectId, projectId), eq(dailyReports.status, "final"))),
+    d.select().from(equipmentRentals).where(eq(equipmentRentals.projectId, projectId)),
+    orgToday(),
+  ]);
   const laborCost = Number(labor?.cost ?? 0);
   const expenseCost = Number(exp?.cost ?? 0);
-  const equipmentCost = Number(equip?.cost ?? 0);
+  const rc = rentalCosts(rentals, equipRows, today);
   return {
     laborCost,
     laborBill: Number(labor?.bill ?? 0),
     laborHours: Number(labor?.hours ?? 0),
     expenseCost,
     expenseBill: Number(exp?.bill ?? 0),
-    equipmentCost,
-    total: laborCost + expenseCost + equipmentCost,
+    equipmentCost: rc.equipmentCost,
+    rentalCost: rc.rentalCost,
+    rentalsUnpriced: rc.rentalsUnpriced,
+    equipmentCoveredByRental: rc.coveredCost,
+    total: laborCost + expenseCost + rc.equipmentCost + rc.rentalCost,
   };
 }
 

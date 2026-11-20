@@ -580,6 +580,39 @@ export const certifications = mysqlTable(
   t => [index("cert_user").on(t.userId)]
 );
 
+/* ------------------------------------------------------------------ */
+/* Equipment rentals (Phase 3) — rules in shared/rentals.ts            */
+/* ------------------------------------------------------------------ */
+
+export const equipmentRentals = mysqlTable(
+  "equipment_rentals",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    /** Equipment library row, when this rental appears on daily reports. */
+    equipmentId: int("equipmentId"),
+    description: varchar("description", { length: 200 }).notNull(),
+    vendorCompanyId: int("vendorCompanyId"),
+    vendorName: varchar("vendorName", { length: 120 }),
+    poNumber: varchar("poNumber", { length: 64 }),
+    onRentDate: day("onRentDate").notNull(),
+    offRentDate: day("offRentDate"),
+    plannedOffRentDate: day("plannedOffRentDate"),
+    callOffNoticeDays: int("callOffNoticeDays").default(1).notNull(),
+    calledOffOn: day("calledOffOn"),
+    callOffConfirmation: varchar("callOffConfirmation", { length: 64 }),
+    dayRate: double("dayRate"),
+    weekRate: double("weekRate"),
+    monthRate: double("monthRate"),
+    deliveryCharge: double("deliveryCharge"),
+    pickupCharge: double("pickupCharge"),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("rent_project").on(t.projectId)]
+);
+
 export type BaselineTaskSnapshot = {
   taskId: number;
   name: string;
