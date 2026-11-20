@@ -6,3 +6,11 @@ export const ENV = {
   get databaseUrl() { return process.env.DATABASE_URL ?? ""; },
   get isProduction() { return process.env.NODE_ENV === "production"; },
 };
+
+/** Startup check: fail fast with a clear message instead of half-creating the owner on first run. */
+export function assertBootConfig(env: Record<string, string | undefined> = process.env): void {
+  if (!env.DATABASE_URL) throw new Error("DATABASE_URL is not set");
+  const secret = env.SESSION_SECRET ?? "";
+  if (!secret) throw new Error("SESSION_SECRET is not set");
+  if (secret.length < 32) throw new Error("SESSION_SECRET must be at least 32 characters");
+}

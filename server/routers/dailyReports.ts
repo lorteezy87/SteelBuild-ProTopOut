@@ -47,6 +47,9 @@ const progressLine = z.object({
   note: zText(500).nullable().optional(),
 });
 
+/** Rows changed by a conditional UPDATE (mysql2 returns [ResultSetHeader, …]). */
+const affected = (res: unknown) => Number((res as [{ affectedRows?: number }])[0]?.affectedRows ?? 0);
+
 async function loadReport(id: number) {
   const d = await db();
   const [r] = await d
@@ -75,7 +78,7 @@ async function rateFor(userId: number) {
   return { cost: cost ?? 0, bill: bill ?? 0 };
 }
 
-import { assertFinalizable, crewTimeLines, progressByTask } from "@shared/dailyPosting";
+import { assertFinalizable, assertReopenable, crewTimeLines, progressByTask } from "@shared/dailyPosting";
 import { crewInsertValues } from "../services/crew";
 
 export const dailyReportsRouter = router({
@@ -294,21 +297,27 @@ export const dailyReportsRouter = router({
       }
       assertTimeUnlocked(r.reportDate, await getTimeLock());
       const d = await db();
-      const crew = await d.select().from(dailyReportCrew).where(eq(dailyReportCrew.reportId, r.id));
-      const progress = await d.select().from(dailyReportProgress).where(eq(dailyReportProgress.reportId, r.id));
       const codes = await d.select().from(timeCodes);
       const regular = codes.find(c => c.name.toLowerCase() === "regular") ?? codes[0];
       const overtime = codes.find(c => c.name.toLowerCase().startsWith("overtime")) ?? regular;
       const now = new Date();
-      let hours = 0;
-      for (const l of crewTimeLines(crew)) {
-        const rate = await rateFor(l.userId);
-        const code = l.kind === "ot" ? overtime : regular;
-        const mult = code?.multiplier ?? 1;
-        hours += l.hours;
-        const [{ id: entryId }] = await d
-          .insert(timeEntries)
-          .values({
+      // One transaction, and the draft → final claim comes first: a double-click or retry finds the report already
+      // final and posts nothing; a failure part-way rolls every posting back.
+      const posted = await d.transaction(async tx => {
+        const claimed = await tx
+          .update(dailyReports)
+          .set({ status: "final", approvedBy: ctx.user.id, approvedAt: now })
+          .where(and(eq(dailyReports.id, r.id), eq(dailyReports.status, "draft")));
+        if (affected(claimed) !== 1) bad("Report is already final");
+        const crew = await tx.select().from(dailyReportCrew).where(eq(dailyReportCrew.reportId, r.id));
+        const progress = await tx.select().from(dailyReportProgress).where(eq(dailyReportProgress.reportId, r.id));
+        let hours = 0;
+        for (const l of crewTimeLines(crew)) {
+          const rate = await rateFor(l.userId);
+          const code = l.kind === "ot" ? overtime : regular;
+          const mult = code?.multiplier ?? 1;
+          hours += l.hours;
+          await tx.insert(timeEntries).values({
             userId: l.userId,
             projectId: r.projectId,
             taskId: l.taskId,
@@ -323,42 +332,40 @@ export const dailyReportsRouter = router({
             billAmount: code?.billable === false ? 0 : round2(l.hours * rate.bill * mult),
             approvedBy: ctx.user.id,
             approvedAt: now,
-          })
-          .$returningId();
-        await emit(ctx, "timeEntry", "add", { id: entryId, projectId: r.projectId, entryDate: r.reportDate, source: "daily_report", sourceId: r.id, state: "recorded" });
-      }
-      const byTask = progressByTask(progress);
-      for (const [taskId, add] of Array.from(byTask)) {
-        const [t] = await d.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
-        if (!t) continue;
-        const erectedTons = round2(t.erectedTons + add.tons);
-        // Sequences that reach planned tonnage are complete.
-        const complete = t.kind === "sequence" && t.plannedTons > 0 && erectedTons >= t.plannedTons - 1e-6 && t.status !== "done";
-        await d
-          .update(tasks)
-          .set({
-            erectedTons,
-            erectedPieces: t.erectedPieces + add.pieces,
-            actualStart: t.actualStart ?? r.reportDate,
-            status: complete ? "done" : t.status === "not_started" ? "in_progress" : t.status,
-            ...(complete ? { percentComplete: 100, actualFinish: r.reportDate } : {}),
-          })
-          .where(eq(tasks.id, t.id));
-      }
-      if (progress.length) await d.update(dailyReportProgress).set({ posted: true }).where(eq(dailyReportProgress.reportId, r.id));
-      await d.update(dailyReports).set({ status: "final", approvedBy: ctx.user.id, approvedAt: now }).where(eq(dailyReports.id, r.id));
+          });
+        }
+        const byTask = progressByTask(progress);
+        for (const [taskId, add] of Array.from(byTask)) {
+          const [t] = await tx.select().from(tasks).where(eq(tasks.id, taskId)).limit(1).for("update");
+          if (!t) continue;
+          const erectedTons = round2(t.erectedTons + add.tons);
+          // Sequences that reach planned tonnage are complete.
+          const complete = t.kind === "sequence" && t.plannedTons > 0 && erectedTons >= t.plannedTons - 1e-6 && t.status !== "done";
+          await tx
+            .update(tasks)
+            .set({
+              erectedTons,
+              erectedPieces: t.erectedPieces + add.pieces,
+              actualStart: t.actualStart ?? r.reportDate,
+              status: complete ? "done" : t.status === "not_started" ? "in_progress" : t.status,
+              ...(complete ? { percentComplete: 100, actualFinish: r.reportDate } : {}),
+            })
+            .where(eq(tasks.id, t.id));
+        }
+        if (progress.length) await tx.update(dailyReportProgress).set({ posted: true }).where(eq(dailyReportProgress.reportId, r.id));
+        const totals = Array.from(byTask.values());
+        return { hours: round2(hours), tons: round2(totals.reduce((s, p) => s + p.tons, 0)), pieces: totals.reduce((s, p) => s + p.pieces, 0), crew: crew.length };
+      });
       await recomputeProject(r.projectId);
-      const tons = round2(Array.from(byTask.values()).reduce((s, p) => s + p.tons, 0));
-      const pieces = Array.from(byTask.values()).reduce((s, p) => s + p.pieces, 0);
       await logActivity(ctx, {
         projectId: r.projectId,
         entityType: "dailyReport",
         entityId: r.id,
         action: "finalize",
-        summary: `finalized daily report ${r.reportDate} (${crew.length} crew, ${tons} tons)`,
+        summary: `finalized daily report ${r.reportDate} (${posted.crew} crew, ${posted.tons} tons)`,
       });
       await emit(ctx, "dailyReport", "update", { id: r.id, projectId: r.projectId, status: "final" });
-      return { posted: { hours: round2(hours), tons, pieces } };
+      return { posted: { hours: posted.hours, tons: posted.tons, pieces: posted.pieces } };
     }),
 
   /** Reverse a finalized report (removes posted time and progress) so it can be corrected. */
@@ -368,70 +375,45 @@ export const dailyReportsRouter = router({
       const r = await loadReport(input.id);
       await requireJobModule(ctx, r.projectId, "dailyreport.approve");
       if (r.status !== "final") bad("Only final reports can be reopened");
-      assertTimeUnlocked(r.reportDate, await getTimeLock());
-      const d = await db();
-      const postedTime = await d
-        .select()
-        .from(timeEntries)
-        .where(
-          and(
-            eq(timeEntries.source, "daily_report"),
-            eq(timeEntries.sourceId, r.id)
-          )
-        );
       const timeLockedThrough = await getTimeLock();
-      for (const e of postedTime)
-        assertTimeUnlocked(e.entryDate, timeLockedThrough);
-      await d
-        .delete(timeEntries)
-        .where(
-          and(
-            eq(timeEntries.source, "daily_report"),
-            eq(timeEntries.sourceId, r.id)
-          )
-        );
-      for (const e of postedTime)
-        await emit(ctx, "timeEntry", "delete", {
-          id: e.id,
-          projectId: e.projectId,
-          sourceId: r.id,
-        });
-      const progress = await d
-        .select()
-        .from(dailyReportProgress)
-        .where(eq(dailyReportProgress.reportId, r.id));
-      for (const p of progress.filter(x => x.posted)) {
-        const [t] = await d
+      assertTimeUnlocked(r.reportDate, timeLockedThrough);
+      const d = await db();
+      await d.transaction(async tx => {
+        const claimed = await tx
+          .update(dailyReports)
+          .set({ status: "draft", approvedBy: null, approvedAt: null })
+          .where(and(eq(dailyReports.id, r.id), eq(dailyReports.status, "final")));
+        if (affected(claimed) !== 1) bad("Only final reports can be reopened");
+        const postedTime = await tx
           .select()
-          .from(tasks)
-          .where(eq(tasks.id, p.taskId))
-          .limit(1);
-        if (!t) continue;
-        const tons = Math.max(0, round2(t.erectedTons - p.tons));
-        await d
-          .update(tasks)
-          .set({
-            erectedTons: tons,
-            erectedPieces: Math.max(0, t.erectedPieces - p.pieces),
-            status:
-              t.status === "done" && tons < t.plannedTons
-                ? "in_progress"
-                : t.status,
-            actualFinish:
-              t.status === "done" && tons < t.plannedTons
-                ? null
-                : t.actualFinish,
-          })
-          .where(eq(tasks.id, t.id));
-        await d
-          .update(dailyReportProgress)
-          .set({ posted: false })
-          .where(eq(dailyReportProgress.id, p.id));
-      }
-      await d
-        .update(dailyReports)
-        .set({ status: "draft", approvedBy: null, approvedAt: null })
-        .where(eq(dailyReports.id, r.id));
+          .from(timeEntries)
+          .where(and(eq(timeEntries.source, "daily_report"), eq(timeEntries.sourceId, r.id)))
+          .for("update");
+        try {
+          assertReopenable(postedTime);
+        } catch (e) {
+          bad(e instanceof Error ? e.message : String(e));
+        }
+        for (const e of postedTime) assertTimeUnlocked(e.entryDate, timeLockedThrough);
+        await tx.delete(timeEntries).where(and(eq(timeEntries.source, "daily_report"), eq(timeEntries.sourceId, r.id)));
+        const progress = await tx.select().from(dailyReportProgress).where(eq(dailyReportProgress.reportId, r.id));
+        for (const p of progress.filter(x => x.posted)) {
+          const [t] = await tx.select().from(tasks).where(eq(tasks.id, p.taskId)).limit(1).for("update");
+          if (!t) continue;
+          const tons = Math.max(0, round2(t.erectedTons - p.tons));
+          const reopened = t.status === "done" && tons < t.plannedTons;
+          await tx
+            .update(tasks)
+            .set({
+              erectedTons: tons,
+              erectedPieces: Math.max(0, t.erectedPieces - p.pieces),
+              status: reopened ? "in_progress" : t.status,
+              actualFinish: reopened ? null : t.actualFinish,
+            })
+            .where(eq(tasks.id, t.id));
+          await tx.update(dailyReportProgress).set({ posted: false }).where(eq(dailyReportProgress.id, p.id));
+        }
+      });
       await recomputeProject(r.projectId);
       await logActivity(ctx, {
         projectId: r.projectId,
@@ -440,11 +422,7 @@ export const dailyReportsRouter = router({
         action: "reopen",
         summary: `reopened daily report ${r.reportDate}`,
       });
-      await emit(ctx, "dailyReport", "update", {
-        id: r.id,
-        projectId: r.projectId,
-        status: "draft",
-      });
+      await emit(ctx, "dailyReport", "update", { id: r.id, projectId: r.projectId, status: "draft" });
       return { ok: true };
     }),
 
@@ -454,7 +432,7 @@ export const dailyReportsRouter = router({
       const r = await loadReport(input.id);
       await requireJobModule(ctx, r.projectId, "dailyreport.create");
       if (r.status === "final")
-        bad("Reopen or reject the report before deleting it");
+        bad("Reopen the report before deleting it");
       const d = await db();
       await d.delete(dailyReportCrew).where(eq(dailyReportCrew.reportId, r.id));
       await d

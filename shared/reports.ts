@@ -1,3 +1,4 @@
+import { ENTRY_STATES } from "./entryStates";
 /**
  * Report sources and their built-in columns. Custom-field columns are appended
  * at runtime as `cf_<key>`.
@@ -6,7 +7,6 @@ import {
   CONTRACT_TYPES,
   COST_HEALTH,
   DELIVERY_STATUSES,
-  ENTRY_STATES,
   PRIORITIES,
   PROJECT_STATES,
   RESPONSIBLE_PARTIES,

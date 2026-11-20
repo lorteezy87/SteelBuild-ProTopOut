@@ -1,5 +1,5 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Express, Request, Response } from "express";
 import { randomBytes, randomUUID, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
@@ -55,8 +55,8 @@ function noteFail(key: string) {
   else f.n++;
 }
 
-async function startSession(req: Request, res: Response, openId: string, name: string) {
-  const token = await sdk.createSessionToken(openId, { name, expiresInMs: ONE_YEAR_MS });
+async function startSession(req: Request, res: Response, openId: string, name: string, sessionVersion = 0) {
+  const token = await sdk.createSessionToken(openId, { name, sessionVersion, expiresInMs: ONE_YEAR_MS });
   res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(req), maxAge: ONE_YEAR_MS });
 }
 
@@ -94,7 +94,7 @@ export function registerLocalAuthRoutes(app: Express) {
       }
       fails.delete(key);
       await d.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, owner.id));
-      await startSession(req, res, owner.openId, owner.name ?? "");
+      await startSession(req, res, owner.openId, owner.name ?? "", owner.sessionVersion);
       res.json({ ok: true });
     } catch (e) {
       console.error("[auth] login failed", e instanceof Error ? e.message : e);
@@ -123,12 +123,16 @@ export function registerLocalAuthRoutes(app: Express) {
       if (!lock?.ok) return fail(res, 503, "Busy. Try again.");
       if (!registrationAllowed({ ownerExists: await ownerExists() })) return fail(res, 403, "This app already has an owner. Sign in instead.");
       const openId = `owner:${randomUUID()}`;
-      // Inserted directly as the owner: never linked to an existing crew record by email.
-      await d.insert(users).values({ openId, name: name || null, email, loginMethod: "password", role: "admin", accessType: "full", lastSignedIn: new Date() });
-      const owner = await db.getUserByOpenId(openId);
-      if (!owner) throw new Error("owner not created");
-      await d.insert(localCredentials).values({ userId: owner.id, email, passwordHash: await hashPassword(password) });
-      await startSession(req, res, owner.openId, owner.name ?? "");
+      const passwordHash = await hashPassword(password);
+      // Owner row and credential land together or not at all; inserted directly, never linked to a crew record.
+      await d.transaction(async tx => {
+        const [{ id }] = await tx
+          .insert(users)
+          .values({ openId, name: name || null, email, loginMethod: "password", role: "admin", accessType: "full", lastSignedIn: new Date() })
+          .$returningId();
+        await tx.insert(localCredentials).values({ userId: id, email, passwordHash });
+      });
+      await startSession(req, res, openId, name);
       res.json({ ok: true });
     } catch (e) {
       console.error("[auth] setup failed", e instanceof Error ? e.message : e);
@@ -164,7 +168,10 @@ export async function applyOwnerPasswordReset(): Promise<void> {
   }
   const r = await applyResetPassword(process.env.OWNER_RESET_PASSWORD, row.hash);
   if (r?.changed) {
-    await d.update(localCredentials).set({ passwordHash: r.hash }).where(eq(localCredentials.userId, row.userId));
+    await d.transaction(async tx => {
+      await tx.update(localCredentials).set({ passwordHash: r.hash }).where(eq(localCredentials.userId, row.userId));
+      await tx.update(users).set({ sessionVersion: sql`${users.sessionVersion} + 1` }).where(eq(users.id, row.userId));
+    });
     console.warn("[auth] owner password reset from OWNER_RESET_PASSWORD");
   }
 }

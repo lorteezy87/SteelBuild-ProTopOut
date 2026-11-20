@@ -174,14 +174,6 @@ export const DOCUMENT_CATEGORIES = {
   other: "Other",
 } as const;
 
-export const ENTRY_STATES = {
-  saved: "Saved",
-  submitted: "Submitted",
-  approved: "Approved",
-  rejected: "Rejected",
-  invoiced: "Invoiced",
-} as const;
-
 export const SCHEDULE_HEALTH = {
   delayed: "Delayed",
   at_risk: "At Risk",

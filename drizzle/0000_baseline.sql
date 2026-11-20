@@ -628,6 +628,7 @@ CREATE TABLE `users` (
 	`billRate` double,
 	`calendarId` int,
 	`isActive` boolean NOT NULL DEFAULT true,
+	`sessionVersion` int NOT NULL DEFAULT 0,
 	`createdAt` timestamp NOT NULL DEFAULT (now()),
 	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
 	`lastSignedIn` timestamp NOT NULL DEFAULT (now()),

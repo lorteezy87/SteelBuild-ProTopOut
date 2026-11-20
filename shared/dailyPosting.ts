@@ -33,3 +33,8 @@ export function progressByTask(progress: { taskId: number; tons: number; pieces:
   }
   return m;
 }
+
+/** Reopening reverses posted hours; hours already billed to the GC must not be deleted out from under the invoice. */
+export function assertReopenable(postedEntries: { state: string }[]): void {
+  if (postedEntries.some(e => e.state === "invoiced")) throw new Error("Hours from this report are already invoiced");
+}

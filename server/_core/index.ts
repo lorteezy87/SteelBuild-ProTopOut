@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import { assertBootConfig } from "./env";
 import { applyOwnerPasswordReset, registerLocalAuthRoutes } from "./localAuth";
 import { registerStorageRoute } from "../storageR2";
 import { appRouter } from "../routers";
@@ -11,6 +12,7 @@ import { startJobs } from "../jobs";
 import { registerDrawingFiles } from "../drawingFiles";
 
 async function startServer() {
+  assertBootConfig();
   const app = express();
   app.set("trust proxy", 1);
   const server = createServer(app);

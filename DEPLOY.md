@@ -16,7 +16,7 @@ TopOut is one Node service plus a MySQL 8 database and a Cloudflare R2 bucket. R
 | Variable | Value |
 |---|---|
 | `DATABASE_URL` | `${{MySQL.MYSQL_URL}}` |
-| `SESSION_SECRET` | a long random string (64+ characters). Changing it signs you out. |
+| `SESSION_SECRET` | a long random string (at least 32 characters; 64 recommended). The server will not start without it. Changing it signs you out. |
 | `R2_ACCOUNT_ID` | Cloudflare account ID |
 | `R2_ACCESS_KEY_ID` | from the R2 API token |
 | `R2_SECRET_ACCESS_KEY` | from the R2 API token |

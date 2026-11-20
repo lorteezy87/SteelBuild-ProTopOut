@@ -43,6 +43,8 @@ export const users = mysqlTable("users", {
   billRate: double("billRate"),
   calendarId: int("calendarId"),
   isActive: boolean("isActive").default(true).notNull(),
+  /** Bumped on password change/reset; sessions carrying an older value stop working. */
+  sessionVersion: int("sessionVersion").default(0).notNull(),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
