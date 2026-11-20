@@ -28,6 +28,8 @@ const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const Account = lazy(() => import("./pages/Account"));
 const LiftPlan = lazy(() => import("./pages/print/LiftPlan"));
 const TmTicket = lazy(() => import("./pages/print/TmTicket"));
+const Lookahead = lazy(() => import("./pages/print/Lookahead"));
+const GcWeekly = lazy(() => import("./pages/print/GcWeekly"));
 
 function Routes() {
   return (
@@ -69,6 +71,8 @@ function PrintRoutes() {
       <Switch>
         <Route path="/print/lift/:pickId">{p => <LiftPlan params={p} />}</Route>
         <Route path="/print/tm/:ticketId">{p => <TmTicket params={p} />}</Route>
+        <Route path="/print/lookahead/:projectId/:from">{p => <Lookahead params={p} />}</Route>
+        <Route path="/print/gc/:projectId/:weekStart">{p => <GcWeekly params={p} />}</Route>
         <Route component={NotFound} />
       </Switch>
     </Suspense>
