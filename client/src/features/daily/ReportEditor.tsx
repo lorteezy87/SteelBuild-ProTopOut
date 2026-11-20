@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { isStage } from "@shared/stages";
 import { toast } from "sonner";
+import { withGate } from "@/features/tasks/gatePrompt";
 import {
   ConfirmButton,
   DateInput,
@@ -190,8 +191,12 @@ function ReportForm({
       equipment,
       progress,
     });
-    if (andFinalize) await finalize.mutateAsync({ id: result.id });
     onSaved(result.id);
+    if (andFinalize) {
+      // A sequence starting with its ready-to-erect gate open needs a reason; withGate asks and retries.
+      const done = await withGate(gateReasons => finalize.mutateAsync({ id: result.id, ...(gateReasons ? { gateReasons } : {}) }));
+      if (!done) throw new Error("Saved as a draft — not finalized.");
+    }
   };
   const status = report?.status ?? "draft";
   return (

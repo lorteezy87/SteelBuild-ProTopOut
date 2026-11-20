@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { isGateRefusal, withGate } from "@/features/tasks/gatePrompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -101,8 +102,13 @@ export default function Tasks() {
       utils.baselines.compare.invalidate(),
     ]);
   };
-  const onError = (e: unknown) => toast.error(errMsg(e));
+  const onError = (e: unknown) => {
+    if (!isGateRefusal(e)) toast.error(errMsg(e));
+  };
   const update = trpc.tasks.update.useMutation({ onSuccess: changed, onError });
+  type UpdateIn = Parameters<typeof update.mutateAsync>[0];
+  // Every inline edit can start a sequence (e.g. % > 0), so each goes through the gate prompt.
+  const upd = (x: UpdateIn) => withGate(r => update.mutateAsync({ ...x, ...(r ? { gateReason: r["0"] } : {}) }));
   const dates = trpc.tasks.moveDates.useMutation({
     onSuccess: changed,
     onError,
@@ -623,7 +629,7 @@ export default function Tasks() {
                             value={t.name}
                             disabled={!canEdit}
                             onCommit={name =>
-                              update.mutateAsync({ id: t.id, name })
+                              upd({ id: t.id, name })
                             }
                           />
                         </div>
@@ -642,7 +648,7 @@ export default function Tasks() {
                           !canEdit || t.isSummary || t.kind === "milestone"
                         }
                         onCommit={v =>
-                          update.mutateAsync({
+                          upd({
                             id: t.id,
                             durationDays: Number(v),
                           })
@@ -662,7 +668,7 @@ export default function Tasks() {
                           onCommit={v =>
                             t.schedulingMode === "auto" && v
                               ? dates.mutateAsync({ id: t.id, startDate: v })
-                              : update.mutateAsync({
+                              : upd({
                                   id: t.id,
                                   startDate: v || null,
                                 })
@@ -680,7 +686,7 @@ export default function Tasks() {
                           value={t.finishDate}
                           type="date"
                           onCommit={v =>
-                            update.mutateAsync({
+                            upd({
                               id: t.id,
                               finishDate: v || null,
                             })
@@ -754,7 +760,7 @@ export default function Tasks() {
                               data.project.progressMethod === "pieces"))
                         }
                         onCommit={v =>
-                          update.mutateAsync({
+                          upd({
                             id: t.id,
                             percentComplete: Number(v),
                           })

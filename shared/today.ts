@@ -47,7 +47,11 @@ function plusDays(day: string, n: number): string {
 const byDate = (a: TodayRow, b: TodayRow) => (a.date ?? "9999") .localeCompare(b.date ?? "9999") || a.id - b.id;
 
 /** The four Today panels. Undated loads and items are left out rather than shown as due (unknown ≠ late). */
-export function todaySummary(input: { today: string; sequences: SeqIn[]; deliveries: LoadIn[]; logs: LogIn[] }) {
+type GateIn = { id: number; projectId: number; name: string; status: string; startDate: string | null; gate: "ready" | "not_ready" | "unknown" };
+/** Look this far ahead (calendar days) for sequences about to start without a ready gate. */
+export const GATE_LOOKAHEAD_DAYS = 14;
+
+export function todaySummary(input: { today: string; sequences: SeqIn[]; deliveries: LoadIn[]; logs: LogIn[]; gates?: GateIn[] }) {
   const week = plusDays(input.today, 7);
   const sequencesAtRisk = input.sequences
     .filter(s => SLIPPING.has(s.scheduleHealth))
@@ -65,5 +69,11 @@ export function todaySummary(input: { today: string; sequences: SeqIn[]; deliver
     .filter(l => l.open && l.appKey === DELAY_NOTICE_APP && l.slaDueAt && l.slaDueAt.toISOString().slice(0, 10) <= week)
     .map(l => ({ id: l.id, projectId: l.projectId, label: l.label, date: l.slaDueAt!.toISOString().slice(0, 10) }))
     .sort(byDate);
-  return { sequencesAtRisk, loadsDue7, logsNeedingAction, noticeDeadlines };
+  // Sequences due to start (or already past their start) that haven't cleared the ready-to-erect gate. No start date → left out.
+  const horizon = plusDays(input.today, GATE_LOOKAHEAD_DAYS);
+  const sequencesNotReady = (input.gates ?? [])
+    .filter(g => g.status === "not_started" && g.gate !== "ready" && g.startDate != null && g.startDate <= horizon)
+    .map(g => ({ id: g.id, projectId: g.projectId, label: g.name, date: g.startDate }))
+    .sort(byDate);
+  return { sequencesAtRisk, loadsDue7, logsNeedingAction, noticeDeadlines, sequencesNotReady };
 }

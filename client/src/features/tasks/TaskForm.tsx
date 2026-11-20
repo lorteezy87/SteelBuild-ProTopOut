@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { isGateRefusal, withGate } from "@/features/tasks/gatePrompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -107,7 +108,9 @@ export function TaskForm({
       toast.success("Task updated.");
       await changed();
     },
-    onError: e => toast.error(errMsg(e)),
+    onError: e => {
+      if (!isGateRefusal(e)) toast.error(errMsg(e));
+    },
   });
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft(d => ({ ...d, [key]: value }));
@@ -130,12 +133,15 @@ export function TaskForm({
       edits.constraintDate = edits.startDate;
     }
     const { budgetCost, ...ordinary } = edits;
-    update.mutate({
-      id: data.task.id,
-      ...ordinary,
-      ...(budgetCost != null ? { budgetCost } : {}),
-      ...(canEdit ? { customFields } : {}),
-    });
+    void withGate(reasons =>
+      update.mutateAsync({
+        id: data.task.id,
+        ...ordinary,
+        ...(budgetCost != null ? { budgetCost } : {}),
+        ...(canEdit ? { customFields } : {}),
+        ...(reasons ? { gateReason: reasons["0"] } : {}),
+      })
+    ).catch(() => undefined);
   }
   return (
     <Panel

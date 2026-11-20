@@ -15,6 +15,13 @@
       "when": 1795196054592,
       "tag": "0001_erection_stages",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1795196324961,
+      "tag": "0002_ready_to_erect",
+      "breakpoints": true
     }
   ]
 }

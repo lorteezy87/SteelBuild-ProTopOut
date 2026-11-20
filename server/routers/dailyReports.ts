@@ -9,6 +9,7 @@ import {
   equipment,
   jobRoles,
   projects,
+  sequenceGateOverrides,
   tasks,
   timeCodes,
   timeEntries,
@@ -83,6 +84,8 @@ import { assertFinalizable, assertReopenable, crewTimeLines, progressByTask } fr
 import { crewInsertValues } from "../services/crew";
 import { STAGE_KEYS, stageColumns, type Stage } from "@shared/stages";
 import { productionSeries } from "@shared/production";
+import { missingGateReasons } from "@shared/gate";
+import { gateRefusal, gatesFor, openItemsText } from "../services/gates";
 
 export const dailyReportsRouter = router({
   /** Production chart: posted tons/pieces per day by foreman at one stage, against the planned daily rate of dated sequences. */
@@ -317,7 +320,7 @@ export const dailyReportsRouter = router({
 
   /** Finalizing posts crew hours as time entries, equipment cost, and erected tons/pieces to sequences. */
   finalize: protectedProcedure
-    .input(z.object({ id: zId }))
+    .input(z.object({ id: zId, gateReasons: z.record(z.string(), zText(500)).optional() }))
     .mutation(async ({ ctx, input }) => {
       const r = await loadReport(input.id);
       await requireJobModule(ctx, r.projectId, "dailyreport.approve");
@@ -328,6 +331,28 @@ export const dailyReportsRouter = router({
       }
       assertTimeUnlocked(r.reportDate, await getTimeLock());
       const d = await db();
+      // Sequences this report would start (set-stage steel on a not-started sequence) must clear the ready-to-erect gate or carry a reason.
+      const setLines = await d
+        .select({ taskId: dailyReportProgress.taskId })
+        .from(dailyReportProgress)
+        .where(and(eq(dailyReportProgress.reportId, r.id), eq(dailyReportProgress.stage, "set")));
+      const startIds = Array.from(new Set(setLines.map(l => l.taskId)));
+      const starting = startIds.length
+        ? await d
+            .select({ id: tasks.id, name: tasks.name })
+            .from(tasks)
+            .where(and(inArray(tasks.id, startIds), eq(tasks.kind, "sequence"), eq(tasks.status, "not_started")))
+        : [];
+      const gates = starting.length ? await gatesFor(starting.map(t => t.id)) : new Map();
+      const reasons = input.gateReasons ?? {};
+      const missing = missingGateReasons(
+        starting.map(t => ({ taskId: t.id, name: t.name, status: gates.get(t.id)?.status ?? "unknown" })),
+        reasons,
+      );
+      if (missing.length) gateRefusal(missing.map(m => ({ taskId: m.taskId, name: m.name, open: gates.get(m.taskId) ? openItemsText(gates.get(m.taskId)!) : "unknown" })));
+      const overrides = starting
+        .filter(t => gates.get(t.id)?.status !== "ready")
+        .map(t => ({ taskId: t.id, name: t.name, reason: reasons[String(t.id)]!.trim() }));
       const codes = await d.select().from(timeCodes);
       const regular = codes.find(c => c.name.toLowerCase() === "regular") ?? codes[0];
       const overtime = codes.find(c => c.name.toLowerCase().startsWith("overtime")) ?? regular;
@@ -340,6 +365,8 @@ export const dailyReportsRouter = router({
           .set({ status: "final", approvedBy: ctx.user.id, approvedAt: now })
           .where(and(eq(dailyReports.id, r.id), eq(dailyReports.status, "draft")));
         if (affected(claimed) !== 1) bad("Report is already final");
+        if (overrides.length)
+          await tx.insert(sequenceGateOverrides).values(overrides.map(o => ({ taskId: o.taskId, reason: o.reason, source: "daily", sourceId: r.id })));
         const crew = await tx.select().from(dailyReportCrew).where(eq(dailyReportCrew.reportId, r.id));
         const progress = await tx.select().from(dailyReportProgress).where(eq(dailyReportProgress.reportId, r.id));
         let hours = 0;
@@ -397,6 +424,8 @@ export const dailyReportsRouter = router({
         return { hours: round2(hours), tons: round2(totals.reduce((s, p) => s + p.tons, 0)), pieces: totals.reduce((s, p) => s + p.pieces, 0), crew: crew.length };
       });
       await recomputeProject(r.projectId);
+      for (const o of overrides)
+        await logActivity(ctx, { projectId: r.projectId, entityType: "task", entityId: o.taskId, action: "gate", summary: `started "${o.name}" with the ready-to-erect gate open: ${o.reason}` });
       await logActivity(ctx, {
         projectId: r.projectId,
         entityType: "dailyReport",

@@ -8,6 +8,7 @@ import { varianceLabel } from "@/features/jobs/metrics";
 import { TaskDependencies } from "./TaskDependencies";
 import { TaskChecklist, TaskResources } from "./TaskResources";
 import { TaskForm } from "./TaskForm";
+import { GatePanel } from "./GatePanel";
 
 /** Fixed shared interface: used by Schedule, Board, Tasks and My Work. */
 export type TaskDrawerProps = {
@@ -114,6 +115,9 @@ export function TaskDrawer({
                 <ProgressBar value={t.percentComplete} className="mt-1" />
               </Field>
             </Panel>
+            {t.kind === "sequence" && !q.data.isSummary && (
+              <GatePanel taskId={t.id} editable={q.data.privileges.includes("task.edit")} />
+            )}
             <TaskForm
               key={t.id}
               data={q.data}

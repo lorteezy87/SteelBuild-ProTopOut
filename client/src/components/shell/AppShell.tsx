@@ -49,6 +49,7 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { BrandGlyph, Wordmark } from "../brand/Status";
+import { GateReasonHost } from "@/features/tasks/gatePrompt";
 
 type NavItem = { href: string; label: string; icon: ReactNode; match?: (path: string) => boolean; badge?: number };
 
@@ -308,6 +309,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => setMobileOpen(false), [path]);
   return (
     <div className="flex h-dvh overflow-hidden bg-background">
+      <GateReasonHost />
       <aside className="hidden shrink-0 lg:block">
         <Rail />
       </aside>

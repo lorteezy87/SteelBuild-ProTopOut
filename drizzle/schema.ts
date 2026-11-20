@@ -281,6 +281,36 @@ export const checklistItems = mysqlTable(
   t => [index("cl_task").on(t.taskId)]
 );
 
+/** Manual ready-to-erect items per sequence (the derived items are computed, never stored). See shared/gate.ts. */
+export const sequenceGateItems = mysqlTable(
+  "sequence_gate_items",
+  {
+    id: id(),
+    taskId: int("taskId").notNull(),
+    itemKey: varchar("itemKey", { length: 32 }).notNull(),
+    /** met | open | na */
+    state: varchar("state", { length: 8 }).default("open").notNull(),
+    note: varchar("note", { length: 500 }),
+    updatedAt: updatedAt(),
+  },
+  t => [uniqueIndex("sgi_task_item").on(t.taskId, t.itemKey)]
+);
+
+/** A sequence started with its gate not ready, and why. */
+export const sequenceGateOverrides = mysqlTable(
+  "sequence_gate_overrides",
+  {
+    id: id(),
+    taskId: int("taskId").notNull(),
+    reason: varchar("reason", { length: 500 }).notNull(),
+    /** task | daily */
+    source: varchar("source", { length: 16 }).notNull(),
+    sourceId: int("sourceId"),
+    createdAt: createdAt(),
+  },
+  t => [index("sgo_task").on(t.taskId)]
+);
+
 export type BaselineTaskSnapshot = {
   taskId: number;
   name: string;
