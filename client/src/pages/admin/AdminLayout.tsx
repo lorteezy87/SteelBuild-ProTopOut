@@ -12,6 +12,7 @@ import JobRoles from "@/features/admin/JobRoles";
 import Calendars from "@/features/admin/Calendars";
 import Companies from "@/features/admin/Companies";
 import Equipment from "@/features/admin/Equipment";
+import Cranes from "@/features/settings/Cranes";
 import Codes from "@/features/admin/Codes";
 import CustomFields from "@/features/admin/CustomFields";
 import Workflows from "@/features/admin/Workflows";
@@ -41,6 +42,12 @@ const sections = [
     label: "Equipment",
     group: "Reference data",
     component: Equipment,
+  },
+  {
+    key: "cranes",
+    label: "Cranes & load charts",
+    group: "Reference data",
+    component: Cranes,
   },
   {
     key: "codes",

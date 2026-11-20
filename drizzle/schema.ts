@@ -311,6 +311,71 @@ export const sequenceGateOverrides = mysqlTable(
   t => [index("sgo_task").on(t.taskId)]
 );
 
+/* ------------------------------------------------------------------ */
+/* Cranes & lift planning (shared/lift.ts)                             */
+/* ------------------------------------------------------------------ */
+
+/** Crane library: one row per crane model/configuration with its radius → capacity chart. */
+export const craneModels = mysqlTable("crane_models", {
+  id: id(),
+  name: varchar("name", { length: 120 }).notNull(),
+  maxCapacityLb: double("maxCapacityLb"),
+  chart: json("chart").$type<{ radiusFt: number; capacityLb: number }[]>().notNull(),
+  chartNote: varchar("chartNote", { length: 500 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** A crane set up on a job: which model, where on the grid, boom and counterweight. */
+export const craneSetups = mysqlTable(
+  "crane_setups",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    craneModelId: int("craneModelId").notNull(),
+    equipmentId: int("equipmentId"),
+    name: varchar("name", { length: 120 }).notNull(),
+    sheetId: int("sheetId"),
+    page: int("page").default(1).notNull(),
+    grid1: varchar("grid1", { length: 16 }),
+    grid2: varchar("grid2", { length: 16 }),
+    offsetXFt: double("offsetXFt").default(0).notNull(),
+    offsetYFt: double("offsetYFt").default(0).notNull(),
+    boomFt: double("boomFt"),
+    counterweight: varchar("counterweight", { length: 120 }),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("cs_project").on(t.projectId)]
+);
+
+/** One pick: a piece lifted by a setup at a radius the PM entered or confirmed. */
+export const liftPicks = mysqlTable(
+  "lift_picks",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    setupId: int("setupId").notNull(),
+    sequenceTaskId: int("sequenceTaskId"),
+    mark: varchar("mark", { length: 32 }).notNull(),
+    description: varchar("description", { length: 200 }),
+    pieceLb: double("pieceLb"),
+    riggingLb: double("riggingLb"),
+    radiusFt: double("radiusFt"),
+    /** entered | model */
+    radiusSource: varchar("radiusSource", { length: 8 }).default("entered").notNull(),
+    sheetId: int("sheetId"),
+    page: int("page"),
+    pieceKey: varchar("pieceKey", { length: 64 }),
+    signoffs: json("signoffs").$type<Record<string, { name: string; date: string | null }>>(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("lp_project").on(t.projectId), index("lp_setup").on(t.setupId)]
+);
+
 export type BaselineTaskSnapshot = {
   taskId: number;
   name: string;
