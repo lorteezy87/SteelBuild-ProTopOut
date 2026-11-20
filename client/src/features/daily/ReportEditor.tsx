@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { NewTicket } from "@/features/tm/NewTicket";
 import { isStage } from "@shared/stages";
 import { toast } from "sonner";
-import { withGate } from "@/features/tasks/gatePrompt";
+import { GateCancelled, withGate } from "@/features/tasks/gatePrompt";
 import {
   ConfirmButton,
   DateInput,
@@ -198,8 +198,12 @@ function ReportForm({
     onSaved(result.id);
     if (andFinalize) {
       // A sequence starting with its ready-to-erect gate open needs a reason; withGate asks and retries.
-      const done = await withGate(gateReasons => finalize.mutateAsync({ id: result.id, ...(gateReasons ? { gateReasons } : {}) }));
-      if (!done) throw new Error("Saved as a draft — not finalized.");
+      try {
+        await withGate(gateReasons => finalize.mutateAsync({ id: result.id, ...(gateReasons ? { gateReasons } : {}) }));
+      } catch (e) {
+        if (e instanceof GateCancelled) throw new Error("Saved as a draft — not finalized (a gate reason is needed).");
+        throw e;
+      }
     }
   };
   const status = report?.status ?? "draft";

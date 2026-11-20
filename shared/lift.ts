@@ -51,10 +51,15 @@ export type LiftCheck = { status: LiftStatus; totalLb: number | null; capacityLb
 export function liftCheck(p: { pieceLb: number | null; riggingLb: number | null; radiusFt: number | null }, rows: ChartRow[]): LiftCheck {
   if (p.pieceLb == null) return { status: "unknown", totalLb: null, capacityLb: null, pct: null, reason: "Enter weight" };
   if (p.radiusFt == null) return { status: "unknown", totalLb: null, capacityLb: null, pct: null, reason: "Enter radius" };
-  const totalLb = p.pieceLb + (p.riggingLb ?? 0);
-  const note = p.riggingLb == null ? " (rigging not entered)" : "";
   const capacityLb = capacityAt(rows, p.radiusFt);
-  if (capacityLb == null) return { status: "blocked", totalLb, capacityLb: null, pct: null, reason: "Radius outside chart" };
+  if (capacityLb == null) return { status: "blocked", totalLb: null, capacityLb: null, pct: null, reason: "Radius outside chart" };
+  // Rigging (spreader, slings, shackles) can push a pick over 75 % or 100 %: without it the check is unknown — unless the piece alone is already over.
+  if (p.riggingLb == null) {
+    if (p.pieceLb > capacityLb) return { status: "blocked", totalLb: null, capacityLb, pct: null, reason: "Over chart capacity on the piece alone" };
+    return { status: "unknown", totalLb: null, capacityLb, pct: null, reason: "Enter rigging" };
+  }
+  const totalLb = p.pieceLb + p.riggingLb;
+  const note = "";
   // Thresholds compare the exact ratio; only the displayed percent is rounded (72,001 lb on 72,000 lb is over, not "100.0 %").
   const raw = (totalLb / capacityLb) * 100;
   const pct = round1(raw);

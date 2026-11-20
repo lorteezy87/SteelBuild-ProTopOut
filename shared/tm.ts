@@ -55,3 +55,8 @@ export function assertTicketEditable(status: string): void {
 }
 
 export const ticketLabel = (n: number) => `T&M-${String(n).padStart(3, "0")}`;
+
+/** Lines with hours or quantity but no rate: an unknown price must not be signed as $0. */
+export function unpricedLines(lines: TmLine[]): string[] {
+  return lines.filter(l => (l.qty > 0 && !(l.rate > 0)) || ((l.otQty ?? 0) > 0 && !((l.otRate ?? 0) > 0))).map(l => l.description);
+}

@@ -74,12 +74,20 @@ export const gcReportRouter = router({
       .from(dailyReports)
       .where(and(eq(dailyReports.projectId, input.projectId), eq(dailyReports.status, "final"), gte(dailyReports.reportDate, weekStart), lte(dailyReports.reportDate, weekEnd)));
     const finalIds = finals.map(f => f.id);
-    const posted = finalIds.length
-      ? await d
-          .select({ taskId: dailyReportProgress.taskId, stage: dailyReportProgress.stage, reportDate: dailyReportProgress.reportDate, tons: dailyReportProgress.tons })
-          .from(dailyReportProgress)
-          .where(and(inArray(dailyReportProgress.reportId, finalIds), eq(dailyReportProgress.posted, true)))
-      : [];
+    // Every posted set line from final reports up to the week's end: "to date" is as of that week, not as of today.
+    const posted = await d
+      .select({ taskId: dailyReportProgress.taskId, stage: dailyReportProgress.stage, reportDate: dailyReportProgress.reportDate, tons: dailyReportProgress.tons })
+      .from(dailyReportProgress)
+      .innerJoin(dailyReports, eq(dailyReports.id, dailyReportProgress.reportId))
+      .where(
+        and(
+          eq(dailyReportProgress.projectId, input.projectId),
+          eq(dailyReportProgress.posted, true),
+          eq(dailyReportProgress.stage, "set"),
+          eq(dailyReports.status, "final"),
+          lte(dailyReportProgress.reportDate, weekEnd),
+        ),
+      );
     const loads = await d
       .select()
       .from(deliveries)

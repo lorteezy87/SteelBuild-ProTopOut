@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { STAGES, isStage, type Stage } from "@shared/stages";
 import { EmptyState, Panel } from "@/components/brand/Layout";
 import { SimpleSelect } from "@/components/brand/Controls";
@@ -20,9 +20,9 @@ export function ProductionChart({ projectId }: { projectId: number }) {
   const days = q.data?.days ?? [];
   const foremen = Array.from(new Set(days.flatMap(d => Object.keys(d.byForeman))));
   const palette = [c["--tp-accent-ink"], c["--chart-2"], c["--chart-3"], c["--chart-4"], c["--chart-5"]];
-  const label = (k: string) => (k === "none" ? "No foreman" : userName(Number(k)));
-  const data = days.map(d => ({ date: d.date, ...Object.fromEntries(foremen.map(f => [f, d.byForeman[f]?.tons ?? 0])) }));
-  const plan = q.data?.plan.tonsPerDay ?? null;
+  const label = (k: string) => (k === "plan" ? "Planned t/day" : k === "none" ? "No foreman" : userName(Number(k)));
+  const planByDay = q.data?.planByDay ?? null;
+  const data = days.map(d => ({ date: d.date, ...Object.fromEntries(foremen.map(f => [f, d.byForeman[f]?.tons ?? 0])), ...(planByDay ? { plan: planByDay[d.date] ?? 0 } : {}) }));
   return (
     <Panel
       title="Production — tons per day by foreman"
@@ -33,7 +33,7 @@ export function ProductionChart({ projectId }: { projectId: number }) {
       ) : (
         <div className="h-72 p-3" role="img" aria-label={`Tons per day at stage ${STAGES[stage]}`}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+            <ComposedChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
               <CartesianGrid stroke={c["--tp-rule-soft"]} vertical={false} />
               <XAxis dataKey="date" tickFormatter={v => fmtDate(v)} tick={{ fontSize: 11, fill: c["--tp-muted"] }} minTickGap={24} />
               <YAxis width={50} tick={{ fontSize: 11, fill: c["--tp-muted"] }} />
@@ -42,8 +42,8 @@ export function ProductionChart({ projectId }: { projectId: number }) {
               {foremen.map((f, i) => (
                 <Bar key={f} dataKey={f} stackId="t" fill={palette[i % palette.length]} />
               ))}
-              {plan != null && <ReferenceLine y={plan} stroke={c["--tp-muted"]} strokeDasharray="4 3" label={{ value: `Plan ${fmtNum(plan, 1)} t/day`, fontSize: 11, fill: c["--tp-muted"], position: "insideTopRight" }} />}
-            </BarChart>
+              {planByDay && <Line dataKey="plan" type="stepAfter" stroke={c["--tp-muted"]} strokeDasharray="4 3" dot={false} />}
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       )}

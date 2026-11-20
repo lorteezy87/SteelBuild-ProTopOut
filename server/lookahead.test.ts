@@ -42,7 +42,8 @@ describe("weekly tons", () => {
   it("week without final reports is unknown, not zero", () => {
     const r = weeklyTons(seqs, [], "2026-11-16", 0);
     expect(r.finalReportsThisWeek).toBe(0);
-    expect(r.rows[0]).toMatchObject({ toDate: 40, thisWeek: null, pct: 40 });
+    // No posted set steel up to the week's end → 0 to date (to-date reads posted reports, not today's running total).
+    expect(r.rows[0]).toMatchObject({ toDate: 0, thisWeek: null, pct: 0 });
   });
   it("this week counts only set-stage tons inside the week", () => {
     const r = weeklyTons(
@@ -59,5 +60,22 @@ describe("weekly tons", () => {
   });
   it("no planned tons means percent unknown", () => {
     expect(weeklyTons([{ id: 1, name: "S", plannedTons: 0, erectedTons: 3 }], [], "2026-11-16", 1).rows[0].pct).toBeNull();
+  });
+});
+
+describe("review fix: GC report is as of the week", () => {
+  it("to-date tons count only set steel posted on or before the week's end", () => {
+    const r = weeklyTons(
+      [{ id: 7, name: "Seq 1", plannedTons: 100, erectedTons: 60 }],
+      [
+        { taskId: 7, stage: "set", reportDate: "2026-11-10", tons: 10 },
+        { taskId: 7, stage: "set", reportDate: "2026-11-17", tons: 5 },
+        { taskId: 7, stage: "set", reportDate: "2026-11-30", tons: 45 },
+        { taskId: 7, stage: "plumbed", reportDate: "2026-11-17", tons: 9 },
+      ],
+      "2026-11-16",
+      1,
+    );
+    expect(r.rows[0]).toMatchObject({ toDate: 15, thisWeek: 5, pct: 15 });
   });
 });

@@ -66,7 +66,10 @@ const ok = (cond, msg) => {
   ok(gate.items.length === 7 && gate.status === "not_ready", `gate has 7 items and is not ready (${gate.status})`);
 
   // 2. Finalize without a reason is refused; with one it posts.
-  const crew = await must("admin.users.create", { name: "Gate Crew" });
+  const ref = await must("ref.all", undefined, "GET");
+  const jm = ref.jobRoles.find(r => r.billRate > 0);
+  ok(!!jm, `a classification with a bill rate exists (${jm && jm.name})`);
+  const crew = await must("admin.users.create", { name: "Gate Crew", jobRoleId: jm ? jm.id : null });
   const rep1 = await must("daily.save", { projectId: job.id, reportDate: today, crew: [{ userId: crew.id, taskId: seq.id, stHours: 8, otHours: 2 }], equipment: [], progress: [{ taskId: seq.id, tons: 10, pieces: 30, note: null, stage: "set" }] });
   const refused = await call("daily.finalize", { id: rep1.id });
   ok(!refused.ok && refused.error.includes("GATE_REASON_NEEDED") && refused.error.includes("Seq 1 — Level 2"), "finalize with an open gate is refused and names the sequence");
@@ -74,6 +77,16 @@ const ok = (cond, msg) => {
   await must("daily.finalize", { id: rep1.id, gateReasons: { [seq.id]: "AB survey accepted verbally by GC super" } });
   const s1 = await seqRow();
   ok(s1.erectedTons === 10 && s1.status === "in_progress", `finalize with a reason posts Set 10 t and starts the sequence (${s1.erectedTons} t, ${s1.status})`);
+
+  // 2b. Reopening a report that started a different sequence puts that sequence back to not started.
+  const seqB = await must("tasks.create", { projectId: job.id, name: "Seq 2 — wrong one", kind: "sequence", durationDays: 3, startDate: today, plannedTons: 50 });
+  const repB = await must("daily.save", { projectId: job.id, reportDate: today, crew: [], equipment: [], progress: [{ taskId: seqB.id, tons: 3, pieces: 5, note: null, stage: "set" }] });
+  await must("daily.finalize", { id: repB.id, gateReasons: { [seqB.id]: "posted to the wrong sequence" } });
+  await must("daily.reopen", { id: repB.id });
+  const sb = (await must("tasks.list", { projectId: job.id }, "GET")).tasks.find(t => t.id === seqB.id);
+  ok(sb.status === "not_started" && sb.actualStart == null && sb.erectedTons === 0, `reopen undoes the start it caused (${sb.status}, start ${sb.actualStart})`);
+  ok((await must("today.summary", undefined, "GET")).sequencesNotReady.some(r => r.id === seqB.id), "the reopened sequence is back on Today's Not ready to erect");
+  await must("daily.remove", { id: repB.id });
 
   // 3. A later stage.
   const rep2 = await must("daily.save", { projectId: job.id, reportDate: today, crew: [], equipment: [], progress: [{ taskId: seq.id, tons: 4, pieces: 12, note: null, stage: "bolted" }] });
@@ -83,7 +96,7 @@ const ok = (cond, msg) => {
   const prodSet = await must("daily.production", { projectId: job.id, stage: "set" }, "GET");
   const prodBolt = await must("daily.production", { projectId: job.id, stage: "bolted" }, "GET");
   ok(prodSet.days.length === 1 && prodSet.days[0].tons === 10 && prodBolt.days[0].tons === 4, "production chart data per stage");
-  ok(prodSet.plan.tonsPerDay === 20, `planned rate 100 t / 5 days = ${prodSet.plan.tonsPerDay} t/day`);
+  ok(prodSet.planByDay && prodSet.planByDay[today] === 36.67, `planned rate today 100 t / 5 d + 50 t / 3 d = ${prodSet.planByDay && prodSet.planByDay[today]} t/day`);
   ok(await visible(`/jobs/${job.id}/tasks`, "Bolted"), "Sequences table shows tons by stage");
 
   // 4. Crane, setup, critical pick, lift plan.
@@ -92,11 +105,13 @@ const ok = (cond, msg) => {
   ok(!badChart.ok && /line 1/.test(badChart.error), "a bad load chart is refused naming the line");
   const setup = await must("cranes.setups.create", { projectId: job.id, craneModelId: crane.id, name: "Setup 1 — east", grid1: "C", grid2: "4" });
   const pick = await must("cranes.picks.create", { setupId: setup.id, mark: "G12", sequenceTaskId: seq.id, pieceLb: 55000, riggingLb: 4040, radiusFt: 30 });
+  const noRig = await must("cranes.picks.create", { setupId: setup.id, mark: "G13", pieceLb: 50000, riggingLb: null, radiusFt: 30 });
   const unknown = await must("cranes.picks.create", { setupId: setup.id, mark: "B7", pieceLb: null, radiusFt: 25 });
   const picks = await must("cranes.picks.list", { projectId: job.id }, "GET");
   const p1 = picks.find(p => p.id === pick.id);
   ok(p1.check.status === "critical" && p1.check.pct === 82, `59,040 lb at 30 ft on 72,000 lb is critical (${p1.check.status}, ${p1.check.pct} %)`);
   ok(picks.find(p => p.id === unknown.id).check.status === "unknown", "a pick without a weight is unknown");
+  ok(picks.find(p => p.id === noRig.id).check.status === "unknown", "a pick without rigging weight is unknown, not OK");
   ok(await visible(`/print/lift/${pick.id}`, "Critical lift plan"), "lift plan prints as Critical lift plan");
   ok(await page.getByText("Not entered").first().isVisible(), "lift plan shows Not entered for the missing boom");
   ok(await visible(`/jobs/${job.id}/lifts`, "Setup 1 — east"), "Cranes & Lifts tab lists the setup");
@@ -117,6 +132,10 @@ const ok = (cond, msg) => {
     g.stroke();
     return c.toDataURL("image/png");
   });
+  const noRate = await must("tm.create", { projectId: job.id, ticketDate: today, description: "unpriced" });
+  await must("tm.update", { id: noRate.id, lines: [{ kind: "labor", description: "No-rate hand", qty: 4, unit: "hr", rate: 0 }] });
+  const refusedSign = await call("tm.sign", { id: noRate.id, signedName: "Dana GC-Super", signaturePng: png });
+  ok(!refusedSign.ok && refusedSign.error.includes("Enter a rate before signing"), "a line with hours but no rate can't be signed");
   const signed = await must("tm.sign", { id: tk.id, signedName: "Dana GC-Super", signedTitle: "Superintendent", signaturePng: png });
   ok(signed.ticket.status === "signed", "ticket signed on screen");
   const edit = await call("tm.update", { id: tk.id, description: "changed after signing" });

@@ -39,3 +39,17 @@ describe("time and expense states", () => {
     expect(COSTED_STATES).toEqual(["recorded", "invoiced"]);
   });
 });
+
+import { reopenStartReset } from "@shared/dailyPosting";
+describe("reopen undoes a start it caused", () => {
+  it("sequence with no set steel left returns to not started", () => {
+    expect(reopenStartReset({ status: "in_progress", actualStart: "2026-11-20", erectedTonsAfter: 0, otherPostedSet: false }, "2026-11-20")).toEqual({ status: "not_started", actualStart: null, percentComplete: 0 });
+  });
+  it("keeps the start when other posted set steel exists or tons remain", () => {
+    expect(reopenStartReset({ status: "in_progress", actualStart: "2026-11-18", erectedTonsAfter: 0, otherPostedSet: true }, "2026-11-20")).toBeNull();
+    expect(reopenStartReset({ status: "in_progress", actualStart: "2026-11-18", erectedTonsAfter: 5, otherPostedSet: false }, "2026-11-20")).toBeNull();
+  });
+  it("keeps a start that predates the report (this report did not start it)", () => {
+    expect(reopenStartReset({ status: "in_progress", actualStart: "2026-11-10", erectedTonsAfter: 0, otherPostedSet: false }, "2026-11-20")).toBeNull();
+  });
+});

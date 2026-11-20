@@ -7,9 +7,9 @@ const model = { name: "100t AT · 80 ft boom" };
 
 describe("lift plan", () => {
   it("lift plan shows not entered for unknowns", () => {
-    const pick = { mark: "B12", description: null, pieceLb: 8200, riggingLb: null, radiusFt: 28, radiusSource: "entered" };
+    const pick = { mark: "B12", description: null, pieceLb: 8200, riggingLb: 0, radiusFt: 28, radiusSource: "entered" };
     const f = Object.fromEntries(liftPlanFields(pick, setup, model, liftCheck(pick, chart)).map(r => [r.label, r.value]));
-    expect(f["Rigging weight"]).toBe("Not entered");
+    expect(f["Rigging weight"]).toBe("0 lb");
     expect(f["Boom"]).toBe("Not entered");
     expect(f["Counterweight"]).toBe("Not entered");
     expect(f["Status"]).toBe("Critical lift — 82.0 % of chart");
@@ -25,5 +25,15 @@ describe("lift plan", () => {
   });
   it("has four sign-offs", () => {
     expect(LIFT_SIGNOFFS.map(s => s.label)).toEqual(["Lift supervisor", "Crane operator", "Rigger", "Signal person"]);
+  });
+});
+
+describe("lift plan without rigging", () => {
+  it("prints rigging and total as not entered and the status as unknown", () => {
+    const pick = { mark: "B12", description: null, pieceLb: 8200, riggingLb: null, radiusFt: 28, radiusSource: "entered" };
+    const f = Object.fromEntries(liftPlanFields(pick, setup, model, liftCheck(pick, chart)).map(r => [r.label, r.value]));
+    expect(f["Rigging weight"]).toBe("Not entered");
+    expect(f["Total load"]).toBe("Not entered");
+    expect(f["Status"]).toBe("Unknown — Enter rigging");
   });
 });

@@ -64,11 +64,11 @@ async function loadReport(id: number) {
 }
 
 
-import { assertFinalizable, assertReopenable, crewTimeLines, progressByTask } from "@shared/dailyPosting";
+import { assertFinalizable, assertReopenable, crewTimeLines, progressByTask, reopenStartReset } from "@shared/dailyPosting";
 import { crewInsertValues } from "../services/crew";
 import { rateFor } from "../services/rates";
 import { STAGE_KEYS, stageColumns, type Stage } from "@shared/stages";
-import { productionSeries } from "@shared/production";
+import { plannedRateByDay, productionSeries } from "@shared/production";
 import { missingGateReasons } from "@shared/gate";
 import { gateRefusal, gatesFor, openItemsText } from "../services/gates";
 
@@ -95,10 +95,11 @@ export const dailyReportsRouter = router({
         .select({ plannedTons: tasks.plannedTons, plannedPieces: tasks.plannedPieces, durationDays: tasks.durationDays, startDate: tasks.startDate, finishDate: tasks.finishDate })
         .from(tasks)
         .where(and(eq(tasks.projectId, input.projectId), eq(tasks.kind, "sequence"), eq(tasks.isSummary, false)));
-      const dated = seqs.filter(t => t.startDate && t.finishDate && t.durationDays > 0);
-      const tonsPerDay = dated.some(t => t.plannedTons > 0) ? round2(dated.reduce((s, t) => s + t.plannedTons / t.durationDays, 0)) : null;
-      const piecesPerDay = dated.some(t => t.plannedPieces > 0) ? round2(dated.reduce((s, t) => s + t.plannedPieces / t.durationDays, 0)) : null;
-      return productionSeries(rows, { tonsPerDay, piecesPerDay });
+      // Plan line per day: only sequences scheduled on that day count (null when nothing is dated — unknown, not 0).
+      const dated = seqs.filter(t => t.startDate && t.finishDate && t.durationDays > 0 && t.plannedTons > 0);
+      const series = productionSeries(rows, { tonsPerDay: null, piecesPerDay: null });
+      const planByDay = dated.length ? plannedRateByDay(dated, series.days.map(d => d.date)) : null;
+      return { ...series, planByDay };
     }),
 
   list: protectedProcedure
@@ -476,6 +477,21 @@ export const dailyReportsRouter = router({
             .where(eq(tasks.id, t.id));
           await tx.update(dailyReportProgress).set({ posted: false }).where(eq(dailyReportProgress.id, p.id));
         }
+        // A sequence this report started goes back to not started when no posted set steel remains on it, so the
+        // ready-to-erect gate applies again; the gate overrides this report recorded go with it.
+        const setTaskIds = Array.from(new Set(progress.filter(x => x.posted && (x.stage ?? "set") === "set").map(x => x.taskId)));
+        for (const taskId of setTaskIds) {
+          const [t] = await tx.select().from(tasks).where(eq(tasks.id, taskId)).limit(1).for("update");
+          if (!t) continue;
+          const [other] = await tx
+            .select({ id: dailyReportProgress.id })
+            .from(dailyReportProgress)
+            .where(and(eq(dailyReportProgress.taskId, taskId), eq(dailyReportProgress.stage, "set"), eq(dailyReportProgress.posted, true)))
+            .limit(1);
+          const reset = reopenStartReset({ status: t.status, actualStart: t.actualStart, erectedTonsAfter: t.erectedTons, otherPostedSet: !!other }, r.reportDate);
+          if (reset) await tx.update(tasks).set(reset).where(eq(tasks.id, taskId));
+        }
+        await tx.delete(sequenceGateOverrides).where(and(eq(sequenceGateOverrides.source, "daily"), eq(sequenceGateOverrides.sourceId, r.id)));
       });
       await recomputeProject(r.projectId);
       await logActivity(ctx, {

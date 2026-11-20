@@ -22,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { isGateRefusal, withGate } from "@/features/tasks/gatePrompt";
+import { GateCancelled, isGateRefusal, withGate } from "@/features/tasks/gatePrompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -108,7 +108,12 @@ export default function Tasks() {
   const update = trpc.tasks.update.useMutation({ onSuccess: changed, onError });
   type UpdateIn = Parameters<typeof update.mutateAsync>[0];
   // Every inline edit can start a sequence (e.g. % > 0), so each goes through the gate prompt.
-  const upd = (x: UpdateIn) => withGate(r => update.mutateAsync({ ...x, ...(r ? { gateReason: r["0"] } : {}) }));
+  // A cancelled prompt throws GateCancelled, so the inline cell reverts to the saved value.
+  const upd = (x: UpdateIn) =>
+    withGate(r => update.mutateAsync({ ...x, ...(r ? { gateReason: r["0"] } : {}) })).catch(e => {
+      if (e instanceof GateCancelled) toast.message(e.message);
+      throw e;
+    });
   const dates = trpc.tasks.moveDates.useMutation({
     onSuccess: changed,
     onError,

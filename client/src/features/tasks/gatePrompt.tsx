@@ -1,47 +1,27 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { parseGateRefusal } from "@shared/gate";
+import type { GateRefusal } from "@shared/gate";
+import { setGatePrompter } from "./gateRetry";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-/**
- * Starting a sequence whose ready-to-erect gate isn't ready needs a reason. The server refuses with a
- * GATE_REASON_NEEDED message; `withGate` catches that, asks here, and retries with the reasons.
- */
-type Ask = { items: { taskId: number; name: string }[]; text: string; resolve: (r: Record<string, string> | null) => void };
-let open: ((a: Ask) => void) | null = null;
+export { GateCancelled, isGateRefusal, withGate } from "./gateRetry";
 
-const messageOf = (e: unknown) => (e && typeof e === "object" && "message" in e ? String((e as { message: unknown }).message) : "");
-export const isGateRefusal = (e: unknown) => parseGateRefusal(messageOf(e)) != null;
-
-export async function withGate<T>(run: (reasons?: Record<string, string>) => Promise<T>): Promise<T | undefined> {
-  try {
-    return await run();
-  } catch (e) {
-    const g = parseGateRefusal(messageOf(e));
-    if (!g || !open) throw e;
-    const reasons = await new Promise<Record<string, string> | null>(resolve => open!({ ...g, resolve }));
-    if (!reasons) {
-      toast.message("Not started — a reason is needed while the gate is open.");
-      return undefined;
-    }
-    return await run(reasons);
-  }
-}
+type Ask = GateRefusal & { resolve: (r: Record<string, string> | null) => void };
 
 /** Mount once (AppShell). */
 export function GateReasonHost() {
   const [ask, setAsk] = useState<Ask | null>(null);
   const [text, setText] = useState<Record<string, string>>({});
   useEffect(() => {
-    open = a => {
-      setText({});
-      setAsk(a);
-    };
-    return () => {
-      open = null;
-    };
+    setGatePrompter(
+      g =>
+        new Promise(resolve => {
+          setText({});
+          setAsk({ ...g, resolve });
+        }),
+    );
+    return () => setGatePrompter(null);
   }, []);
   const items = ask?.items.length ? ask.items : [{ taskId: 0, name: "" }];
   const ids = items.map(i => i.taskId);

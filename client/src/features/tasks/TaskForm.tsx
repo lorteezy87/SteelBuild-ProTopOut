@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { isGateRefusal, withGate } from "@/features/tasks/gatePrompt";
+import { GateCancelled, isGateRefusal, withGate } from "@/features/tasks/gatePrompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -141,7 +141,9 @@ export function TaskForm({
         ...(canEdit ? { customFields } : {}),
         ...(reasons ? { gateReason: reasons["0"] } : {}),
       })
-    ).catch(() => undefined);
+    ).catch(e => {
+      if (e instanceof GateCancelled) toast.message(e.message);
+    });
   }
   return (
     <Panel

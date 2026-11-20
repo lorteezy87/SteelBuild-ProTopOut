@@ -44,3 +44,17 @@ describe("T&M tickets", () => {
     expect(() => assertTicketEditable("draft")).not.toThrow();
   });
 });
+
+import { unpricedLines } from "@shared/tm";
+describe("review fix: unpriced lines block signing", () => {
+  it("names lines with quantity but no rate", () => {
+    expect(
+      unpricedLines([
+        { kind: "labor", description: "A. Crew", qty: 8, unit: "hr", rate: 0 },
+        { kind: "labor", description: "B. Crew", qty: 0, unit: "hr", rate: 0, otQty: 2, otRate: 0 },
+        { kind: "material", description: "Bolts", qty: 0, unit: "ea", rate: 0 },
+        { kind: "equipment", description: "Crane", qty: 6, unit: "hr", rate: 300 },
+      ]),
+    ).toEqual(["A. Crew", "B. Crew"]);
+  });
+});

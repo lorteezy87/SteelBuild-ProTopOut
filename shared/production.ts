@@ -19,3 +19,15 @@ export function productionSeries(rows: ProductionRow[], plan: ProductionPlan): {
   }
   return { days: Array.from(byDay.values()).sort((a, b) => a.date.localeCompare(b.date)), plan };
 }
+
+/** Planned tons per day on each date: the sum of plannedTons / durationDays over sequences scheduled on that date (undated ones excluded). */
+export function plannedRateByDay(
+  seqs: { plannedTons: number; plannedPieces: number; durationDays: number; startDate: string | null; finishDate: string | null }[],
+  dates: string[],
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const d of dates) {
+    out[d] = r2(seqs.filter(s => s.startDate && s.finishDate && s.durationDays > 0 && s.startDate <= d && d <= s.finishDate).reduce((a, s) => a + s.plannedTons / s.durationDays, 0));
+  }
+  return out;
+}

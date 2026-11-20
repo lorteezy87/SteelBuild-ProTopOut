@@ -51,3 +51,23 @@ describe("erection stages", () => {
     expect(s.plan).toEqual({ tonsPerDay: 6, piecesPerDay: null });
   });
 });
+
+import { sequencePercent } from "@shared/stages";
+import { plannedRateByDay } from "@shared/production";
+describe("review fixes: stages and production plan", () => {
+  it("a done sequence stays at 100 % whatever stage drives progress", () => {
+    const t = { ...qty({ erectedTons: 100, boltedTons: 40 }), plannedTons: 100, plannedPieces: 0 };
+    expect(sequencePercent({ ...t, status: "done" }, "bolted", "tonnage")).toBe(100);
+    expect(sequencePercent({ ...t, status: "in_progress" }, "bolted", "tonnage")).toBe(40);
+    expect(sequencePercent({ ...t, plannedTons: 0, status: "in_progress" }, "bolted", "tonnage")).toBeNull();
+  });
+  it("planned rate per day counts only sequences active that day", () => {
+    const seqs = [
+      { plannedTons: 100, plannedPieces: 0, durationDays: 5, startDate: "2026-11-02", finishDate: "2026-11-06" },
+      { plannedTons: 100, plannedPieces: 0, durationDays: 5, startDate: "2026-11-09", finishDate: "2026-11-13" },
+      { plannedTons: 50, plannedPieces: 0, durationDays: 5, startDate: null, finishDate: null },
+    ];
+    const r = plannedRateByDay(seqs, ["2026-11-03", "2026-11-09", "2026-11-20"]);
+    expect(r).toEqual({ "2026-11-03": 20, "2026-11-09": 20, "2026-11-20": 0 });
+  });
+});

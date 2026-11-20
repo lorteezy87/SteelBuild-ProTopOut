@@ -13,7 +13,7 @@ import {
   timeEntries,
 } from "../../drizzle/schema";
 import { db } from "../db";
-import { isStage, stagePercent, type Stage } from "@shared/stages";
+import { isStage, sequencePercent, type Stage } from "@shared/stages";
 import { deliveryRisk } from "@shared/delivery";
 import { CycleError, schedule, type SchedTask } from "../engine/scheduler";
 import {
@@ -180,7 +180,7 @@ export async function recomputeProject(projectId: number) {
   for (const r of rows) {
     if (r.kind !== "sequence" || parentIds.has(r.id)) continue;
     if (method !== "tonnage" && method !== "pieces") continue;
-    const pct = stagePercent(r, progressStage, method);
+    const pct = sequencePercent(r, progressStage, method);
     if (pct != null) r.percentComplete = clampPct(pct);
   }
 

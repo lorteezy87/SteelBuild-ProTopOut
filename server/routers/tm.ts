@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray, max } from "drizzle-orm";
 import { z } from "zod";
-import { DEFAULT_MARKUP, TM_KIND_KEYS, assertTicketEditable, linesFromDailyReport, ticketLabel, ticketTotals, type TmKind, type TmLine } from "@shared/tm";
+import { DEFAULT_MARKUP, TM_KIND_KEYS, assertTicketEditable, linesFromDailyReport, ticketLabel, ticketTotals, unpricedLines, type TmKind, type TmLine } from "@shared/tm";
 import {
   dailyReportCrew,
   dailyReportEquipment,
@@ -222,6 +222,9 @@ export const tmRouter = router({
       const d = await db();
       const lines = await d.select({ id: tmTicketLines.id }).from(tmTicketLines).where(eq(tmTicketLines.ticketId, t.id)).limit(1);
       if (!lines.length) bad("Add at least one line before signing");
+      const all = await d.select().from(tmTicketLines).where(eq(tmTicketLines.ticketId, t.id));
+      const unpriced = unpricedLines(all.map(l => ({ ...l, kind: l.kind as TmKind })));
+      if (unpriced.length) bad(`Enter a rate before signing: ${unpriced.join(", ")}`);
       const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(input.signaturePng);
       if (!m) bad("Signature must be a PNG drawing");
       const bytes = Buffer.from(m[1], "base64");

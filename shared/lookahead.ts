@@ -42,11 +42,12 @@ export function lookahead(tasks: LaTask[], from: string, weeks = 3) {
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
- * Tons erected (Set stage) by sequence: plan, to date, this week. With no final daily report in the week,
+ * Tons erected (Set stage) by sequence: plan, to date (as of the week's end), this week. `posted` must hold every posted set line
+ * from final reports up to the week's end. With no final daily report in the week,
  * "this week" is unknown (null), not 0 — nobody reported, which is different from reporting nothing hung.
  */
 export function weeklyTons(
-  seqs: { id: number; name: string; plannedTons: number; erectedTons: number }[],
+  seqs: { id: number; name: string; plannedTons: number; erectedTons?: number }[],
   posted: { taskId: number; stage: string; reportDate: string; tons: number }[],
   weekStart: string,
   finalReportsThisWeek: number,
@@ -56,7 +57,9 @@ export function weeklyTons(
     const thisWeek = finalReportsThisWeek
       ? r2(posted.filter(p => p.taskId === s.id && p.stage === "set" && p.reportDate >= weekStart && p.reportDate <= weekEnd).reduce((a, p) => a + p.tons, 0))
       : null;
-    return { id: s.id, name: s.name, plannedTons: r2(s.plannedTons), toDate: r2(s.erectedTons), thisWeek, pct: s.plannedTons > 0 ? Math.round((s.erectedTons / s.plannedTons) * 1000) / 10 : null };
+    // As of the week's end: set steel posted on or before it (not today's total), so an old week's report still adds up.
+    const toDate = r2(posted.filter(p => p.taskId === s.id && p.stage === "set" && p.reportDate <= weekEnd).reduce((a, p) => a + p.tons, 0));
+    return { id: s.id, name: s.name, plannedTons: r2(s.plannedTons), toDate, thisWeek, pct: s.plannedTons > 0 ? Math.round((toDate / s.plannedTons) * 1000) / 10 : null };
   });
   return { rows, finalReportsThisWeek };
 }

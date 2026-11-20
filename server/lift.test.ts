@@ -46,10 +46,11 @@ describe("lift check", () => {
     expect(liftCheck({ pieceLb: null, riggingLb: 0, radiusFt: 30 }, rows)).toMatchObject({ status: "unknown", reason: "Enter weight", pct: null });
     expect(liftCheck({ pieceLb: 1000, riggingLb: 0, radiusFt: null }, rows)).toMatchObject({ status: "unknown", reason: "Enter radius" });
   });
-  it("missing rigging counts as zero and says so", () => {
+  it("missing rigging is unknown, never ok", () => {
     const c = liftCheck({ pieceLb: 10000, riggingLb: null, radiusFt: 30 }, rows);
-    expect(c.status).toBe("ok");
-    expect(c.reason).toContain("rigging not entered");
+    expect(c).toMatchObject({ status: "unknown", reason: "Enter rigging", totalLb: null, pct: null });
+    // A pick already over chart on the piece alone is blocked whatever the rigging.
+    expect(liftCheck({ pieceLb: 80000, riggingLb: null, radiusFt: 30 }, rows).status).toBe("blocked");
   });
 });
 

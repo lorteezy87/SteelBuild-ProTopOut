@@ -43,3 +43,17 @@ export function progressByTask(
 export function assertReopenable(postedEntries: { state: string }[]): void {
   if (postedEntries.some(e => e.state === "invoiced")) throw new Error("Hours from this report are already invoiced");
 }
+
+/**
+ * Reopening a report that started a sequence: when no set steel remains and no other posted report has set steel on it,
+ * the sequence goes back to not started (so the ready-to-erect gate applies again). A start dated before the report
+ * wasn't caused by it and stays. Returns the patch, or null to leave the sequence alone.
+ */
+export function reopenStartReset(
+  t: { status: string; actualStart: string | null; erectedTonsAfter: number; otherPostedSet: boolean },
+  reportDate: string,
+): { status: "not_started"; actualStart: null; percentComplete: 0 } | null {
+  if (t.status !== "in_progress" || t.erectedTonsAfter > 1e-6 || t.otherPostedSet) return null;
+  if (t.actualStart != null && t.actualStart !== reportDate) return null;
+  return { status: "not_started", actualStart: null, percentComplete: 0 };
+}

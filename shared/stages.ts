@@ -43,3 +43,9 @@ export function stageWarnings(t: StageQty): string[] {
   }
   return out;
 }
+
+/** Percent for a sequence: a done sequence is 100 % (status wins), otherwise the chosen stage's percent. */
+export function sequencePercent(t: StageQty & { plannedTons: number; plannedPieces: number; status: string }, stage: Stage, by: "tonnage" | "pieces"): number | null {
+  if (t.status === "done") return 100;
+  return stagePercent(t, stage, by);
+}
