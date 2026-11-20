@@ -6,7 +6,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
 import { orgToday } from "../services/calendars";
 import { storagePut } from "../storage";
-import { bad, defined, zDayOpt, zId, zText } from "./_util";
+import { bad, defined, partialFields, zDayOpt, zId, zText } from "./_util";
 
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
 
@@ -52,7 +52,7 @@ export const certsRouter = router({
   }),
 
   update: protectedProcedure
-    .input(z.object({ id: zId, ...Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, v.optional()])) } as { id: typeof zId } & { [K in keyof typeof fields]: z.ZodOptional<(typeof fields)[K]> }))
+    .input(z.object({ id: zId, ...partialFields(fields) }))
     .mutation(async ({ input }) => {
       const { id, ...rest } = input;
       await certOr404(id);

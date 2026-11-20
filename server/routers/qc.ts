@@ -20,7 +20,7 @@ import { db } from "../db";
 import { hasPriv, requireJobModule } from "../security/guard";
 import { logActivity } from "../services/events";
 import { createItem, getApp, itemLabel } from "../services/wf";
-import { bad, defined, zDay, zDayOpt, zId, zText } from "./_util";
+import { bad, defined, partialFields, zDay, zDayOpt, zId, zText } from "./_util";
 
 const keys = <T extends Record<string, string>>(m: T) => Object.keys(m) as [keyof T & string, ...(keyof T & string)[]];
 const affected = (res: unknown) => Number((res as [{ affectedRows?: number }])[0]?.affectedRows ?? 0);
@@ -101,7 +101,7 @@ async function punchLabels(ids: (number | null)[]) {
 function crud<K extends Kind>(kind: K, fields: Record<string, z.ZodTypeAny>, order: "logDate" | "createdAt") {
   const t = TABLES[kind] as Table;
   const create = z.object({ projectId: zId, ...fields });
-  const update = z.object({ id: zId, ...Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, v.optional()])) });
+  const update = z.object({ id: zId, ...partialFields(fields) });
   return router({
     list: protectedProcedure.input(z.object({ projectId: zId, taskId: zId.optional() })).query(async ({ ctx, input }) => {
       await requireJobModule(ctx, input.projectId);

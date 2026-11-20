@@ -24,7 +24,7 @@ TopOut is one Node service plus a MySQL 8 database and a Cloudflare R2 bucket. R
 
 `PORT` is set by Railway. Do **not** set `R2_ENDPOINT` in production (it exists for local testing).
 
-Updates: every deploy runs `drizzle-kit migrate` before the server starts, so new tables and columns (Phase 2 adds migrations 0001–0004) apply automatically.
+Updates: every deploy runs `drizzle-kit migrate` before the server starts, so new tables and columns (Phase 2 adds migrations 0001–0004, Phase 3 adds 0005–0009) apply automatically.
 
 ## 4. Domain
 App service → **Settings → Networking → Generate Domain** (or add a custom domain). HTTPS is required: the session cookie is `Secure`.

@@ -7,7 +7,7 @@ import { db } from "../db";
 import { hasPriv, requireJobModule } from "../security/guard";
 import { orgToday } from "../services/calendars";
 import { logActivity } from "../services/events";
-import { bad, defined, zDay, zDayOpt, zId, zText } from "./_util";
+import { bad, defined, partialFields, zDay, zDayOpt, zId, zText } from "./_util";
 
 const money = z.number().min(0).max(10_000_000).nullable().optional();
 const fields = {
@@ -54,7 +54,7 @@ function checkDates(r: { onRentDate: string; offRentDate?: string | null; planne
   if (r.plannedOffRentDate && r.plannedOffRentDate < r.onRentDate) bad("Planned off-rent date is before the on-rent date");
 }
 
-const partial = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, v.optional()])) as { [K in keyof typeof fields]: z.ZodOptional<(typeof fields)[K]> };
+const partial = partialFields(fields);
 
 export const rentalsRouter = router({
   list: protectedProcedure.input(z.object({ projectId: zId })).query(async ({ ctx, input }) => {

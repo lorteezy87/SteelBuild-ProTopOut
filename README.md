@@ -11,6 +11,13 @@ Design: `docs/superpowers/specs/2026-11-20-topout-design.md`
 - **T&M tickets**: labor/equipment/material lines (prefilled from a final daily report), markup, CO link, on-screen GC signature, then locked; printable.
 - **3-week look-ahead** and **weekly GC report** (tons by sequence, look-ahead, open RFIs/COs/delays, deliveries, photos) — print or save as PDF.
 
+## Field control & compliance (Phase 3)
+- **QC** tab: field bolting log (grade, lot, method, inspector), weld log (welder, WPS, process, NDT), and special inspections per sequence. A failed entry creates one punch item linked to its sequence. A sequence with no records shows "No QC records", never "Clear". The log prints with sign-off lines.
+- **Safety** tab: JHA/AHA with steps, hazards, controls, PPE and a competent person (it can't go active until complete), daily pre-task plans started from a JHA with a crew sign-in, toolbox talks with attendance, and printable sign-in sheets. Incidents and near misses stay in the Safety log, which now records injured person, treatment, OSHA recordable, days away and the date reported to the GC.
+- **Settings → Certifications**: crew cards (NCCCO operator, rigger, signal person, fall protection, CPR/First Aid, OSHA 10/30, welder) with expiry dates, a matrix and its print. Today lists certifications that are expired, expiring within 30 days, or missing an expiry date. Each classification can require certifications, and a daily report warns when a crew member lacks a current card.
+- **Rentals** tab: vendor, PO, on and off rent, day/week/4-week rates (billed the cheapest way), delivery and pickup, and the planned off-rent date with the vendor's notice. Today lists rentals to call off, and overdue ones. Rental cost goes into job cost once; a rented unit on a daily report isn't charged again, and a rental without rates is counted as unpriced, not $0. Standby days come from final daily reports.
+- **Photos** tab: every photo on the job by day, with caption, taken date and sequence. Photos attach to daily reports, log items and T&M tickets. An undated photo files under its upload day, marked "uploaded". The weekly GC report and the T&M print include photos.
+
 ## Commands
 - `pnpm dev` — development server (honors `PORT`, default 3000)
 - `pnpm test` — unit tests
@@ -27,4 +34,4 @@ Design: `docs/superpowers/specs/2026-11-20-topout-design.md`
 | `R2_ENDPOINT` | no | local testing only: an S3-compatible server instead of Cloudflare (e.g. `node scripts/fake-r2.cjs`) |
 
 ## End-to-end checks
-On a fresh database, start the server with `R2_ENDPOINT=http://127.0.0.1:9100` and `node scripts/fake-r2.cjs 9100` running, then run `scripts/e2e-phase1.cjs`, `scripts/e2e-posting.cjs` and `scripts/e2e-phase2.cjs` in that order.
+On a fresh database, start the server with `R2_ENDPOINT=http://127.0.0.1:9100` and `node scripts/fake-r2.cjs 9100` running, then run `scripts/e2e-phase1.cjs`, `scripts/e2e-posting.cjs`, `scripts/e2e-phase2.cjs` and `scripts/e2e-phase3.cjs` in that order.

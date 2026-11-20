@@ -6,7 +6,7 @@ import { jhas, preTaskPlans, tasks, toolboxTalks, users } from "../../drizzle/sc
 import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
 import { requireJobModule } from "../security/guard";
-import { bad, defined, getProjectOr404, zDay, zDayOpt, zId, zText } from "./_util";
+import { bad, defined, getProjectOr404, partialFields, zDay, zDayOpt, zId, zText } from "./_util";
 
 const step = z.object({ step: zText(300), hazards: zText(1000), controls: zText(1000) });
 const steps = z.array(step).max(60);
@@ -62,7 +62,7 @@ const talkFields = {
   attendees: attendees.default([]),
 };
 
-const partial = <T extends Record<string, z.ZodTypeAny>>(f: T) => Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v.optional()])) as { [K in keyof T]: z.ZodOptional<T[K]> };
+const partial = partialFields;
 
 export const safetyRouter = router({
   jhas: router({

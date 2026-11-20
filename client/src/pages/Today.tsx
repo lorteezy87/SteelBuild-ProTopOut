@@ -71,7 +71,7 @@ export default function Today() {
   const jobLabel = (id: number) => jobs.get(id) ?? `Job ${id}`;
   return (
     <>
-      <PageHeader eyebrow={`Today · ${fmtDate(d.today)}`} title="What needs you" subtitle="Across every active job: slipping sequences, loads coming in, items in your court, notice deadlines and sequences not ready to erect." />
+      <PageHeader eyebrow={`Today · ${fmtDate(d.today)}`} title="What needs you" subtitle="Across every active job: slipping sequences, loads coming in, items in your court, notice deadlines, sequences not ready to erect, certifications coming due and rentals to call off." />
       <div className="space-y-5 p-6">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
           <Kpi label="Sequences at risk" value={d.sequencesAtRisk.length} />
