@@ -21,7 +21,6 @@ import {
   wfApps,
   wfItems,
   wfStates,
-  workspaces,
   type ReportConfig,
 } from "../../drizzle/schema";
 import { db } from "../db";
@@ -92,7 +91,7 @@ function access(s: SecurityData) {
     return cache.get(pid)!;
   };
   const visible: number[] = [];
-  s.projectWorkspace.forEach((_w, pid) => {
+  s.projectIds.forEach(pid => {
     if (privs(pid).has("project.view")) visible.push(pid);
   });
   return { privs, visible };
@@ -119,7 +118,6 @@ export async function loadRows(s: SecurityData, source: SourceKey, appKey: strin
   switch (source) {
     case "jobs": {
       if (!projRows.length) return [];
-      const ws = await d.select().from(workspaces);
       const links = await d
         .select({ projectId: projectCompanies.projectId, role: projectCompanies.role, name: companies.name })
         .from(projectCompanies)
@@ -141,7 +139,6 @@ export async function loadRows(s: SecurityData, source: SourceKey, appKey: strin
         projectType: p.projectType,
         priority: p.priority,
         managerName: p.managerId ? uname.get(p.managerId) ?? null : null,
-        workspaceName: ws.find(w => w.id === p.workspaceId)?.name ?? null,
         gcName: links.find(l => l.projectId === p.id && l.role === "gc")?.name ?? null,
         fabricatorName: links.find(l => l.projectId === p.id && l.role === "fabricator")?.name ?? null,
         startDate: p.startDate,

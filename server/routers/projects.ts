@@ -18,8 +18,6 @@ import {
   projectCompanies,
   projectSnapshots,
   projects,
-  roleAssignments,
-  securityRoles,
   taskAssignments,
   taskDependencies,
   tasks,
@@ -57,7 +55,6 @@ const projectFields = z.object({
   code: zText(32).nullable().optional(),
   name: zText(255).min(1),
   description: z.string().max(20000).nullable().optional(),
-  workspaceId: zId.nullable().optional(),
   state: enumOf(PROJECT_STATES).optional(),
   projectType: zText(64).nullable().optional(),
   priority: z.enum(["low", "normal", "high", "critical"]).optional(),
@@ -136,7 +133,6 @@ export const projectsRouter = router({
       z
         .object({
           states: z.array(z.string()).optional(),
-          workspaceId: zId.optional(),
           search: z.string().max(100).optional(),
         })
         .optional()
@@ -149,7 +145,6 @@ export const projectsRouter = router({
       const modules = hasJobModuleAccess(s);
       let rows = await d.select().from(projects).where(inArray(projects.id, ids)).orderBy(desc(projects.updatedAt));
       if (input?.states?.length) rows = rows.filter(r => input.states!.includes(r.state));
-      if (input?.workspaceId) rows = rows.filter(r => r.workspaceId === input.workspaceId);
       if (input?.search) {
         const q = input.search.toLowerCase();
         rows = rows.filter(r => r.name.toLowerCase().includes(q) || (r.code ?? "").toLowerCase().includes(q));
@@ -423,7 +418,6 @@ export const projectsRouter = router({
     await d.delete(comments).where(eq(comments.projectId, p.id));
     await d.delete(activities).where(eq(activities.projectId, p.id));
     await d.delete(projectCompanies).where(eq(projectCompanies.projectId, p.id));
-    await d.delete(roleAssignments).where(and(eq(roleAssignments.scopeType, "project"), eq(roleAssignments.scopeId, p.id)));
     await deleteValues("project", [p.id]);
     await d.delete(projects).where(eq(projects.id, p.id));
     await emit(ctx, "project", "delete", { id: p.id, code: p.code });
@@ -466,60 +460,4 @@ export const projectsRouter = router({
       .orderBy(projectSnapshots.snapDate);
     return rows.map(r => (fin ? r : { ...r, plannedValue: null, earnedValue: null, actualCost: null }));
   }),
-
-  /* ---------------- Team (project-scoped role assignments) ---------------- */
-  team: protectedProcedure.input(z.object({ projectId: zId })).query(async ({ ctx, input }) => {
-    await requireJobModule(ctx, input.projectId);
-    const d = await db();
-    const p = await getProjectOr404(input.projectId);
-    const ra = await d
-      .select({ id: roleAssignments.id, userId: roleAssignments.userId, roleId: roleAssignments.roleId, roleName: securityRoles.name, userName: users.name })
-      .from(roleAssignments)
-      .innerJoin(securityRoles, eq(securityRoles.id, roleAssignments.roleId))
-      .innerJoin(users, eq(users.id, roleAssignments.userId))
-      .where(and(eq(roleAssignments.scopeType, "project"), eq(roleAssignments.scopeId, input.projectId)));
-    const assignees = await d
-      .selectDistinct({ userId: taskAssignments.userId, userName: users.name })
-      .from(taskAssignments)
-      .innerJoin(tasks, eq(tasks.id, taskAssignments.taskId))
-      .innerJoin(users, eq(users.id, taskAssignments.userId))
-      .where(eq(tasks.projectId, input.projectId));
-    return { managerId: p.managerId, assignments: ra, assignees };
-  }),
-  addTeam: protectedProcedure
-    .input(z.object({ projectId: zId, userId: zId, roleId: zId }))
-    .mutation(async ({ ctx, input }) => {
-      await requireJobModule(ctx, input.projectId, "project.manage_team");
-      const d = await db();
-      const existing = await d
-        .select()
-        .from(roleAssignments)
-        .where(
-          and(
-            eq(roleAssignments.userId, input.userId),
-            eq(roleAssignments.roleId, input.roleId),
-            eq(roleAssignments.scopeType, "project"),
-            eq(roleAssignments.scopeId, input.projectId)
-          )
-        );
-      if (!existing.length)
-        await d.insert(roleAssignments).values({ userId: input.userId, roleId: input.roleId, scopeType: "project", scopeId: input.projectId });
-      return { ok: true };
-    }),
-  removeTeam: protectedProcedure
-    .input(z.object({ projectId: zId, assignmentId: zId }))
-    .mutation(async ({ ctx, input }) => {
-      await requireJobModule(ctx, input.projectId, "project.manage_team");
-      const d = await db();
-      await d
-        .delete(roleAssignments)
-        .where(
-          and(
-            eq(roleAssignments.id, input.assignmentId),
-            eq(roleAssignments.scopeType, "project"),
-            eq(roleAssignments.scopeId, input.projectId)
-          )
-        );
-      return { ok: true };
-    }),
 });

@@ -138,7 +138,6 @@ export async function loadDemoData(userId: number) {
         noticeHours: 72,
         siteAddress: v.siteAddress,
         progressMethod: "tonnage",
-        workspaceId: null,
         createdBy: admin.id,
       })
       .$returningId();

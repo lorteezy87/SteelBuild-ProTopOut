@@ -1,69 +1,15 @@
 import { TRPCError } from "@trpc/server";
-import { eq, inArray } from "drizzle-orm";
-import type { AccessType, Privilege } from "@shared/domain";
-import {
-  projects,
-  roleAssignments,
-  rolePrivileges,
-  securityRoles,
-  settings,
-  taskAssignments,
-  tasks,
-  type User,
-} from "../../drizzle/schema";
+import { inArray } from "drizzle-orm";
+import type { Privilege } from "@shared/domain";
+import { projects, type User } from "../../drizzle/schema";
 import { db } from "../db";
-import { can, effectivePrivileges, visibleProjectIds, type RoleDef, type SecurityData } from "./access";
-
-type RoleCache = { at: number; roles: Map<number, RoleDef>; pm: number | null; assignee: number | null };
-let roleCache: RoleCache | null = null;
-const ROLE_TTL_MS = 30_000;
-
-export function invalidateRoleCache() {
-  roleCache = null;
-}
-
-async function loadRoles(): Promise<RoleCache> {
-  if (roleCache && Date.now() - roleCache.at < ROLE_TTL_MS) return roleCache;
-  const d = await db();
-  const roleRows = await d.select().from(securityRoles);
-  const privRows = await d.select().from(rolePrivileges);
-  const roles = new Map<number, RoleDef>();
-  for (const r of roleRows) roles.set(r.id, { id: r.id, key: r.key, privileges: new Map() });
-  for (const p of privRows) roles.get(p.roleId)?.privileges.set(p.privilege, p.effect === "deny" ? "deny" : "grant");
-
-  const autoRow = await d.select().from(settings).where(eq(settings.key, "autoRoles")).limit(1);
-  const auto = (autoRow[0]?.value ?? { pm: "project_manager", assignee: "assignee" }) as {
-    pm?: string;
-    assignee?: string;
-  };
-  const byKey = (k?: string) => roleRows.find(r => r.key === k)?.id ?? null;
-  roleCache = { at: Date.now(), roles, pm: byKey(auto.pm), assignee: byKey(auto.assignee) };
-  return roleCache;
-}
+import { can, effectivePrivileges, ownerSecurity, visibleProjectIds, type SecurityData } from "./access";
 
 export async function loadSecurity(user: User): Promise<SecurityData> {
+  if (user.role !== "admin") return ownerSecurity(user, []);
   const d = await db();
-  const rc = await loadRoles();
-  const [assignRows, projRows, mine] = await Promise.all([
-    d.select().from(roleAssignments).where(eq(roleAssignments.userId, user.id)),
-    d.select({ id: projects.id, workspaceId: projects.workspaceId, managerId: projects.managerId }).from(projects),
-    d
-      .select({ projectId: tasks.projectId })
-      .from(taskAssignments)
-      .innerJoin(tasks, eq(tasks.id, taskAssignments.taskId))
-      .where(eq(taskAssignments.userId, user.id)),
-  ]);
-  return {
-    userId: user.id,
-    isAdmin: user.role === "admin",
-    accessType: (user.accessType as AccessType) ?? "team_member",
-    roles: rc.roles,
-    assignments: assignRows.map(a => ({ roleId: a.roleId, scopeType: a.scopeType, scopeId: a.scopeId })),
-    pmProjectIds: new Set(projRows.filter(p => p.managerId === user.id).map(p => p.id)),
-    assigneeProjectIds: new Set(mine.map(m => m.projectId)),
-    projectWorkspace: new Map(projRows.map(p => [p.id, p.workspaceId])),
-    autoRoleIds: { pm: rc.pm, assignee: rc.assignee },
-  };
+  const rows = await d.select({ id: projects.id }).from(projects);
+  return ownerSecurity(user, rows.map(r => r.id));
 }
 
 /* ------------------------------------------------------------------ */

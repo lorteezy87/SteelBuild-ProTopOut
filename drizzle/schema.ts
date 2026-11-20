@@ -56,13 +56,6 @@ export const settings = mysqlTable("settings", {
   updatedAt: updatedAt(),
 });
 
-export const workspaces = mysqlTable("workspaces", {
-  id: id(),
-  name: varchar("name", { length: 128 }).notNull(),
-  description: text("description"),
-  createdAt: createdAt(),
-});
-
 export const jobRoles = mysqlTable("job_roles", {
   id: id(),
   name: varchar("name", { length: 128 }).notNull(),
@@ -135,39 +128,6 @@ export const equipment = mysqlTable("equipment", {
 /* Security                                                            */
 /* ------------------------------------------------------------------ */
 
-export const securityRoles = mysqlTable("security_roles", {
-  id: id(),
-  key: varchar("key", { length: 64 }).notNull().unique(),
-  name: varchar("name", { length: 128 }).notNull(),
-  description: text("description"),
-  isSystem: boolean("isSystem").default(false).notNull(),
-});
-
-export const rolePrivileges = mysqlTable(
-  "role_privileges",
-  {
-    id: id(),
-    roleId: int("roleId").notNull(),
-    privilege: varchar("privilege", { length: 64 }).notNull(),
-    effect: varchar("effect", { length: 8 }).default("grant").notNull(),
-  },
-  t => [uniqueIndex("role_priv_uq").on(t.roleId, t.privilege)]
-);
-
-export const roleAssignments = mysqlTable(
-  "role_assignments",
-  {
-    id: id(),
-    userId: int("userId").notNull(),
-    roleId: int("roleId").notNull(),
-    /** global | workspace | project */
-    scopeType: varchar("scopeType", { length: 16 }).notNull(),
-    scopeId: int("scopeId"),
-    createdAt: createdAt(),
-  },
-  t => [index("ra_user").on(t.userId), index("ra_scope").on(t.scopeType, t.scopeId)]
-);
-
 /* ------------------------------------------------------------------ */
 /* Projects (jobs) & tasks                                             */
 /* ------------------------------------------------------------------ */
@@ -176,7 +136,6 @@ export const projects = mysqlTable(
   "projects",
   {
     id: id(),
-    workspaceId: int("workspaceId"),
     code: varchar("code", { length: 32 }),
     name: varchar("name", { length: 255 }).notNull(),
     description: text("description"),
@@ -212,7 +171,7 @@ export const projects = mysqlTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  t => [index("projects_ws").on(t.workspaceId)]
+  t => []
 );
 
 export const projectCompanies = mysqlTable(

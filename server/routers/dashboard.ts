@@ -105,14 +105,12 @@ export async function tonsCurve(projectIds: number[], today: string) {
 
 export const dashboardRouter = router({
   portfolio: protectedProcedure
-    .input(z.object({ workspaceId: zId.optional() }).optional())
     .query(async ({ ctx, input }) => {
       const s = await sec(ctx);
       const d = await db();
       const today = await orgToday();
       const visible: number[] = [];
-      s.projectWorkspace.forEach((ws, pid) => {
-        if (input?.workspaceId && ws !== input.workspaceId) return;
+      s.projectIds.forEach(pid => {
         if (effectivePrivileges(s, pid).has("project.view")) visible.push(pid);
       });
       const empty = {

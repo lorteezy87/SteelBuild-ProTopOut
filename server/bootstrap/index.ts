@@ -5,15 +5,12 @@ import {
   customFieldDefs,
   expenseCodes,
   jobRoles,
-  rolePrivileges,
-  securityRoles,
   settings,
   timeCodes,
   wfApps,
   wfSlaPolicies,
   wfStates,
   wfTransitions,
-  workspaces,
 } from "../../drizzle/schema";
 import { usHolidays } from "../engine/calendar";
 import { db, type Db } from "../db";
@@ -26,7 +23,6 @@ import {
   TIME_CODE_PRESETS,
   type AppPreset,
 } from "./presets";
-import { invalidateRoleCache } from "../security/guard";
 
 /**
  * Versioned, idempotent install of system defaults. Each step records completion
@@ -135,27 +131,13 @@ async function step1(d: Db) {
       .values(holidays.map(h => ({ calendarId: calId, date: h.date, name: h.name, isWorking: false })));
   }
 
-  await d.insert(workspaces).values({ name: "Phoenix Metro", description: "Phoenix / Valley jobs" });
   await d.insert(jobRoles).values(JOB_ROLE_PRESETS);
   await d.insert(timeCodes).values(TIME_CODE_PRESETS);
   await d.insert(expenseCodes).values(EXPENSE_CODE_PRESETS);
 
-  for (const r of ROLE_PRESETS) {
-    const [{ id }] = await d
-      .insert(securityRoles)
-      .values({ key: r.key, name: r.name, description: r.description, isSystem: true })
-      .$returningId();
-    const rows = [
-      ...r.grant.map(p => ({ roleId: id, privilege: p, effect: "grant" })),
-      ...(r.deny ?? []).map(p => ({ roleId: id, privilege: p, effect: "deny" })),
-    ];
-    if (rows.length) await d.insert(rolePrivileges).values(rows);
-  }
-
   for (let i = 0; i < APP_PRESETS.length; i++) await installApp(d, APP_PRESETS[i], i);
 
   await d.insert(settings).values([
-    { key: "autoRoles", value: { pm: "project_manager", assignee: "assignee" } },
     { key: "projectTypes", value: PROJECT_TYPE_PRESETS },
     {
       key: "org",
@@ -177,7 +159,6 @@ export function ensureBootstrap(): Promise<void> {
         console.log("[bootstrap] installed steel-erector defaults v1");
       }
       if (version > BOOTSTRAP_VERSION) console.warn("[bootstrap] database is ahead of code version");
-      invalidateRoleCache();
     })().catch(e => {
       running = null;
       throw e;

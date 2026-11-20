@@ -188,7 +188,7 @@ export const expensesRouter = router({
     const s = await sec(ctx);
     if (!hasJobModuleAccess(s)) return [];
     const pids: number[] = [];
-    s.projectWorkspace.forEach((_w, pid) => {
+    s.projectIds.forEach(pid => {
       if (effectivePrivileges(s, pid).has("expense.approve")) pids.push(pid);
     });
     if (!pids.length) return [];
@@ -214,7 +214,7 @@ export const expensesRouter = router({
     const d = await db();
     const s = await sec(ctx);
     const pids: number[] = [];
-    s.projectWorkspace.forEach((_workspace, pid) => {
+    s.projectIds.forEach(pid => {
       if (effectivePrivileges(s, pid).has("project.financials")) pids.push(pid);
     });
     if (!pids.length) return [];

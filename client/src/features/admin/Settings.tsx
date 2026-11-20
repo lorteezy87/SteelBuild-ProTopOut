@@ -4,37 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DateInput, NumberInput, SimpleSelect } from "@/components/brand/Controls";
-import { Panel, Field, Loading, ErrorState } from "@/components/brand/Layout";
+import { Panel, Field, Loading } from "@/components/brand/Layout";
 import { useRefData, type RefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { errMsg } from "@/lib/format";
 export default function Settings() {
   const { ref } = useRefData();
-  const auto = trpc.admin.settings.autoRoles.useQuery();
-  const roles = trpc.admin.roles.list.useQuery();
-  if (!ref || auto.isLoading || roles.isLoading) return <Loading />;
-  if (auto.error || roles.error)
-    return <ErrorState error={auto.error ?? roles.error} />;
-  return (
-    <SettingsForm
-      initial={ref}
-      auto={auto.data ?? { pm: "", assignee: "" }}
-      roles={roles.data ?? []}
-    />
-  );
+  if (!ref) return <Loading />;
+  return <SettingsForm initial={ref} />;
 }
-function SettingsForm({
-  initial,
-  auto,
-  roles,
-}: {
-  initial: RefData;
-  auto: { pm: string; assignee: string };
-  roles: { key: string; name: string }[];
-}) {
+function SettingsForm({ initial }: { initial: RefData }) {
   const [org, setOrg] = useState(initial.org);
   const [types, setTypes] = useState(initial.projectTypes.join("\n"));
-  const [autoRoles, setAuto] = useState(auto);
   const utils = trpc.useUtils();
   const save = trpc.admin.settings.update.useMutation({
     onSuccess: () => {
@@ -42,14 +23,6 @@ function SettingsForm({
       void utils.time.week.invalidate();
       void utils.time.approvals.invalidate();
       toast.success("Organization settings saved");
-    },
-    onError: e => toast.error(errMsg(e)),
-  });
-  const saveAuto = trpc.admin.settings.updateAutoRoles.useMutation({
-    onSuccess: () => {
-      void utils.admin.settings.autoRoles.invalidate();
-      void utils.ref.all.invalidate();
-      toast.success("Automatic roles saved");
     },
     onError: e => toast.error(errMsg(e)),
   });
@@ -129,40 +102,6 @@ function SettingsForm({
             }
           >
             Save organization
-          </Button>
-        </div>
-      </Panel>
-      <Panel title="Automatic security roles" bodyClassName="p-4 space-y-4">
-        <p className="text-muted-foreground">
-          The job PM and task assignees automatically receive these roles on
-          their jobs. Explicit denies and access-type caps still apply. None
-          disables that automatic role.
-        </p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Job project manager">
-            <SimpleSelect
-              allowNone
-              value={autoRoles.pm || null}
-              options={roles.map(r => ({ value: r.key, label: r.name }))}
-              onChange={v => setAuto({ ...autoRoles, pm: v ?? "" })}
-            />
-          </Field>
-          <Field label="Task assignee">
-            <SimpleSelect
-              allowNone
-              value={autoRoles.assignee || null}
-              options={roles.map(r => ({ value: r.key, label: r.name }))}
-              onChange={v => setAuto({ ...autoRoles, assignee: v ?? "" })}
-            />
-          </Field>
-        </div>
-        <div className="flex justify-end">
-          <Button
-            size="sm"
-            disabled={saveAuto.isPending}
-            onClick={() => saveAuto.mutate(autoRoles)}
-          >
-            Save automatic roles
           </Button>
         </div>
       </Panel>

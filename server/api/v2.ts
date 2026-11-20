@@ -145,7 +145,7 @@ async function listRows(entity: string, req: Request, a: Authed): Promise<Record
   }
   if (entity === "dailyReports") {
     const visible: number[] = [];
-    s.projectWorkspace.forEach((_w, pid) => {
+    s.projectIds.forEach(pid => {
       if (effectivePrivileges(s, pid).has("project.view")) visible.push(pid);
     });
     if (!visible.length) return [];

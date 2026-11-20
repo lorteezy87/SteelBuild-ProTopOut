@@ -48,7 +48,7 @@ beforeEach(() => {
   requestStorage = vi.fn().mockResolvedValue(new globalThis.Response("%PDF-1.7\nfixture", { headers: { "content-length": "16", "content-type": "text/html" } }));
   vi.stubGlobal("fetch", requestStorage);
   revision = { id: 1, sheetId: 2, number: 3, fileKey: "draft/first.pdf", previewKey: "preview.jpg", fileName: "计划.pdf", mimeType: "text/html" };
-  mocks.authenticate.mockResolvedValue({ id: 4, isActive: true, accessType: "full" });
+  mocks.authenticate.mockResolvedValue({ id: 4, role: "admin", isActive: true, accessType: "full" });
   mocks.access.mockResolvedValue(undefined);
   mocks.signedUrl.mockResolvedValue("https://storage.example/fixture");
   const query = { from() { return this; }, where() { return this; }, limit: vi.fn() };
@@ -86,7 +86,7 @@ describe("authorized drawing file route", () => {
     expect(requestStorage).not.toHaveBeenCalled();
   });
 
-  it.each([{ isActive: false, accessType: "full" }, { isActive: true, accessType: "passive" }])("rejects blocked users before conditional handling (%j)", async user => {
+  it.each([{ role: "admin", isActive: false, accessType: "full" }, { role: "user", isActive: true, accessType: "full" }])("rejects blocked users before conditional handling (%j)", async user => {
     mocks.authenticate.mockResolvedValueOnce(user);
     const sink = new Sink();
     await call(req("pdf", "*"), sink);

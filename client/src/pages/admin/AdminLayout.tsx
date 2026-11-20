@@ -8,9 +8,6 @@ import {
 } from "@/components/brand/Layout";
 import { useRefData } from "@/lib/ref";
 import Users from "@/features/admin/Users";
-import Roles from "@/features/admin/Roles";
-import Assignments from "@/features/admin/Assignments";
-import Workspaces from "@/features/admin/Workspaces";
 import JobRoles from "@/features/admin/JobRoles";
 import Calendars from "@/features/admin/Calendars";
 import Companies from "@/features/admin/Companies";
@@ -23,19 +20,6 @@ import Integrations from "@/features/admin/Integrations";
 import Demo from "@/features/admin/Demo";
 const sections = [
   { key: "users", label: "People", group: "Access", component: Users },
-  { key: "roles", label: "Security roles", group: "Access", component: Roles },
-  {
-    key: "assignments",
-    label: "Role assignments",
-    group: "Access",
-    component: Assignments,
-  },
-  {
-    key: "workspaces",
-    label: "Workspaces",
-    group: "Reference data",
-    component: Workspaces,
-  },
   {
     key: "job-roles",
     label: "Job roles & rates",

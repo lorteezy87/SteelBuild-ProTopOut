@@ -47,7 +47,6 @@ export default function Jobs() {
     "draft",
     "on_hold",
   ]);
-  const [workspace, setWorkspace] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<Sort>("code");
   const [descending, setDescending] = useState(false);
@@ -57,7 +56,6 @@ export default function Jobs() {
   const utils = trpc.useUtils();
   const q = trpc.projects.list.useQuery({
     states,
-    workspaceId: workspace ? Number(workspace) : undefined,
     search,
   });
   const reforecast = trpc.projects.reforecastMany.useMutation({
@@ -159,19 +157,6 @@ export default function Jobs() {
             {label}
           </Button>
         ))}
-        <div className="ml-auto w-44">
-          <SimpleSelect
-            value={workspace}
-            onChange={setWorkspace}
-            options={(ref?.workspaces ?? []).map(w => ({
-              value: String(w.id),
-              label: w.name,
-            }))}
-            allowNone
-            noneLabel="All workspaces"
-            size="sm"
-          />
-        </div>
         <Input
           aria-label="Search jobs"
           className="h-8 w-60 bg-[var(--tp-paper)]"

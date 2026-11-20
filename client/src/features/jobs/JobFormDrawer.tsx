@@ -32,7 +32,6 @@ type Draft = {
   name: string;
   description: string;
   projectType: string | null;
-  workspaceId: number | null;
   state: string;
   priority: keyof typeof PRIORITIES;
   managerId: number | null;
@@ -56,7 +55,6 @@ function initial(data?: JobData): Draft {
     name: p?.name ?? "",
     description: p?.description ?? "",
     projectType: p?.projectType ?? null,
-    workspaceId: p?.workspaceId ?? null,
     state: p?.state ?? "draft",
     priority: (p?.priority ?? "normal") as keyof typeof PRIORITIES,
     managerId: p?.managerId ?? null,
@@ -212,17 +210,6 @@ export function JobFormDrawer({
               options={(ref?.projectTypes ?? []).map(t => ({
                 value: t,
                 label: t,
-              }))}
-              allowNone
-            />
-          </Field>
-          <Field label="Workspace">
-            <SimpleSelect
-              value={draft.workspaceId ? String(draft.workspaceId) : null}
-              onChange={v => set("workspaceId", v ? Number(v) : null)}
-              options={(ref?.workspaces ?? []).map(w => ({
-                value: String(w.id),
-                label: w.name,
               }))}
               allowNone
             />

@@ -107,7 +107,7 @@ export const wfRouter = router({
         projectIds = [input.projectId];
       } else {
         projectIds = [];
-        s.projectWorkspace.forEach((_w, pid) => {
+        s.projectIds.forEach(pid => {
           if (effectivePrivileges(s, pid).has("log.view")) projectIds!.push(pid);
         });
         if (!projectIds.length) return { items: [], states: [], fieldDefs: [] };
@@ -346,7 +346,7 @@ export const wfRouter = router({
   creationJobs: protectedProcedure.query(async ({ ctx }) => {
     const s = await sec(ctx);
     const ids: number[] = [];
-    s.projectWorkspace.forEach((_workspace, projectId) => {
+    s.projectIds.forEach(projectId => {
       const privileges = effectivePrivileges(s, projectId);
       if (privileges.has("project.view") && privileges.has("log.create")) ids.push(projectId);
     });

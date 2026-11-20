@@ -36,9 +36,9 @@ export const resourcesRouter = router({
       const s = await sec(ctx);
       if (!hasJobModuleAccess(s))
         bad("Your access type only includes Logs and Timesheets");
-      if (!can(s, "resource.view", null) && s.pmProjectIds.size === 0)
+      if (!can(s, "resource.view", null) && !s.isAdmin)
         bad("You don't have access to resource workload");
-      const visibleIds = Array.from(s.projectWorkspace.keys()).filter(pid =>
+      const visibleIds = s.projectIds.filter(pid =>
         effectivePrivileges(s, pid).has("project.view")
       );
       const d = await db();
@@ -254,9 +254,9 @@ export const resourcesRouter = router({
     const s = await sec(ctx);
     if (!hasJobModuleAccess(s))
       bad("Your access type only includes Logs and Timesheets");
-    if (!can(s, "resource.view", null) && s.pmProjectIds.size === 0)
+    if (!can(s, "resource.view", null) && !s.isAdmin)
       bad("You don't have access to resource workload");
-    const visibleIds = Array.from(s.projectWorkspace.keys()).filter(pid =>
+    const visibleIds = s.projectIds.filter(pid =>
       effectivePrivileges(s, pid).has("project.view")
     );
     if (!visibleIds.length) return [];

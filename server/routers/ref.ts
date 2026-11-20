@@ -11,7 +11,6 @@ import {
   timeCodes,
   users,
   wfApps,
-  workspaces,
 } from "../../drizzle/schema";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getSetting } from "../bootstrap";
@@ -65,7 +64,6 @@ export const refRouter = router({
       eq_,
       tc,
       ec,
-      ws,
       cal,
       apps,
       org,
@@ -92,7 +90,6 @@ export const refRouter = router({
       d.select().from(equipment).orderBy(asc(equipment.name)),
       d.select().from(timeCodes),
       d.select().from(expenseCodes),
-      d.select().from(workspaces).orderBy(asc(workspaces.name)),
       d.select().from(calendars),
       d
         .select()
@@ -113,7 +110,7 @@ export const refRouter = router({
     ).filter(p => can(s, p, null));
     const canSeeRates =
       s.isAdmin ||
-      Array.from(s.projectWorkspace.keys()).some(financialChecker(s));
+      s.projectIds.some(financialChecker(s));
     return {
       me: {
         id: ctx.user.id,
@@ -122,7 +119,7 @@ export const refRouter = router({
         isAdmin: ctx.user.role === "admin",
         accessType: ctx.user.accessType,
         globalPrivs,
-        managesProjects: s.pmProjectIds.size > 0,
+        managesProjects: s.isAdmin,
       },
       users: u,
       jobRoles: jr.map(r => ({
@@ -141,7 +138,6 @@ export const refRouter = router({
       })),
       timeCodes: tc,
       expenseCodes: ec,
-      workspaces: ws,
       calendars: cal,
       apps: apps.map(a => ({
         id: a.id,

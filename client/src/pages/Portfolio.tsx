@@ -37,11 +37,10 @@ import { CrewChart, RfiChart, TonsChart } from "@/features/portfolio/Charts";
 
 export default function Portfolio() {
   const { ref } = useRefData();
-  const [workspace, setWorkspace] = useState<string | null>(null);
   const [tonsJob, setTonsJob] = useState<string | null>(null);
   const [, navigate] = useLocation();
   const q = trpc.dashboard.portfolio.useQuery(
-    workspace ? { workspaceId: Number(workspace) } : undefined
+    undefined
   );
   const tons = trpc.dashboard.jobTons.useQuery(
     { projectId: Number(tonsJob) || 1 },
@@ -78,21 +77,6 @@ export default function Portfolio() {
         }
         actions={
           <>
-            <div className="w-44">
-              <SimpleSelect
-                value={workspace}
-                onChange={v => {
-                  setWorkspace(v);
-                  setTonsJob(null);
-                }}
-                allowNone
-                noneLabel="All workspaces"
-                options={(ref?.workspaces ?? []).map(w => ({
-                  value: String(w.id),
-                  label: w.name,
-                }))}
-              />
-            </div>
             <Button
               variant="outline"
               size="sm"

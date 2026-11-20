@@ -18,13 +18,10 @@ const requireUser = t.middleware(async opts => {
   if (!ctx.user) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
   }
-  await ensureBootstrap();
-  if (!ctx.user.isActive || ctx.user.accessType === "passive") {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Your account is not enabled for sign-in. Contact your administrator.",
-    });
+  if (ctx.user.role !== "admin" || !ctx.user.isActive) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Only the owner can sign in." });
   }
+  await ensureBootstrap();
 
   return next({
     ctx: {

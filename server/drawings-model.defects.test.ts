@@ -155,7 +155,7 @@ class Fixture {
     expect(this.audit.filter(a => a.operation !== "select").every(a => a.transaction)).toBe(true);
   }
 }
-const ctx = () => ({ req: { headers: {} }, res: {}, quiet: true, user: { id: 1, role: "user", accessType: "full", isActive: true } }) as unknown as TrpcContext;
+const ctx = () => ({ req: { headers: {} }, res: {}, quiet: true, user: { id: 1, role: "admin", accessType: "full", isActive: true } }) as unknown as TrpcContext;
 const drawing = () => drawingsRouter.createCaller(ctx());
 const model = () => modelRouter.createCaller(ctx());
 let fixture: Fixture;

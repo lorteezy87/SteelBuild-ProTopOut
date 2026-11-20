@@ -122,7 +122,7 @@ export const dailyReportsRouter = router({
     const s = await sec(ctx);
     if (!hasJobModuleAccess(s)) return [];
     const pids: number[] = [];
-    s.projectWorkspace.forEach((_w, pid) => {
+    s.projectIds.forEach(pid => {
       if (effectivePrivileges(s, pid).has("dailyreport.approve"))
         pids.push(pid);
     });

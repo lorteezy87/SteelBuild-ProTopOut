@@ -40,7 +40,6 @@ export const REPORT_SOURCES: Record<SourceKey, SourceDef> = {
       c("projectType", "Type", "text"),
       c("priority", "Priority", "enum", { options: PRIORITIES }),
       c("managerName", "PM", "text"),
-      c("workspaceName", "Workspace", "text"),
       c("gcName", "GC", "text"),
       c("fabricatorName", "Fabricator", "text"),
       c("startDate", "Start", "date"),

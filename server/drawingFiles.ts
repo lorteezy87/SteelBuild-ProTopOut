@@ -25,8 +25,8 @@ export function registerDrawingFiles(app: Express) {
     } catch {
       return void res.status(401).send("Sign in to view drawings");
     }
-    // Same rule as the tRPC protected middleware: deactivated and passive users get nothing.
-    if (!user.isActive || user.accessType === "passive") return void res.status(403).send("Your account does not have access");
+    // Same rule as the tRPC protected middleware: only the active owner gets files.
+    if (user.role !== "admin" || !user.isActive) return void res.status(403).send("Your account does not have access");
     if (res.destroyed) return;
     const controller = new AbortController();
     const onClose = () => {

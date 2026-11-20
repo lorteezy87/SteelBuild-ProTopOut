@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { WorkCalendar, usHolidays } from "./calendar";
 import { CycleError, schedule, type SchedTask } from "./scheduler";
 import { earnedValue, projectHealth, projectPercent, projectTask, type HealthTask } from "./projection";
-import { effectivePrivileges, type SecurityData } from "../security/access";
 import { evaluateFormula, validateFormula } from "@shared/formula";
 import { applyFilters, parseApiFilter, resolveDateToken } from "@shared/filters";
 
@@ -165,49 +164,6 @@ describe("projection", () => {
     expect(e.ev).toBe(40_000);
     expect(e.spi).toBeCloseTo(0.8);
     expect(e.cpi).toBeCloseTo(0.8);
-  });
-});
-
-describe("permissions", () => {
-  const base = (): SecurityData => ({
-    userId: 5,
-    isAdmin: false,
-    accessType: "full",
-    roles: new Map([
-      [1, { id: 1, key: "pm", privileges: new Map([["project.view", "grant"], ["project.edit", "grant"], ["project.financials", "grant"]]) }],
-      [2, { id: 2, key: "nofin", privileges: new Map([["project.financials", "deny"]]) }],
-      [3, { id: 3, key: "viewer", privileges: new Map([["project.view", "grant"]]) }],
-    ]),
-    assignments: [],
-    pmProjectIds: new Set(),
-    assigneeProjectIds: new Set(),
-    projectWorkspace: new Map([
-      [100, 7],
-      [200, 8],
-    ]),
-    autoRoleIds: { pm: 1, assignee: 3 },
-  });
-
-  it("deny wins across roles", () => {
-    const s = base();
-    s.assignments = [
-      { roleId: 1, scopeType: "workspace", scopeId: 7 },
-      { roleId: 2, scopeType: "project", scopeId: 100 },
-    ];
-    const p = effectivePrivileges(s, 100);
-    expect(p.has("project.edit")).toBe(true);
-    expect(p.has("project.financials")).toBe(false);
-    expect(effectivePrivileges(s, 200).has("project.view")).toBe(false);
-  });
-  it("auto PM role and access-type caps", () => {
-    const s = base();
-    s.pmProjectIds.add(200);
-    expect(effectivePrivileges(s, 200).has("project.edit")).toBe(true);
-    s.accessType = "team_member";
-    expect(effectivePrivileges(s, 200).has("project.edit")).toBe(false);
-    expect(effectivePrivileges(s, 200).has("project.view")).toBe(true);
-    s.accessType = "passive";
-    expect(effectivePrivileges(s, 200).size).toBe(0);
   });
 });
 

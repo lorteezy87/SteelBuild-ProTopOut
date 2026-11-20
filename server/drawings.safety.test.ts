@@ -148,7 +148,7 @@ class Fixture {
 }
 const ctx = () => ({
   req: { headers: {} }, res: {}, quiet: true,
-  user: { id: 1, role: "user", accessType: "full", isActive: true },
+  user: { id: 1, role: "admin", accessType: "full", isActive: true },
 }) as unknown as TrpcContext;
 let fixture: Fixture;
 const drawing = () => drawingsRouter.createCaller(ctx());

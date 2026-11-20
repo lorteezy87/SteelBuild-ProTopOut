@@ -11,19 +11,15 @@ import {
   equipment,
   expenseCodes,
   jobRoles,
-  roleAssignments,
-  rolePrivileges,
-  securityRoles,
   projects,
   wfItems,
   timeCodes,
   users,
-  workspaces,
 } from "../../drizzle/schema";
 import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getSetting, setSetting } from "../bootstrap";
 import { db } from "../db";
-import { invalidateRoleCache, hasPriv } from "../security/guard";
+import { hasPriv } from "../security/guard";
 import { invalidateCalendars } from "../services/calendars";
 import { recomputeAll } from "../services/recompute";
 import { loadDemoData } from "../services/demo";
@@ -72,11 +68,9 @@ export const adminRouter = router({
     list: adminProcedure.query(async () => {
       const d = await db();
       const rows = await d.select().from(users).orderBy(asc(users.name));
-      const ra = await d.select().from(roleAssignments);
       return rows.map(u => ({
         ...u,
         pending: u.openId.startsWith("local:"),
-        roleAssignments: ra.filter(a => a.userId === u.id),
       }));
     }),
     create: adminProcedure.input(userInput).mutation(async ({ input }) => {
@@ -118,127 +112,6 @@ export const adminRouter = router({
         if (isAdmin !== undefined) set.role = isAdmin ? "admin" : "user";
         if (Object.keys(set).length) await d.update(users).set(set).where(eq(users.id, id));
         return { ok: true };
-      }),
-  }),
-
-  /* ---------------- Security roles ---------------- */
-  roles: router({
-    list: protectedProcedure.query(async () => {
-      const d = await db();
-      const rows = await d.select().from(securityRoles).orderBy(asc(securityRoles.name));
-      const privs = await d.select().from(rolePrivileges);
-      return rows.map(r => ({
-        ...r,
-        grants: privs.filter(p => p.roleId === r.id && p.effect === "grant").map(p => p.privilege),
-        denies: privs.filter(p => p.roleId === r.id && p.effect === "deny").map(p => p.privilege),
-      }));
-    }),
-    upsert: adminProcedure
-      .input(
-        z.object({
-          id: zId.optional(),
-          name: zText(128).min(1),
-          description: z.string().max(1000).nullable().optional(),
-          grants: z.array(privilege),
-          denies: z.array(privilege),
-        })
-      )
-      .mutation(async ({ input }) => {
-        const d = await db();
-        const overlap = input.grants.filter(g => input.denies.includes(g));
-        if (overlap.length) bad(`A privilege cannot be both granted and denied: ${overlap.join(", ")}`);
-        let roleId = input.id;
-        if (roleId) {
-          await d
-            .update(securityRoles)
-            .set({ name: input.name, description: input.description ?? null })
-            .where(eq(securityRoles.id, roleId));
-          await d.delete(rolePrivileges).where(eq(rolePrivileges.roleId, roleId));
-        } else {
-          const key = input.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 48) + "_" + Date.now().toString(36);
-          [{ id: roleId }] = await d
-            .insert(securityRoles)
-            .values({ key, name: input.name, description: input.description ?? null, isSystem: false })
-            .$returningId();
-        }
-        const rows = [
-          ...input.grants.map(p => ({ roleId: roleId!, privilege: p, effect: "grant" })),
-          ...input.denies.map(p => ({ roleId: roleId!, privilege: p, effect: "deny" })),
-        ];
-        if (rows.length) await d.insert(rolePrivileges).values(rows);
-        invalidateRoleCache();
-        return { id: roleId };
-      }),
-    remove: adminProcedure.input(z.object({ id: zId })).mutation(async ({ input }) => {
-      const d = await db();
-      const [r] = await d.select().from(securityRoles).where(eq(securityRoles.id, input.id)).limit(1);
-      if (!r) bad("Role not found");
-      if (r.isSystem) bad("System roles cannot be deleted; edit their privileges instead");
-      await d.delete(roleAssignments).where(eq(roleAssignments.roleId, input.id));
-      await d.delete(rolePrivileges).where(eq(rolePrivileges.roleId, input.id));
-      await d.delete(securityRoles).where(eq(securityRoles.id, input.id));
-      invalidateRoleCache();
-      return { ok: true };
-    }),
-  }),
-
-  /* ---------------- Role assignments ---------------- */
-  assignments: router({
-    list: adminProcedure
-      .input(z.object({ scopeType: z.enum(["global", "workspace", "project"]).optional(), scopeId: zId.optional() }).optional())
-      .query(async ({ input }) => {
-        const d = await db();
-        const conds = [];
-        if (input?.scopeType) conds.push(eq(roleAssignments.scopeType, input.scopeType));
-        if (input?.scopeId) conds.push(eq(roleAssignments.scopeId, input.scopeId));
-        return d.select().from(roleAssignments).where(conds.length ? and(...conds) : undefined);
-      }),
-    add: adminProcedure
-      .input(
-        z.object({
-          userId: zId,
-          roleId: zId,
-          scopeType: z.enum(["global", "workspace", "project"]),
-          scopeId: zId.nullable().optional(),
-        })
-      )
-      .mutation(async ({ input }) => {
-        if (input.scopeType !== "global" && !input.scopeId) bad("Choose a workspace or job for this assignment");
-        const d = await db();
-        const scopeId = input.scopeType === "global" ? null : input.scopeId!;
-        const existing = await d
-          .select()
-          .from(roleAssignments)
-          .where(
-            and(
-              eq(roleAssignments.userId, input.userId),
-              eq(roleAssignments.roleId, input.roleId),
-              eq(roleAssignments.scopeType, input.scopeType)
-            )
-          );
-        if (existing.some(e => e.scopeId === scopeId)) return { ok: true };
-        await d.insert(roleAssignments).values({ ...input, scopeId });
-        return { ok: true };
-      }),
-    remove: adminProcedure.input(z.object({ id: zId })).mutation(async ({ input }) => {
-      const d = await db();
-      await d.delete(roleAssignments).where(eq(roleAssignments.id, input.id));
-      return { ok: true };
-    }),
-  }),
-
-  /* ---------------- Workspaces ---------------- */
-  workspaces: router({
-    upsert: adminProcedure
-      .input(z.object({ id: zId.optional(), name: zText(128).min(1), description: z.string().max(1000).nullable().optional() }))
-      .mutation(async ({ input }) => {
-        const d = await db();
-        if (input.id) {
-          await d.update(workspaces).set({ name: input.name, description: input.description ?? null }).where(eq(workspaces.id, input.id));
-          return { id: input.id };
-        }
-        const [{ id }] = await d.insert(workspaces).values({ name: input.name, description: input.description ?? null }).$returningId();
-        return { id };
       }),
   }),
 
@@ -433,27 +306,6 @@ export const adminRouter = router({
 
   /* ---------------- Settings ---------------- */
   settings: router({
-    autoRoles: adminProcedure.query(() =>
-      getSetting<{ pm: string; assignee: string }>("autoRoles", {
-        pm: "project_manager",
-        assignee: "assignee",
-      })
-    ),
-    updateAutoRoles: adminProcedure
-      .input(z.object({ pm: zText(64), assignee: zText(64) }))
-      .mutation(async ({ input }) => {
-        const d = await db();
-        const roles = await d
-          .select({ key: securityRoles.key })
-          .from(securityRoles);
-        for (const key of [input.pm, input.assignee]) {
-          if (key && !roles.some(r => r.key === key))
-            bad("Unknown security role");
-        }
-        await setSetting("autoRoles", input);
-        invalidateRoleCache();
-        return { ok: true };
-      }),
     update: adminProcedure
       .input(
         z.object({

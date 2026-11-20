@@ -360,9 +360,6 @@ export default function Overview() {
               {PRIORITIES[p.priority as keyof typeof PRIORITIES] ?? p.priority}
             </Field>
             <Field label="PM">{userName(p.managerId)}</Field>
-            <Field label="Workspace">
-              {ref?.workspaces.find(w => w.id === p.workspaceId)?.name || "—"}
-            </Field>
             <Field label="Start date">{fmtDate(p.startDate)}</Field>
             <Field label="Planned finish">{fmtDate(p.plannedFinish)}</Field>
             <Field label="Contract">

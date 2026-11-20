@@ -17,7 +17,6 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { getSetting } from "../bootstrap";
 import { db } from "../db";
 import {
-  applicableRoleIds,
   effectivePrivileges,
   type SecurityData,
 } from "../security/access";
@@ -71,10 +70,9 @@ function weekDays(weekStart: string) {
 async function loggableProjects(ctx: Parameters<typeof sec>[0]) {
   const s = await sec(ctx);
   const ids = new Set<number>();
-  s.projectWorkspace.forEach((_w, pid) => {
+  s.projectIds.forEach(pid => {
     if (effectivePrivileges(s, pid).has("project.view")) ids.add(pid);
   });
-  s.assigneeProjectIds.forEach(pid => ids.add(pid));
   return ids;
 }
 
@@ -86,14 +84,7 @@ function canApprove(
   supervisorId: number | null
 ) {
   if (!hasJobModuleAccess(s)) return false;
-  if (s.isAdmin) return true;
-  if (entry.userId === s.userId) return false;
-  const privs = effectivePrivileges(s, entry.projectId);
-  if (!privs.has("project.view")) return false;
-  const denied = applicableRoleIds(s, entry.projectId).some(
-    id => s.roles.get(id)?.privileges.get("time.approve") === "deny"
-  );
-  return !denied && (privs.has("time.approve") || supervisorId === s.userId);
+  return s.isAdmin;
 }
 
 /** Resolve active, eligible PM + supervisor; an empty chain permits any eligible holder. */
@@ -495,7 +486,7 @@ export const timeRouter = router({
       const d = await db();
       const s = await sec(ctx);
       if (!hasJobModuleAccess(s)) return [];
-      const pids = Array.from(s.projectWorkspace.keys()).filter(
+      const pids = s.projectIds.filter(
         pid =>
           effectivePrivileges(s, pid).has("time.approve") ||
           (input?.state === "approved" &&
