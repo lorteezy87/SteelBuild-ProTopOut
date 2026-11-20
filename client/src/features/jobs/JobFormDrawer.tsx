@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { STAGES, isStage, type Stage } from "@shared/stages";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ type Draft = {
   noticeHours: number;
   siteAddress: string;
   progressMethod: string;
+  progressStage: Stage;
 };
 function initial(data?: JobData): Draft {
   const p = data?.project;
@@ -70,6 +72,7 @@ function initial(data?: JobData): Draft {
     noticeHours: p?.noticeHours ?? 72,
     siteAddress: p?.siteAddress ?? "",
     progressMethod: p?.progressMethod ?? "tonnage",
+    progressStage: isStage(p?.progressStage) ? p.progressStage : "set",
   };
 }
 /** Mount only while open, so edits always start from the latest record. */
@@ -311,6 +314,13 @@ export function JobFormDrawer({
               value={draft.progressMethod}
               onChange={v => v && set("progressMethod", v)}
               options={PROGRESS_METHODS}
+            />
+          </Field>
+          <Field label="Progress counts steel that is">
+            <SimpleSelect
+              value={draft.progressStage}
+              onChange={v => v && isStage(v) && set("progressStage", v)}
+              options={STAGES}
             />
           </Field>
           <Field label="Contract notice requirement (hours)">

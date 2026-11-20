@@ -1,3 +1,4 @@
+import { parseGateRefusal } from "@shared/gate";
 /** Formatting helpers. Dates are plain YYYY-MM-DD strings (no timezone shifts). */
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -131,7 +132,7 @@ export function errMsg(e: unknown): string {
     } catch {
       /* not JSON */
     }
-    return m;
+    return parseGateRefusal(m)?.text ?? m;
   }
   return "Something went wrong";
 }

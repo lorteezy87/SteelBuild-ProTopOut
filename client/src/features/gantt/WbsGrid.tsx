@@ -1,3 +1,5 @@
+import { GateDot } from "@/features/tasks/GateDot";
+import type { GateStatus } from "@shared/gate";
 import { ScheduleHealth } from "@/components/brand/Status";
 import { fmtDateShort, fmtNum } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -91,7 +93,10 @@ export function WbsGrid({
   editable,
   drag,
   crew,
+  gates,
 }: {
+  /** Ready-to-erect status per sequence id. */
+  gates?: Record<string, GateStatus>;
   editable: boolean;
   drag: ReturnType<typeof useWbsDrag>;
   crew: (task: GanttTask) => ReactNode;
@@ -209,6 +214,7 @@ export function WbsGrid({
                       >
                         {task.name}
                       </button>
+                      {task.kind === "sequence" && <GateDot status={gates?.[String(task.id)]} />}
                       {task.constraintViolated && (
                         <AlertTriangle
                           className="size-3.5 shrink-0 text-[var(--tp-red-strong)]"

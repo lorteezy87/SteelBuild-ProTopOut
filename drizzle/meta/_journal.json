@@ -8,6 +8,34 @@
       "when": 1795182143902,
       "tag": "0000_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1795196054592,
+      "tag": "0001_erection_stages",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1795196324961,
+      "tag": "0002_ready_to_erect",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1795196845697,
+      "tag": "0003_cranes_lifts",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1795197366574,
+      "tag": "0004_tm_tickets",
+      "breakpoints": true
     }
   ]
 }

@@ -72,3 +72,21 @@ describe("todaySummary", () => {
     expect(r.logsNeedingAction.map(x => x.id)).toEqual([1, 2]);
   });
 });
+
+describe("Today: not ready to erect", () => {
+  const base = { today, sequences: [], deliveries: [], logs: [] };
+  it("not-ready sequences starting within 14 days show on Today; no start date is excluded", () => {
+    const g = (o: object) => ({ id: 1, projectId: 9, name: "Seq", status: "not_started", startDate: "2026-11-25", gate: "not_ready" as const, ...o });
+    const r = todaySummary({ ...base, gates: [
+      g({ id: 1 }),
+      g({ id: 2, startDate: "2026-12-04" }),
+      g({ id: 3, startDate: "2026-12-05" }),
+      g({ id: 4, startDate: null }),
+      g({ id: 5, gate: "ready" }),
+      g({ id: 6, status: "in_progress" }),
+      g({ id: 7, gate: "unknown", startDate: "2026-11-18" }),
+    ] });
+    expect(r.sequencesNotReady.map(x => x.id)).toEqual([7, 1, 2]);
+    expect(r.sequencesNotReady[0].date).toBe("2026-11-18");
+  });
+});

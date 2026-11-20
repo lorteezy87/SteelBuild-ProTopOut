@@ -59,3 +59,11 @@ describe("storagePut", () => {
     expect(send).toHaveBeenCalledTimes(1);
   });
 });
+
+import { r2Endpoint } from "./storageR2";
+describe("R2 endpoint", () => {
+  it("uses the Cloudflare account endpoint unless R2_ENDPOINT overrides it", () => {
+    expect(r2Endpoint({ accountId: "abc", endpoint: "" })).toBe("https://abc.r2.cloudflarestorage.com");
+    expect(r2Endpoint({ accountId: "abc", endpoint: "http://127.0.0.1:9100" })).toBe("http://127.0.0.1:9100");
+  });
+});

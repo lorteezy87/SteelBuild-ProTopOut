@@ -22,7 +22,7 @@ describe("daily report finalize posting", () => {
 
   it("sums erected tons and pieces per sequence", () => {
     expect(progressByTask([{ taskId: 5, tons: 12.5, pieces: 40 }, { taskId: 5, tons: 0.25, pieces: 1 }, { taskId: 6, tons: 3, pieces: 9 }])).toEqual(
-      new Map([[5, { tons: 12.75, pieces: 41 }], [6, { tons: 3, pieces: 9 }]]),
+      new Map([["5:set", { taskId: 5, stage: "set", tons: 12.75, pieces: 41 }], ["6:set", { taskId: 6, stage: "set", tons: 3, pieces: 9 }]]),
     );
   });
 });
@@ -37,5 +37,19 @@ describe("time and expense states", () => {
   });
   it("recorded and invoiced entries count as cost; saved drafts do not", () => {
     expect(COSTED_STATES).toEqual(["recorded", "invoiced"]);
+  });
+});
+
+import { reopenStartReset } from "@shared/dailyPosting";
+describe("reopen undoes a start it caused", () => {
+  it("sequence with no set steel left returns to not started", () => {
+    expect(reopenStartReset({ status: "in_progress", actualStart: "2026-11-20", erectedTonsAfter: 0, otherPostedSet: false }, "2026-11-20")).toEqual({ status: "not_started", actualStart: null, percentComplete: 0 });
+  });
+  it("keeps the start when other posted set steel exists or tons remain", () => {
+    expect(reopenStartReset({ status: "in_progress", actualStart: "2026-11-18", erectedTonsAfter: 0, otherPostedSet: true }, "2026-11-20")).toBeNull();
+    expect(reopenStartReset({ status: "in_progress", actualStart: "2026-11-18", erectedTonsAfter: 5, otherPostedSet: false }, "2026-11-20")).toBeNull();
+  });
+  it("keeps a start that predates the report (this report did not start it)", () => {
+    expect(reopenStartReset({ status: "in_progress", actualStart: "2026-11-10", erectedTonsAfter: 0, otherPostedSet: false }, "2026-11-20")).toBeNull();
   });
 });

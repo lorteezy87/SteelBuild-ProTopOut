@@ -1,5 +1,9 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
+import { NewTicket } from "@/features/tm/NewTicket";
+import { isStage } from "@shared/stages";
 import { toast } from "sonner";
+import { GateCancelled, withGate } from "@/features/tasks/gatePrompt";
 import {
   ConfirmButton,
   DateInput,
@@ -104,6 +108,8 @@ function ReportForm({
   const utils = trpc.useUtils();
   const report = data?.report;
   const editable = data ? data.canEdit : canCreate;
+  const [ticketFor, setTicketFor] = useState(false);
+  const [, navigate] = useLocation();
   const [head, setHead] = useState({
     reportDate: report?.reportDate ?? today,
     foremanId: report?.foremanId ?? ref?.me.id ?? null,
@@ -135,6 +141,7 @@ function ReportForm({
       tons: p.tons,
       pieces: p.pieces,
       note: p.note,
+      stage: isStage(p.stage) ? p.stage : "set",
     }))
   );
   const [busy, setBusy] = useState(false);
@@ -188,19 +195,36 @@ function ReportForm({
       equipment,
       progress,
     });
-    if (andFinalize) await finalize.mutateAsync({ id: result.id });
     onSaved(result.id);
+    if (andFinalize) {
+      // A sequence starting with its ready-to-erect gate open needs a reason; withGate asks and retries.
+      try {
+        await withGate(gateReasons => finalize.mutateAsync({ id: result.id, ...(gateReasons ? { gateReasons } : {}) }));
+      } catch (e) {
+        if (e instanceof GateCancelled) throw new Error("Saved as a draft — not finalized (a gate reason is needed).");
+        throw e;
+      }
+    }
   };
   const status = report?.status ?? "draft";
   return (
     <div className="space-y-4">
+      {ticketFor && report && (
+        <NewTicket
+          projectId={projectId}
+          fromDailyReportId={report.id}
+          defaultDate={report.reportDate}
+          onClose={() => setTicketFor(false)}
+          onCreated={id => navigate(`/jobs/${projectId}/tickets?ticket=${id}`)}
+        />
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <Pill tone={reportTone(status)}>
           {status[0].toUpperCase() + status.slice(1)}
         </Pill>
         <span className="num text-xs text-muted-foreground">
           {fmtHours(crew.reduce((s, c) => s + c.stHours + c.otHours, 0))} crew ·{" "}
-          {fmtTons(progress.reduce((s, p) => s + p.tons, 0))} erected
+          {fmtTons(progress.filter(p => p.stage === "set").reduce((s, p) => s + p.tons, 0))} set
         </span>
         <div className="ml-auto flex flex-wrap gap-2">
           {editable && (
@@ -227,6 +251,11 @@ function ReportForm({
                 Finalize
               </ConfirmButton>
             </>
+          )}
+          {status === "final" && report && canCreate && (
+            <Button size="sm" variant="outline" onClick={() => setTicketFor(true)}>
+              Create T&M ticket
+            </Button>
           )}
           {status === "final" && (
             <ConfirmButton

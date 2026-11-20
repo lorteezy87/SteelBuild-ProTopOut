@@ -14,9 +14,11 @@ import {
   tasks,
   drawingSheets,
   users,
+  sequenceGateOverrides,
 } from "../../drizzle/schema";
 import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
+import { guardSequenceStart } from "../services/gates";
 import { findCycle } from "../engine/scheduler";
 import { effectivePrivileges } from "../security/access";
 import { financialChecker, hasJobModuleAccess, hasPriv, requireJobModule, requirePriv, resetSec, sec, visibleProjects } from "../security/guard";
@@ -61,7 +63,9 @@ const updateInput = z
     [K in keyof typeof editFields | keyof typeof progressFields]: z.ZodOptional<
       (typeof editFields & typeof progressFields)[K]
     >;
-  });
+  })
+  /** Why the sequence is starting although its ready-to-erect gate isn't ready. */
+  .extend({ gateReason: zText(500).optional() });
 
 async function siblingsOf(projectId: number, parentId: number | null) {
   const d = await db();
@@ -278,7 +282,7 @@ export const tasksRouter = router({
 
   update: protectedProcedure.input(updateInput).mutation(async ({ ctx, input }) => {
     const before = await getTaskOr404(input.id);
-    const { id, customFields, ...rest } = input;
+    const { id, customFields, gateReason, ...rest } = input;
     const set: Record<string, unknown> = defined(rest);
     const editKeys = Object.keys(set).filter(k => k in editFields);
     const progKeys = Object.keys(set).filter(k => k in progressFields);
@@ -304,6 +308,10 @@ export const tasksRouter = router({
       applyProgressRules(before, set, today);
     }
     const d = await db();
+    await guardSequenceStart(before, { status: set.status as string | undefined }, gateReason, async (taskId, reason) => {
+      await d.insert(sequenceGateOverrides).values({ taskId, reason, source: "task", sourceId: null });
+      await logActivity(ctx, { projectId: before.projectId, entityType: "task", entityId: taskId, action: "gate", summary: `started "${before.name}" with the ready-to-erect gate open: ${reason}` });
+    });
     if (Object.keys(set).length) await d.update(tasks).set(set).where(eq(tasks.id, id));
     if (customFields) {
       await saveValues({

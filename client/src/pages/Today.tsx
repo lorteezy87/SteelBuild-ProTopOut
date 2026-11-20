@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { AlertTriangle, ClipboardList, Hourglass, Truck } from "lucide-react";
+import { AlertTriangle, ClipboardList, Hourglass, ShieldAlert, Truck } from "lucide-react";
 import type { ReactNode } from "react";
 import { ErrorState, Kpi, Loading, PageHeader, Panel } from "@/components/brand/Layout";
 import { fmtDate } from "@/lib/format";
@@ -66,13 +66,14 @@ export default function Today() {
   const jobLabel = (id: number) => jobs.get(id) ?? `Job ${id}`;
   return (
     <>
-      <PageHeader eyebrow={`Today · ${fmtDate(d.today)}`} title="What needs you" subtitle="Across every active job: slipping sequences, loads coming in, items in your court and notice deadlines." />
+      <PageHeader eyebrow={`Today · ${fmtDate(d.today)}`} title="What needs you" subtitle="Across every active job: slipping sequences, loads coming in, items in your court, notice deadlines and sequences not ready to erect." />
       <div className="space-y-5 p-6">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Kpi label="Sequences at risk" value={d.sequencesAtRisk.length} />
           <Kpi label="Loads due in 7 days" value={d.loadsDue7.length} />
           <Kpi label="Logs needing action" value={d.logsNeedingAction.length} />
           <Kpi label="Notice deadlines" value={d.noticeDeadlines.length} />
+          <Kpi label="Not ready to erect" value={d.sequencesNotReady.length} />
         </div>
         <div className="grid gap-5 lg:grid-cols-2">
           <TodayPanel
@@ -106,6 +107,14 @@ export default function Today() {
             jobLabel={jobLabel}
             href={r => `/jobs/${r.projectId}/logs`}
             dateLabel="Notice due"
+          />
+          <TodayPanel
+            title="Not ready to erect"
+            icon={<ShieldAlert className="size-4 text-[var(--tp-amber)]" />}
+            rows={d.sequencesNotReady}
+            jobLabel={jobLabel}
+            href={r => `/jobs/${r.projectId}/tasks`}
+            dateLabel="Planned start"
           />
         </div>
       </div>

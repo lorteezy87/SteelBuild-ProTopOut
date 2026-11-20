@@ -73,7 +73,7 @@ const BANNED = /Manus|Approvals|API tokens|Notifications|Security roles|Workspac
   await page.getByText("What needs you").waitFor({ timeout: 15000 });
   ok(true, "owner created and signed in to Today");
   const empty = await page.innerText("body");
-  ok((empty.match(/Nothing needs you here\./g) || []).length === 4, "Today shows four empty panels");
+  ok((empty.match(/Nothing needs you here\./g) || []).length === 5, "Today shows five empty panels (Phase 2 adds Not ready to erect)");
   await shot("02-today-empty");
 
   // 2. Job, sequence, crew, daily report through the app's own API
@@ -95,13 +95,14 @@ const BANNED = /Manus|Approvals|API tokens|Notifications|Security roles|Workspac
     equipment: [],
     progress: [{ taskId: seq.id, tons: 5, pieces: 15, note: null }],
   });
-  const fin = await call("daily.finalize", { id: report.id });
+  // Phase 2: starting a sequence with its ready-to-erect gate open needs a reason.
+  const fin = await call("daily.finalize", { id: report.id, gateReasons: { [seq.id]: "e2e: gate reviewed in the field" } });
   ok(fin.posted.hours === 8 && fin.posted.tons === 5 && fin.posted.pieces === 15, `daily report finalized: ${JSON.stringify(fin.posted)}`);
   const seqAfter = (await call("tasks.list", { projectId: job.id }, "GET")).tasks.find(t => t.id === seq.id);
   ok(seqAfter && seqAfter.erectedTons === 5 && seqAfter.plannedTons === 40, `sequence shows ${seqAfter && seqAfter.erectedTons} t / ${seqAfter && seqAfter.plannedTons} t`);
   let again = null;
   try {
-    await call("daily.finalize", { id: report.id });
+    await call("daily.finalize", { id: report.id, gateReasons: { [seq.id]: "e2e" } });
   } catch (e) {
     again = e.message;
   }

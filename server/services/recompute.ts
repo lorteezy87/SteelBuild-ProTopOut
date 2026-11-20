@@ -13,6 +13,7 @@ import {
   timeEntries,
 } from "../../drizzle/schema";
 import { db } from "../db";
+import { isStage, sequencePercent, type Stage } from "@shared/stages";
 import { deliveryRisk } from "@shared/delivery";
 import { CycleError, schedule, type SchedTask } from "../engine/scheduler";
 import {
@@ -151,6 +152,7 @@ export async function recomputeProject(projectId: number) {
   const today = await orgToday();
   const method = (project.progressMethod || "tonnage") as ProgressMethod;
   const active = project.state === "active";
+  const progressStage: Stage = isStage(project.progressStage) ? project.progressStage : "set";
 
   const rows = await d.select().from(tasks).where(eq(tasks.projectId, projectId));
   const original = new Map(rows.map(r => [r.id, { ...r }]));
@@ -177,9 +179,9 @@ export async function recomputeProject(projectId: number) {
   // Sequence progress from tonnage / pieces.
   for (const r of rows) {
     if (r.kind !== "sequence" || parentIds.has(r.id)) continue;
-    if (method === "tonnage" && r.plannedTons > 0) r.percentComplete = clampPct((r.erectedTons / r.plannedTons) * 100);
-    if (method === "pieces" && r.plannedPieces > 0)
-      r.percentComplete = clampPct((r.erectedPieces / r.plannedPieces) * 100);
+    if (method !== "tonnage" && method !== "pieces") continue;
+    const pct = sequencePercent(r, progressStage, method);
+    if (pct != null) r.percentComplete = clampPct(pct);
   }
 
   const toSched = (r: typeof rows[number], ext = false): SchedTask => ({

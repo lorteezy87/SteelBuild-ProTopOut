@@ -18,6 +18,7 @@ import { TASK_KINDS, TASK_STATUSES } from "@shared/domain";
 import { Columns3, Layers3, RotateCcw } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { toast } from "sonner";
+import { GateCancelled, isGateRefusal, withGate } from "@/features/tasks/gatePrompt";
 import { useJob, useJobInvalidate, useSearchParam } from "./JobContext";
 
 const STATUSES = Object.entries(TASK_STATUSES) as [TaskStatus, string][];
@@ -48,7 +49,9 @@ export default function Board() {
       await invalidate(projectId);
       toast.success("Task status updated.");
     },
-    onError: error => toast.error(errMsg(error)),
+    onError: error => {
+      if (!isGateRefusal(error)) toast.error(errMsg(error));
+    },
   });
   const allTasks = query.data?.tasks;
   const canAssign = can("task.edit");
@@ -132,7 +135,10 @@ export default function Board() {
     const task = leaves.find(t => t.id === id);
     if (!editable || update.isPending || !task || task.status === status)
       return;
-    update.mutate({ id, status });
+    void withGate(reasons => update.mutateAsync({ id, status, ...(reasons ? { gateReason: reasons["0"] } : {}) })).catch(e => {
+      if (e instanceof GateCancelled) toast.message(e.message);
+      void invalidate(projectId); // put the card back where the server has it
+    });
   }
   function drop(event: DragEvent<HTMLDivElement>, status: TaskStatus) {
     event.preventDefault();

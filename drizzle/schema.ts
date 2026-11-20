@@ -159,6 +159,8 @@ export const projects = mysqlTable(
     noticeHours: int("noticeHours").default(72).notNull(),
     siteAddress: text("siteAddress"),
     progressMethod: varchar("progressMethod", { length: 16 }).default("tonnage").notNull(),
+    /** Which erection stage drives tonnage/pieces percent complete. */
+    progressStage: varchar("progressStage", { length: 16 }).default("set").notNull(),
     percentComplete: double("percentComplete").default(0).notNull(),
     projectedFinish: day("projectedFinish"),
     projectedCost: double("projectedCost"),
@@ -219,6 +221,13 @@ export const tasks = mysqlTable(
     plannedPieces: int("plannedPieces").default(0).notNull(),
     erectedTons: double("erectedTons").default(0).notNull(),
     erectedPieces: int("erectedPieces").default(0).notNull(),
+    /** Later erection stages (Set = erectedTons/erectedPieces above). See shared/stages.ts. */
+    plumbedTons: double("plumbedTons").default(0).notNull(),
+    plumbedPieces: int("plumbedPieces").default(0).notNull(),
+    boltedTons: double("boltedTons").default(0).notNull(),
+    boltedPieces: int("boltedPieces").default(0).notNull(),
+    finalTons: double("finalTons").default(0).notNull(),
+    finalPieces: int("finalPieces").default(0).notNull(),
     totalFloat: double("totalFloat"),
     isCritical: boolean("isCritical").default(false).notNull(),
     constraintViolated: boolean("constraintViolated").default(false).notNull(),
@@ -270,6 +279,149 @@ export const checklistItems = mysqlTable(
     sortOrder: int("sortOrder").default(0).notNull(),
   },
   t => [index("cl_task").on(t.taskId)]
+);
+
+/** Manual ready-to-erect items per sequence (the derived items are computed, never stored). See shared/gate.ts. */
+export const sequenceGateItems = mysqlTable(
+  "sequence_gate_items",
+  {
+    id: id(),
+    taskId: int("taskId").notNull(),
+    itemKey: varchar("itemKey", { length: 32 }).notNull(),
+    /** met | open | na */
+    state: varchar("state", { length: 8 }).default("open").notNull(),
+    note: varchar("note", { length: 500 }),
+    updatedAt: updatedAt(),
+  },
+  t => [uniqueIndex("sgi_task_item").on(t.taskId, t.itemKey)]
+);
+
+/** A sequence started with its gate not ready, and why. */
+export const sequenceGateOverrides = mysqlTable(
+  "sequence_gate_overrides",
+  {
+    id: id(),
+    taskId: int("taskId").notNull(),
+    reason: varchar("reason", { length: 500 }).notNull(),
+    /** task | daily */
+    source: varchar("source", { length: 16 }).notNull(),
+    sourceId: int("sourceId"),
+    createdAt: createdAt(),
+  },
+  t => [index("sgo_task").on(t.taskId)]
+);
+
+/* ------------------------------------------------------------------ */
+/* Cranes & lift planning (shared/lift.ts)                             */
+/* ------------------------------------------------------------------ */
+
+/** Crane library: one row per crane model/configuration with its radius → capacity chart. */
+export const craneModels = mysqlTable("crane_models", {
+  id: id(),
+  name: varchar("name", { length: 120 }).notNull(),
+  maxCapacityLb: double("maxCapacityLb"),
+  chart: json("chart").$type<{ radiusFt: number; capacityLb: number }[]>().notNull(),
+  chartNote: varchar("chartNote", { length: 500 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** A crane set up on a job: which model, where on the grid, boom and counterweight. */
+export const craneSetups = mysqlTable(
+  "crane_setups",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    craneModelId: int("craneModelId").notNull(),
+    equipmentId: int("equipmentId"),
+    name: varchar("name", { length: 120 }).notNull(),
+    sheetId: int("sheetId"),
+    page: int("page").default(1).notNull(),
+    grid1: varchar("grid1", { length: 16 }),
+    grid2: varchar("grid2", { length: 16 }),
+    offsetXFt: double("offsetXFt").default(0).notNull(),
+    offsetYFt: double("offsetYFt").default(0).notNull(),
+    boomFt: double("boomFt"),
+    counterweight: varchar("counterweight", { length: 120 }),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("cs_project").on(t.projectId)]
+);
+
+/** One pick: a piece lifted by a setup at a radius the PM entered or confirmed. */
+export const liftPicks = mysqlTable(
+  "lift_picks",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    setupId: int("setupId").notNull(),
+    sequenceTaskId: int("sequenceTaskId"),
+    mark: varchar("mark", { length: 32 }).notNull(),
+    description: varchar("description", { length: 200 }),
+    pieceLb: double("pieceLb"),
+    riggingLb: double("riggingLb"),
+    radiusFt: double("radiusFt"),
+    /** entered | model */
+    radiusSource: varchar("radiusSource", { length: 8 }).default("entered").notNull(),
+    sheetId: int("sheetId"),
+    page: int("page"),
+    pieceKey: varchar("pieceKey", { length: 64 }),
+    signoffs: json("signoffs").$type<Record<string, { name: string; date: string | null }>>(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("lp_project").on(t.projectId), index("lp_setup").on(t.setupId)]
+);
+
+/* ------------------------------------------------------------------ */
+/* T&M / extra-work tickets (shared/tm.ts)                             */
+/* ------------------------------------------------------------------ */
+
+export const tmTickets = mysqlTable(
+  "tm_tickets",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    number: int("number").notNull(),
+    ticketDate: day("ticketDate").notNull(),
+    description: text("description"),
+    /** Change order (wf item of app "co") this work is priced under. */
+    coItemId: int("coItemId"),
+    dailyReportId: int("dailyReportId"),
+    /** draft | signed | void */
+    status: varchar("status", { length: 8 }).default("draft").notNull(),
+    markup: json("markup").$type<{ labor: number; equipment: number; material: number }>().notNull(),
+    signedName: varchar("signedName", { length: 120 }),
+    signedTitle: varchar("signedTitle", { length: 120 }),
+    signedAt: timestamp("signedAt"),
+    signatureKey: varchar("signatureKey", { length: 255 }),
+    voidReason: varchar("voidReason", { length: 500 }),
+    createdBy: int("createdBy"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [uniqueIndex("tmt_project_number").on(t.projectId, t.number)]
+);
+
+export const tmTicketLines = mysqlTable(
+  "tm_ticket_lines",
+  {
+    id: id(),
+    ticketId: int("ticketId").notNull(),
+    sortOrder: int("sortOrder").default(0).notNull(),
+    /** labor | equipment | material */
+    kind: varchar("kind", { length: 16 }).notNull(),
+    description: varchar("description", { length: 300 }).notNull(),
+    qty: double("qty").default(0).notNull(),
+    unit: varchar("unit", { length: 16 }).default("hr").notNull(),
+    rate: double("rate").default(0).notNull(),
+    otQty: double("otQty"),
+    otRate: double("otRate"),
+  },
+  t => [index("tml_ticket").on(t.ticketId)]
 );
 
 export type BaselineTaskSnapshot = {
@@ -411,6 +563,8 @@ export const dailyReportProgress = mysqlTable(
     tons: double("tons").default(0).notNull(),
     pieces: int("pieces").default(0).notNull(),
     note: varchar("note", { length: 500 }),
+    /** set | plumbed | bolted | final */
+    stage: varchar("stage", { length: 16 }).default("set").notNull(),
     posted: boolean("posted").default(false).notNull(),
   },
   t => [index("drp_report").on(t.reportId), index("drp_task").on(t.taskId)]

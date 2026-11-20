@@ -1,5 +1,12 @@
 import { and, eq, inArray, ne } from "drizzle-orm";
-import { todaySummary } from "@shared/today";
+import { GATE_LOOKAHEAD_DAYS, todaySummary } from "@shared/today";
+import { gateStatusFor } from "../services/gates";
+
+const addCalendarDays = (day: string, n: number) => {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+};
 import { isBallInCourt } from "@shared/ballInCourt";
 import { deliveries, projects, tasks, wfApps, wfItems, wfStates } from "../../drizzle/schema";
 import { protectedProcedure, router } from "../_core/trpc";
@@ -17,7 +24,7 @@ export const todayRouter = router({
     if (!ids.length) return { today, jobs: [], ...todaySummary({ today, sequences: [], deliveries: [], logs: [] }) };
     const [seqs, loads, logs] = await Promise.all([
       d
-        .select({ id: tasks.id, projectId: tasks.projectId, name: tasks.name, scheduleHealth: tasks.scheduleHealth, projectedFinish: tasks.projectedFinish })
+        .select({ id: tasks.id, projectId: tasks.projectId, name: tasks.name, scheduleHealth: tasks.scheduleHealth, projectedFinish: tasks.projectedFinish, status: tasks.status, startDate: tasks.startDate, isSummary: tasks.isSummary })
         .from(tasks)
         .where(and(inArray(tasks.projectId, ids), eq(tasks.kind, "sequence"))),
       d
@@ -31,9 +38,14 @@ export const todayRouter = router({
         .innerJoin(wfStates, eq(wfStates.id, wfItems.stateId))
         .where(and(inArray(wfItems.projectId, ids), ne(wfStates.category, "end"))),
     ]);
+    // Only sequences about to start need their gate computed.
+    const horizon = addCalendarDays(today, GATE_LOOKAHEAD_DAYS);
+    const candidates = seqs.filter(s => !s.isSummary && s.status === "not_started" && s.startDate != null && s.startDate <= horizon);
+    const gates = await gateStatusFor(candidates.map(s => s.id));
     const summary = todaySummary({
       today,
       sequences: seqs,
+      gates: candidates.map(s => ({ id: s.id, projectId: s.projectId, name: s.name, status: s.status, startDate: s.startDate, gate: gates.get(s.id) ?? "unknown" })),
       deliveries: loads,
       logs: logs.map(l => ({
         id: l.item.id,

@@ -1,4 +1,5 @@
 import { Plus, X } from "lucide-react";
+import { STAGES, isStage, stageColumns, type Stage } from "@shared/stages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +28,7 @@ export type ProgressLine = {
   tons: number;
   pieces: number;
   note: string | null;
+  stage: Stage;
 };
 type Task = RouterOutputs["tasks"]["list"]["tasks"][number];
 
@@ -185,7 +187,7 @@ export function ReportLines({
               ))}
               {!crew.length && (
                 <tr>
-                  <td colSpan={6} className="text-muted-foreground">
+                  <td colSpan={7} className="text-muted-foreground">
                     No crew lines. Add each person's ST and OT hours.
                   </td>
                 </tr>
@@ -293,7 +295,7 @@ export function ReportLines({
               onClick={() =>
                 onProgress([
                   ...progress,
-                  { taskId: 0, tons: 0, pieces: 0, note: null },
+                  { taskId: 0, tons: 0, pieces: 0, note: null, stage: "set" },
                 ])
               }
             >
@@ -304,12 +306,13 @@ export function ReportLines({
         }
       >
         <fieldset disabled={!editable} className="overflow-x-auto">
-          <table className="tp-table min-w-[660px]">
+          <table className="tp-table min-w-[780px]">
             <thead>
               <tr>
                 <th>Sequence</th>
-                <th>Pieces set</th>
-                <th>Tons erected</th>
+                <th>Stage</th>
+                <th>Pieces</th>
+                <th>Tons</th>
                 <th>% complete*</th>
                 <th>Field note</th>
                 {editable && <th />}
@@ -318,24 +321,19 @@ export function ReportLines({
             <tbody>
               {progress.map((line, i) => {
                 const task = tasks.find(t => t.id === line.taskId);
-                const addedTons = posted
-                  ? 0
-                  : progress
-                      .filter(p => p.taskId === line.taskId)
-                      .reduce((s, p) => s + p.tons, 0);
-                const addedPieces = posted
-                  ? 0
-                  : progress
-                      .filter(p => p.taskId === line.taskId)
-                      .reduce((s, p) => s + p.pieces, 0);
+                const same = progress.filter(
+                  p => p.taskId === line.taskId && p.stage === line.stage
+                );
+                const addedTons = posted ? 0 : same.reduce((s, p) => s + p.tons, 0);
+                const addedPieces = posted ? 0 : same.reduce((s, p) => s + p.pieces, 0);
+                const col = stageColumns(line.stage);
+                // % complete at this line's stage; unknown (—) when the sequence has no planned quantity.
                 const pct = task
                   ? task.plannedTons > 0
-                    ? ((task.erectedTons + addedTons) / task.plannedTons) * 100
+                    ? ((task[col.tons] + addedTons) / task.plannedTons) * 100
                     : task.plannedPieces > 0
-                      ? ((task.erectedPieces + addedPieces) /
-                          task.plannedPieces) *
-                        100
-                      : task.percentComplete
+                      ? ((task[col.pieces] + addedPieces) / task.plannedPieces) * 100
+                      : null
                   : null;
                 return (
                   <tr key={i}>
@@ -351,6 +349,13 @@ export function ReportLines({
                         onChange={v =>
                           setProgress(i, { taskId: v ? Number(v) : 0 })
                         }
+                      />
+                    </td>
+                    <td className="min-w-36">
+                      <SimpleSelect
+                        value={line.stage}
+                        options={STAGES}
+                        onChange={v => v && isStage(v) && setProgress(i, { stage: v })}
                       />
                     </td>
                     <td>
@@ -407,7 +412,7 @@ export function ReportLines({
           </table>
         </fieldset>
         <p className="border-t border-[var(--tp-rule)] px-3 py-2 text-xs text-muted-foreground">
-          * Cumulative tonnage % (pieces when no planned tons), including this
+          * Cumulative % at the line's stage (pieces when no planned tons), including this
           report. Preview only until finalized.
         </p>
       </Panel>

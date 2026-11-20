@@ -64,6 +64,7 @@ export default function Schedule() {
   const { projectId, data: job, can } = useJob();
   const { today } = useRefData();
   const query = trpc.tasks.list.useQuery({ projectId });
+  const gateQ = trpc.gates.forProject.useQuery({ projectId });
   const invalidate = useJobInvalidate();
   const taskParam = useSearchParam("task");
   const editable = can("task.edit");
@@ -760,6 +761,7 @@ export default function Schedule() {
             </div>
             <div className="flex items-start" style={{ width: contentWidth }}>
               <WbsGrid
+                gates={gateQ.data}
                 editable={editable}
                 drag={rowDrag}
                 crew={task => (
