@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { CommentsPanel } from "@/components/brand/Collab";
 import {
   ConfirmButton,
   DateInput,
@@ -25,13 +24,7 @@ import {
 
 type ReportData = RouterOutputs["daily"]["get"];
 export const reportTone = (status: string) =>
-  status === "approved"
-    ? "green"
-    : status === "submitted"
-      ? "blue"
-      : status === "rejected"
-        ? "red"
-        : "gray";
+  status === "final" ? "green" : "gray";
 
 export function ReportEditor({
   projectId,
@@ -144,18 +137,14 @@ function ReportForm({
       note: p.note,
     }))
   );
-  const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const save = trpc.daily.save.useMutation();
-  const submit = trpc.daily.submit.useMutation();
-  const approve = trpc.daily.approve.useMutation();
-  const reject = trpc.daily.reject.useMutation();
+  const finalize = trpc.daily.finalize.useMutation();
   const reopen = trpc.daily.reopen.useMutation();
   const remove = trpc.daily.remove.useMutation();
   const refresh = async () => {
     await Promise.all([
       utils.daily.list.invalidate({ projectId }),
-      utils.daily.pending.invalidate(),
       utils.daily.get.invalidate(),
       utils.tasks.list.invalidate({ projectId }),
       utils.time.week.invalidate(),
@@ -181,7 +170,7 @@ function ReportForm({
       setBusy(false);
     }
   };
-  const saveReport = async (andSubmit: boolean) => {
+  const saveReport = async (andFinalize: boolean) => {
     if (!head.reportDate) throw new Error("Enter a report date.");
     if (
       crew.some(c => !c.userId) ||
@@ -199,7 +188,7 @@ function ReportForm({
       equipment,
       progress,
     });
-    if (andSubmit) await submit.mutateAsync({ id: result.id });
+    if (andFinalize) await finalize.mutateAsync({ id: result.id });
     onSaved(result.id);
   };
   const status = report?.status ?? "draft";
@@ -226,40 +215,23 @@ function ReportForm({
               >
                 Save
               </Button>
-              <Button
-                size="sm"
+              <ConfirmButton
+                title="Finalize and post this report?"
+                body="Finalizing posts ST / OT crew hours to time entries, equipment cost to this job, and erected tons / pieces to sequences. Review the field lines first; you can reopen it later."
+                confirmLabel="Finalize & post"
                 disabled={busy}
-                onClick={() =>
-                  void perform(
-                    () => saveReport(true),
-                    "Report submitted for approval."
-                  )
+                onConfirm={() =>
+                  void perform(() => saveReport(true), "Report finalized. Hours and progress posted.")
                 }
               >
-                Submit
-              </Button>
+                Finalize
+              </ConfirmButton>
             </>
           )}
-          {status === "submitted" && data?.canApprove && (
+          {status === "final" && (
             <ConfirmButton
-              title="Approve and post this report?"
-              body="Approval posts ST / OT crew hours to approved time entries, equipment cost to this job, and erected tons / pieces to sequences. Review the field lines before posting."
-              confirmLabel="Approve & post"
-              disabled={busy}
-              onConfirm={() =>
-                void perform(
-                  () => approve.mutateAsync({ id: report!.id }),
-                  "Report approved. Hours and progress posted."
-                )
-              }
-            >
-              Approve
-            </ConfirmButton>
-          )}
-          {status === "approved" && data?.canApprove && (
-            <ConfirmButton
-              title="Reopen approved report?"
-              body="This reverses posted crew time and sequence progress. Invoiced hours cannot be reopened."
+              title="Reopen this final report?"
+              body="This reverses posted crew time and sequence progress so the report can be corrected."
               disabled={busy}
               onConfirm={() =>
                 void perform(
@@ -271,7 +243,7 @@ function ReportForm({
               Reopen
             </ConfirmButton>
           )}
-          {report && canCreate && ["draft", "rejected"].includes(status) && (
+          {report && canCreate && status === "draft" && (
             <ConfirmButton
               destructive
               title="Delete this daily report?"
@@ -290,43 +262,12 @@ function ReportForm({
         </div>
       </div>
       <div
-        className={`border border-[var(--tp-rule)] px-3 py-2 text-xs ${status === "approved" ? "bg-[var(--tp-green-soft)]" : "bg-[var(--tp-bone)]"}`}
+        className={`border border-[var(--tp-rule)] px-3 py-2 text-xs ${status === "final" ? "bg-[var(--tp-green-soft)]" : "bg-[var(--tp-bone)]"}`}
       >
-        {status === "approved"
-          ? `Posted to time entries and sequences · Approved by ${userName(report?.approvedBy)} ${fmtDateTime(report?.approvedAt)}`
-          : "Approval posts crew hours to time entries, equipment cost to the job, and tons / pieces erected to sequences. Draft and submitted reports do not post progress."}
+        {status === "final"
+          ? `Posted to time entries and sequences · Finalized ${fmtDateTime(report?.approvedAt)}`
+          : "Finalizing posts crew hours to time entries, equipment cost to the job, and tons / pieces erected to sequences. Draft reports do not post progress."}
       </div>
-      {report?.rejectReason && (
-        <div className="border border-[color-mix(in_srgb,var(--tp-red)_35%,var(--tp-rule))] bg-[var(--tp-red-soft)] p-3">
-          <div className="label-caps">Returned for correction</div>
-          <p className="mt-1 whitespace-pre-wrap">{report.rejectReason}</p>
-        </div>
-      )}
-      {status === "submitted" && data?.canApprove && (
-        <div className="flex gap-2">
-          <Input
-            aria-label="Reason for rejecting report"
-            value={reason}
-            onChange={e => setReason(e.target.value)}
-            maxLength={1000}
-            placeholder="Reason for returning this report…"
-          />
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={!reason.trim() || busy}
-            onClick={() =>
-              void perform(
-                () =>
-                  reject.mutateAsync({ id: report!.id, reason: reason.trim() }),
-                "Report returned to foreman."
-              )
-            }
-          >
-            Reject with reason
-          </Button>
-        </div>
-      )}
       <fieldset
         disabled={!editable || busy}
         className="grid gap-3 sm:grid-cols-4"
@@ -340,7 +281,6 @@ function ReportForm({
         <Field label="Foreman">
           <UserSelect
             value={head.foremanId}
-            includePassive
             onChange={v => setHead(h => ({ ...h, foremanId: v }))}
           />
         </Field>
@@ -370,7 +310,7 @@ function ReportForm({
         progress={progress}
         tasks={taskQuery.data?.tasks ?? []}
         editable={editable && !busy}
-        posted={status === "approved"}
+        posted={status === "final"}
         onCrew={setCrew}
         onEquipment={setEquipment}
         onProgress={setProgress}
@@ -414,13 +354,10 @@ function ReportForm({
               canUpload={canUpload}
             />
           </Panel>
-          <Panel title="Comments" bodyClassName="p-3">
-            <CommentsPanel entityType="dailyReport" entityId={report.id} />
-          </Panel>
         </>
       ) : (
         <p className="text-xs text-muted-foreground">
-          Save the report to attach field photos and add comments.
+          Save the report to attach field photos.
         </p>
       )}
     </div>

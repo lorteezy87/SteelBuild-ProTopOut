@@ -75,6 +75,9 @@ async function rateFor(userId: number) {
   return { cost: cost ?? 0, bill: bill ?? 0 };
 }
 
+import { assertFinalizable, crewTimeLines, progressByTask } from "@shared/dailyPosting";
+import { crewInsertValues } from "../services/crew";
+
 export const dailyReportsRouter = router({
   list: protectedProcedure
     .input(z.object({ projectId: zId }))
@@ -117,39 +120,6 @@ export const dailyReportsRouter = router({
     }),
 
   /** Submitted reports awaiting approval on jobs where the user holds dailyreport.approve. */
-  pending: protectedProcedure.query(async ({ ctx }) => {
-    const d = await db();
-    const s = await sec(ctx);
-    if (!hasJobModuleAccess(s)) return [];
-    const pids: number[] = [];
-    s.projectIds.forEach(pid => {
-      if (effectivePrivileges(s, pid).has("dailyreport.approve"))
-        pids.push(pid);
-    });
-    if (!pids.length) return [];
-    return d
-      .select({
-        id: dailyReports.id,
-        projectId: dailyReports.projectId,
-        reportDate: dailyReports.reportDate,
-        foremanId: dailyReports.foremanId,
-        foremanName: users.name,
-        projectCode: projects.code,
-        projectName: projects.name,
-        workPerformed: dailyReports.workPerformed,
-        submittedAt: dailyReports.updatedAt,
-      })
-      .from(dailyReports)
-      .innerJoin(projects, eq(projects.id, dailyReports.projectId))
-      .leftJoin(users, eq(users.id, dailyReports.foremanId))
-      .where(
-        and(
-          eq(dailyReports.status, "submitted"),
-          inArray(dailyReports.projectId, pids)
-        )
-      )
-      .orderBy(desc(dailyReports.reportDate));
-  }),
   get: protectedProcedure
     .input(z.object({ id: zId }))
     .query(async ({ ctx, input }) => {
@@ -179,7 +149,7 @@ export const dailyReportsRouter = router({
         canApprove: await hasPriv(ctx, "dailyreport.approve", r.projectId),
         canEdit:
           (await hasPriv(ctx, "dailyreport.create", r.projectId)) &&
-          (r.status === "draft" || r.status === "rejected"),
+          r.status === "draft",
       };
     }),
 
@@ -226,8 +196,8 @@ export const dailyReportsRouter = router({
         const r = await loadReport(id);
         if (r.projectId !== input.projectId)
           bad("Report belongs to another job");
-        if (r.status !== "draft" && r.status !== "rejected")
-          bad("Only draft or rejected reports can be edited");
+        if (r.status !== "draft")
+          bad("Only draft reports can be edited");
         await d
           .update(dailyReports)
           .set({ ...head, status: "draft", rejectReason: null })
@@ -311,223 +281,95 @@ export const dailyReportsRouter = router({
       return { id: rid };
     }),
 
-  submit: protectedProcedure
-    .input(z.object({ id: zId }))
-    .mutation(async ({ ctx, input }) => {
-      const r = await loadReport(input.id);
-      await requireJobModule(ctx, r.projectId, "dailyreport.create");
-      if (r.status !== "draft" && r.status !== "rejected")
-        bad("Report is already submitted");
-      const d = await db();
-      await d
-        .update(dailyReports)
-        .set({ status: "submitted" })
-        .where(eq(dailyReports.id, r.id));
-      const p = await getProjectOr404(r.projectId);
-      await notify(ctx, [p.managerId], {
-        title: `Daily report submitted: ${p.name} ${r.reportDate}`,
-        link: `/jobs/${p.id}/daily/${r.id}`,
-      });
-      await logActivity(ctx, {
-        projectId: r.projectId,
-        entityType: "dailyReport",
-        entityId: r.id,
-        action: "submit",
-        summary: `submitted daily report ${r.reportDate}`,
-      });
-      await emit(ctx, "dailyReport", "update", {
-        id: r.id,
-        projectId: r.projectId,
-        status: "submitted",
-      });
-      return { ok: true };
-    }),
-
-  /** Approval posts crew hours as time entries, equipment cost, and erected tons/pieces to sequences. */
-  approve: protectedProcedure
+  /** Finalizing posts crew hours as time entries, equipment cost, and erected tons/pieces to sequences. */
+  finalize: protectedProcedure
     .input(z.object({ id: zId }))
     .mutation(async ({ ctx, input }) => {
       const r = await loadReport(input.id);
       await requireJobModule(ctx, r.projectId, "dailyreport.approve");
-      if (r.status !== "submitted")
-        bad("Only submitted reports can be approved");
+      try {
+        assertFinalizable(r.status);
+      } catch (e) {
+        bad(e instanceof Error ? e.message : String(e));
+      }
       assertTimeUnlocked(r.reportDate, await getTimeLock());
       const d = await db();
-      const crew = await d
-        .select()
-        .from(dailyReportCrew)
-        .where(eq(dailyReportCrew.reportId, r.id));
-      const progress = await d
-        .select()
-        .from(dailyReportProgress)
-        .where(eq(dailyReportProgress.reportId, r.id));
+      const crew = await d.select().from(dailyReportCrew).where(eq(dailyReportCrew.reportId, r.id));
+      const progress = await d.select().from(dailyReportProgress).where(eq(dailyReportProgress.reportId, r.id));
       const codes = await d.select().from(timeCodes);
-      const regular =
-        codes.find(c => c.name.toLowerCase() === "regular") ?? codes[0];
-      const overtime =
-        codes.find(c => c.name.toLowerCase().startsWith("overtime")) ?? regular;
+      const regular = codes.find(c => c.name.toLowerCase() === "regular") ?? codes[0];
+      const overtime = codes.find(c => c.name.toLowerCase().startsWith("overtime")) ?? regular;
       const now = new Date();
-      for (const c of crew) {
-        if (!c.userId) continue;
-        const rate = await rateFor(c.userId);
-        const lines: { hours: number; code: typeof regular }[] = [];
-        if (c.stHours > 0) lines.push({ hours: c.stHours, code: regular });
-        if (c.otHours > 0) lines.push({ hours: c.otHours, code: overtime });
-        for (const l of lines) {
-          const mult = l.code?.multiplier ?? 1;
-          const [{ id: entryId }] = await d
-            .insert(timeEntries)
-            .values({
-              userId: c.userId,
-              projectId: r.projectId,
-              taskId: c.taskId ?? null,
-              timeCodeId: l.code?.id ?? null,
-              entryDate: r.reportDate,
-              hours: l.hours,
-              notes: `Daily report ${r.reportDate}`,
-              state: "approved",
-              source: "daily_report",
-              sourceId: r.id,
-              costAmount: round2(l.hours * rate.cost * mult),
-              billAmount:
-                l.code?.billable === false
-                  ? 0
-                  : round2(l.hours * rate.bill * mult),
-              approvedBy: ctx.user.id,
-              approvedAt: now,
-            })
-            .$returningId();
-          await emit(ctx, "timeEntry", "add", {
-            id: entryId,
+      let hours = 0;
+      for (const l of crewTimeLines(crew)) {
+        const rate = await rateFor(l.userId);
+        const code = l.kind === "ot" ? overtime : regular;
+        const mult = code?.multiplier ?? 1;
+        hours += l.hours;
+        const [{ id: entryId }] = await d
+          .insert(timeEntries)
+          .values({
+            userId: l.userId,
             projectId: r.projectId,
+            taskId: l.taskId,
+            timeCodeId: code?.id ?? null,
             entryDate: r.reportDate,
+            hours: l.hours,
+            notes: `Daily report ${r.reportDate}`,
+            state: "recorded",
             source: "daily_report",
             sourceId: r.id,
-            state: "approved",
-          });
-        }
+            costAmount: round2(l.hours * rate.cost * mult),
+            billAmount: code?.billable === false ? 0 : round2(l.hours * rate.bill * mult),
+            approvedBy: ctx.user.id,
+            approvedAt: now,
+          })
+          .$returningId();
+        await emit(ctx, "timeEntry", "add", { id: entryId, projectId: r.projectId, entryDate: r.reportDate, source: "daily_report", sourceId: r.id, state: "recorded" });
       }
-      for (const p of progress) {
-        const [t] = await d
-          .select()
-          .from(tasks)
-          .where(eq(tasks.id, p.taskId))
-          .limit(1);
+      const byTask = progressByTask(progress);
+      for (const [taskId, add] of Array.from(byTask)) {
+        const [t] = await d.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
         if (!t) continue;
+        const erectedTons = round2(t.erectedTons + add.tons);
+        // Sequences that reach planned tonnage are complete.
+        const complete = t.kind === "sequence" && t.plannedTons > 0 && erectedTons >= t.plannedTons - 1e-6 && t.status !== "done";
         await d
           .update(tasks)
           .set({
-            erectedTons: round2(t.erectedTons + p.tons),
-            erectedPieces: t.erectedPieces + p.pieces,
+            erectedTons,
+            erectedPieces: t.erectedPieces + add.pieces,
             actualStart: t.actualStart ?? r.reportDate,
-            status: t.status === "not_started" ? "in_progress" : t.status,
+            status: complete ? "done" : t.status === "not_started" ? "in_progress" : t.status,
+            ...(complete ? { percentComplete: 100, actualFinish: r.reportDate } : {}),
           })
           .where(eq(tasks.id, t.id));
-        await d
-          .update(dailyReportProgress)
-          .set({ posted: true })
-          .where(eq(dailyReportProgress.id, p.id));
       }
-      // Sequences that reach planned tonnage are complete.
-      if (progress.length) {
-        const ts = await d
-          .select()
-          .from(tasks)
-          .where(
-            inArray(
-              tasks.id,
-              progress.map(p => p.taskId)
-            )
-          );
-        for (const t of ts) {
-          if (
-            t.kind === "sequence" &&
-            t.plannedTons > 0 &&
-            t.erectedTons >= t.plannedTons - 1e-6 &&
-            t.status !== "done"
-          ) {
-            await d
-              .update(tasks)
-              .set({
-                status: "done",
-                percentComplete: 100,
-                actualFinish: r.reportDate,
-              })
-              .where(eq(tasks.id, t.id));
-          }
-        }
-      }
-      await d
-        .update(dailyReports)
-        .set({ status: "approved", approvedBy: ctx.user.id, approvedAt: now })
-        .where(eq(dailyReports.id, r.id));
+      if (progress.length) await d.update(dailyReportProgress).set({ posted: true }).where(eq(dailyReportProgress.reportId, r.id));
+      await d.update(dailyReports).set({ status: "final", approvedBy: ctx.user.id, approvedAt: now }).where(eq(dailyReports.id, r.id));
       await recomputeProject(r.projectId);
-      await notify(ctx, [r.createdBy, r.foremanId], {
-        title: `Daily report approved: ${r.reportDate}`,
-        link: `/jobs/${r.projectId}/daily/${r.id}`,
-      });
+      const tons = round2(Array.from(byTask.values()).reduce((s, p) => s + p.tons, 0));
+      const pieces = Array.from(byTask.values()).reduce((s, p) => s + p.pieces, 0);
       await logActivity(ctx, {
         projectId: r.projectId,
         entityType: "dailyReport",
         entityId: r.id,
-        action: "approve",
-        summary: `approved daily report ${r.reportDate} (${crew.length} crew, ${round2(progress.reduce((s, p) => s + p.tons, 0))} tons)`,
+        action: "finalize",
+        summary: `finalized daily report ${r.reportDate} (${crew.length} crew, ${tons} tons)`,
       });
-      await emit(ctx, "dailyReport", "update", {
-        id: r.id,
-        projectId: r.projectId,
-        status: "approved",
-      });
-      return { ok: true };
+      await emit(ctx, "dailyReport", "update", { id: r.id, projectId: r.projectId, status: "final" });
+      return { posted: { hours: round2(hours), tons, pieces } };
     }),
 
-  reject: protectedProcedure
-    .input(z.object({ id: zId, reason: zText(1000).min(1) }))
-    .mutation(async ({ ctx, input }) => {
-      const r = await loadReport(input.id);
-      await requireJobModule(ctx, r.projectId, "dailyreport.approve");
-      if (r.status !== "submitted")
-        bad("Only submitted reports can be rejected");
-      const d = await db();
-      await d
-        .update(dailyReports)
-        .set({ status: "rejected", rejectReason: input.reason })
-        .where(eq(dailyReports.id, r.id));
-      await notify(ctx, [r.createdBy, r.foremanId], {
-        title: `Daily report returned: ${r.reportDate}`,
-        body: input.reason,
-        link: `/jobs/${r.projectId}/daily/${r.id}`,
-      });
-      await emit(ctx, "dailyReport", "update", {
-        id: r.id,
-        projectId: r.projectId,
-        status: "rejected",
-        rejectReason: input.reason,
-      });
-      return { ok: true };
-    }),
-
-  /** Reverse an approval (removes posted time and progress) so the report can be corrected. */
+  /** Reverse a finalized report (removes posted time and progress) so it can be corrected. */
   reopen: protectedProcedure
     .input(z.object({ id: zId }))
     .mutation(async ({ ctx, input }) => {
       const r = await loadReport(input.id);
       await requireJobModule(ctx, r.projectId, "dailyreport.approve");
-      if (r.status !== "approved") bad("Only approved reports can be reopened");
+      if (r.status !== "final") bad("Only final reports can be reopened");
       assertTimeUnlocked(r.reportDate, await getTimeLock());
       const d = await db();
-      const invoiced = await d
-        .select({ id: timeEntries.id })
-        .from(timeEntries)
-        .where(
-          and(
-            eq(timeEntries.source, "daily_report"),
-            eq(timeEntries.sourceId, r.id),
-            eq(timeEntries.state, "invoiced")
-          )
-        )
-        .limit(1);
-      if (invoiced.length) bad("Hours from this report are already invoiced");
       const postedTime = await d
         .select()
         .from(timeEntries)
@@ -611,7 +453,7 @@ export const dailyReportsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const r = await loadReport(input.id);
       await requireJobModule(ctx, r.projectId, "dailyreport.create");
-      if (r.status === "approved" || r.status === "submitted")
+      if (r.status === "final")
         bad("Reopen or reject the report before deleting it");
       const d = await db();
       await d.delete(dailyReportCrew).where(eq(dailyReportCrew.reportId, r.id));
@@ -643,12 +485,7 @@ export const dailyReportsRouter = router({
       const d = await db();
       const [{ id }] = await d
         .insert(users)
-        .values({
-          openId: `local:${randomUUID()}`,
-          name: input.name,
-          accessType: "passive",
-          jobRoleId: input.jobRoleId ?? null,
-        })
+        .values(crewInsertValues({ name: input.name, jobRoleId: input.jobRoleId ?? null }))
         .$returningId();
       return { id };
     }),

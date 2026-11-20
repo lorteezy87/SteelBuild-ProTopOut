@@ -112,7 +112,7 @@ export const expensesRouter = router({
           .where(eq(expenses.id, input.id))
           .limit(1);
         if (!row || row.userId !== ctx.user.id) bad("Expense not found");
-        if (row.state !== "saved" && row.state !== "rejected")
+        if (row.state !== "saved")
           bad("Submitted expenses cannot be edited");
         await d
           .update(expenses)
@@ -137,176 +137,16 @@ export const expensesRouter = router({
       return { id };
     }),
 
-  submit: protectedProcedure
+  /** Locks saved expenses; recorded expenses count as job cost. */
+  record: protectedProcedure
     .input(z.object({ ids: z.array(zId).min(1) }))
     .mutation(async ({ ctx, input }) => {
       const d = await db();
-      const rows = await d
-        .select()
-        .from(expenses)
-        .where(inArray(expenses.id, input.ids));
-      for (const r of rows) {
-        if (r.userId !== ctx.user.id)
-          bad("You can only submit your own expenses");
-        if (r.state !== "saved" && r.state !== "rejected")
-          bad("Some expenses are already submitted");
-      }
-      await d
-        .update(expenses)
-        .set({ state: "submitted" })
-        .where(
-          inArray(
-            expenses.id,
-            rows.map(r => r.id)
-          )
-        );
-      const pms = await d
-        .select({ managerId: projects.managerId })
-        .from(projects)
-        .where(
-          inArray(projects.id, Array.from(new Set(rows.map(r => r.projectId))))
-        );
-      await notify(
-        ctx,
-        pms.map(p => p.managerId),
-        {
-          title: `Expenses submitted by ${ctx.user.name ?? "user"}`,
-          link: "/approvals?tab=expenses",
-        }
-      );
-      for (const r of rows)
-        await emit(ctx, "expense", "update", {
-          id: r.id,
-          projectId: r.projectId,
-          state: "submitted",
-        });
-      return { count: rows.length };
-    }),
-
-  approvals: protectedProcedure.query(async ({ ctx }) => {
-    const d = await db();
-    const s = await sec(ctx);
-    if (!hasJobModuleAccess(s)) return [];
-    const pids: number[] = [];
-    s.projectIds.forEach(pid => {
-      if (effectivePrivileges(s, pid).has("expense.approve")) pids.push(pid);
-    });
-    if (!pids.length) return [];
-    return d
-      .select({
-        e: expenses,
-        userName: users.name,
-        projectName: projects.name,
-        projectCode: projects.code,
-        codeName: expenseCodes.name,
-      })
-      .from(expenses)
-      .innerJoin(users, eq(users.id, expenses.userId))
-      .innerJoin(projects, eq(projects.id, expenses.projectId))
-      .leftJoin(expenseCodes, eq(expenseCodes.id, expenses.expenseCodeId))
-      .where(
-        and(eq(expenses.state, "submitted"), inArray(expenses.projectId, pids))
-      );
-  }),
-
-  /** Accounting queue; financial privilege is required on each returned job. */
-  approved: protectedProcedure.query(async ({ ctx }) => {
-    const d = await db();
-    const s = await sec(ctx);
-    const pids: number[] = [];
-    s.projectIds.forEach(pid => {
-      if (effectivePrivileges(s, pid).has("project.financials")) pids.push(pid);
-    });
-    if (!pids.length) return [];
-    return d
-      .select({
-        e: expenses,
-        userName: users.name,
-        projectName: projects.name,
-        projectCode: projects.code,
-        codeName: expenseCodes.name,
-      })
-      .from(expenses)
-      .innerJoin(users, eq(users.id, expenses.userId))
-      .innerJoin(projects, eq(projects.id, expenses.projectId))
-      .leftJoin(expenseCodes, eq(expenseCodes.id, expenses.expenseCodeId))
-      .where(
-        and(eq(expenses.state, "approved"), inArray(expenses.projectId, pids))
-      );
-  }),
-
-  decide: protectedProcedure
-    .input(
-      z.object({
-        ids: z.array(zId).min(1),
-        action: z.enum(["approve", "reject", "invoice"]),
-        reason: z.string().max(500).optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      if (input.action === "reject" && !input.reason?.trim())
-        bad("A reason is required to reject an expense");
-      const d = await db();
-      const s = await sec(ctx);
-      const rows = await d
-        .select()
-        .from(expenses)
-        .where(inArray(expenses.id, input.ids));
-      for (const r of rows) {
-        const privs = effectivePrivileges(s, r.projectId);
-        if (input.action === "invoice") {
-          if (r.state !== "approved")
-            bad("Only approved expenses can be invoiced");
-          if (!privs.has("project.financials"))
-            bad("Missing privilege: project.financials");
-        } else {
-          if (r.state !== "submitted")
-            bad("Only submitted expenses can be approved or rejected");
-          if (!privs.has("expense.approve"))
-            bad("Missing privilege: expense.approve");
-          if (r.userId === ctx.user.id && ctx.user.role !== "admin")
-            bad("You cannot approve your own expenses");
-        }
-      }
-      const now = new Date();
-      const set =
-        input.action === "approve"
-          ? {
-              state: "approved",
-              approvedBy: ctx.user.id,
-              approvedAt: now,
-              rejectReason: null,
-            }
-          : input.action === "reject"
-            ? { state: "rejected", rejectReason: input.reason ?? null }
-            : { state: "invoiced" };
-      await d
-        .update(expenses)
-        .set(set)
-        .where(
-          inArray(
-            expenses.id,
-            rows.map(r => r.id)
-          )
-        );
-      if (input.action !== "invoice") {
-        await notify(ctx, Array.from(new Set(rows.map(r => r.userId))), {
-          title:
-            input.action === "approve"
-              ? "Your expense was approved"
-              : "Your expense was rejected",
-          body: input.reason,
-          link: "/expenses",
-        });
-      }
-      for (const pid of Array.from(new Set(rows.map(r => r.projectId))))
-        await recomputeProject(pid);
-      for (const r of rows)
-        await emit(ctx, "expense", "update", {
-          id: r.id,
-          projectId: r.projectId,
-          ...set,
-        });
+      const rows = await d.select().from(expenses).where(inArray(expenses.id, input.ids));
+      for (const r of rows) if (r.state !== "saved") bad("Some expenses are already recorded");
+      await d.update(expenses).set({ state: "recorded", approvedBy: ctx.user.id, approvedAt: new Date() }).where(inArray(expenses.id, rows.map(r => r.id)));
+      for (const r of rows) await recomputeProject(r.projectId);
+      for (const r of rows) await emit(ctx, "expense", "update", { id: r.id, projectId: r.projectId, state: "recorded" });
       return { count: rows.length };
     }),
 
@@ -322,8 +162,8 @@ export const expensesRouter = router({
       if (!row) return { ok: true };
       if (row.userId !== ctx.user.id)
         bad("You can only delete your own expenses");
-      if (row.state !== "saved" && row.state !== "rejected")
-        bad("Submitted expenses cannot be deleted");
+      if (row.state !== "saved")
+        bad("Recorded expenses cannot be deleted");
       await d.delete(expenses).where(eq(expenses.id, input.id));
       await emit(ctx, "expense", "delete", {
         id: row.id,

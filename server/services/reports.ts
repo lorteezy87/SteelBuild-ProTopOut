@@ -361,7 +361,7 @@ export async function loadRows(s: SecurityData, source: SourceKey, appKey: strin
         .from(dailyReportProgress)
         .innerJoin(dailyReports, eq(dailyReports.id, dailyReportProgress.reportId))
         .leftJoin(tasks, eq(tasks.id, dailyReportProgress.taskId))
-        .where(and(inArray(dailyReportProgress.projectId, visible), eq(dailyReports.status, "approved")));
+        .where(and(inArray(dailyReportProgress.projectId, visible), eq(dailyReports.status, "final")));
       return rows.map(r => ({
         _id: r.p.id,
         _projectId: r.p.projectId,

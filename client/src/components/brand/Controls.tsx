@@ -108,7 +108,6 @@ export function UserSelect({
   onChange,
   allowNone = true,
   placeholder = "Select person…",
-  includePassive = false,
   className,
   filter,
 }: {
@@ -116,12 +115,11 @@ export function UserSelect({
   onChange: (v: number | null) => void;
   allowNone?: boolean;
   placeholder?: string;
-  includePassive?: boolean;
   className?: string;
   filter?: (u: { id: number; accessType: string; jobRoleId: number | null }) => boolean;
 }) {
   const { ref } = useRefData();
-  const users = (ref?.users ?? []).filter(u => u.isActive && (includePassive || u.accessType !== "passive") && (!filter || filter(u)));
+  const users = (ref?.users ?? []).filter(u => u.isActive && (!filter || filter(u)));
   return (
     <SimpleSelect
       value={value != null ? String(value) : null}

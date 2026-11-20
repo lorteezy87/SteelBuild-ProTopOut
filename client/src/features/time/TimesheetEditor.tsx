@@ -38,7 +38,7 @@ export function TimesheetEditor({
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
   const save = trpc.time.saveWeek.useMutation();
-  const submit = trpc.time.submitWeek.useMutation();
+  const record = trpc.time.recordWeek.useMutation();
   const lockedDays = data.days.map(
     day => !!data.timeLockedThrough && day <= data.timeLockedThrough
   );
@@ -48,7 +48,7 @@ export function TimesheetEditor({
       !!data.timeLockedThrough &&
       entry.entryDate <= data.timeLockedThrough &&
       entry.source === "timesheet" &&
-      ["saved", "rejected"].includes(entry.state)
+      entry.state === "saved"
   );
   useEffect(() => {
     onDirty(dirty);
@@ -71,7 +71,7 @@ export function TimesheetEditor({
     setRows(next);
     setDirty(true);
   }
-  async function persist(submitWeek: boolean) {
+  async function persist(recordWeek: boolean) {
     if (!valid || busy) return;
     setBusy(true);
     try {
@@ -89,13 +89,12 @@ export function TimesheetEditor({
               hours: row.hours,
             })),
         });
-      if (submitWeek) await submit.mutateAsync({ weekStart: start });
+      if (recordWeek) await record.mutateAsync({ weekStart: start });
       setDirty(false);
       onDirty(false);
-      toast.success(submitWeek ? "Week submitted." : "Timesheet saved.");
+      toast.success(recordWeek ? "Week recorded." : "Hours saved.");
       await Promise.all([
         utils.time.week.invalidate({ weekStart: start }),
-        utils.ref.badges.invalidate(),
         utils.financials.summary.invalidate(),
         utils.projects.get.invalidate(),
         utils.dashboard.portfolio.invalidate(),
@@ -151,8 +150,8 @@ export function TimesheetEditor({
             . Closed-period cells are read-only. Invoicing remains available.
             {lockedUnsubmitted && (
               <div className="mt-1">
-                This week contains unsubmitted locked time. An admin must unlock
-                the period before the week can be submitted.
+                This week contains saved hours in a closed period. Unlock the
+                period in Settings before recording the week.
               </div>
             )}
           </div>
@@ -204,9 +203,9 @@ export function TimesheetEditor({
               Save
             </Button>
             <ConfirmButton
-              title="Submit this week?"
-              body="Saved time will be sent for approval and locked until an approver returns it."
-              confirmLabel="Submit week"
+              title="Record this week?"
+              body="Saved hours are locked and count as job cost. Recorded hours can be marked invoiced from Financials."
+              confirmLabel="Record week"
               variant="default"
               disabled={
                 !valid || busy || lockedUnsubmitted || editableHours <= 0
@@ -214,7 +213,7 @@ export function TimesheetEditor({
               onConfirm={() => persist(true)}
             >
               <Send className="size-3.5" />
-              Submit week
+              Record week
             </ConfirmButton>
           </>
         }

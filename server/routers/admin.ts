@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, ne } from "drizzle-orm";
 import { z } from "zod";
 import { ACCESS_TYPES, ALL_PRIVILEGES } from "@shared/domain";
 import {
@@ -22,22 +22,17 @@ import { db } from "../db";
 import { hasPriv } from "../security/guard";
 import { invalidateCalendars } from "../services/calendars";
 import { recomputeAll } from "../services/recompute";
-import { loadDemoData } from "../services/demo";
+import { crewInsertValues, crewUpdateSet } from "../services/crew";
 import { bad, defined, zDay, zId, zText } from "./_util";
 import { refreshItem, refreshItemsForProject } from "../services/wf";
 import type { OrgSettings } from "./ref";
 
-const accessType = z.enum(Object.keys(ACCESS_TYPES) as [string, ...string[]]);
 const privilege = z.string().refine(p => p in ALL_PRIVILEGES, "Unknown privilege");
 
-const userInput = z.object({
+const crewInput = z.object({
   name: zText(200).min(1),
-  email: z.string().email().max(320).nullable().optional(),
-  accessType: accessType.optional(),
-  isAdmin: z.boolean().optional(),
   title: zText(128).nullable().optional(),
   phone: zText(64).nullable().optional(),
-  supervisorId: zId.nullable().optional(),
   jobRoleId: zId.nullable().optional(),
   costRate: z.number().min(0).nullable().optional(),
   billRate: z.number().min(0).nullable().optional(),
@@ -63,56 +58,31 @@ async function requireCompanyEditor(ctx: Parameters<typeof hasPriv>[0]) {
 }
 
 export const adminRouter = router({
-  /* ---------------- Users ---------------- */
+  /* ---------------- Crew (people records; only the owner signs in) ---------------- */
   users: router({
     list: adminProcedure.query(async () => {
       const d = await db();
-      const rows = await d.select().from(users).orderBy(asc(users.name));
-      return rows.map(u => ({
-        ...u,
-        pending: u.openId.startsWith("local:"),
-      }));
+      return d.select().from(users).where(ne(users.role, "admin")).orderBy(asc(users.name));
     }),
-    create: adminProcedure.input(userInput).mutation(async ({ input }) => {
+    create: adminProcedure.input(crewInput).mutation(async ({ input }) => {
       const d = await db();
-      if (input.email) {
-        const dup = await d.select({ id: users.id }).from(users).where(eq(users.email, input.email)).limit(1);
-        if (dup.length) bad("A user with this email already exists");
-      }
-      const [{ id }] = await d
-        .insert(users)
-        .values({
-          openId: `local:${randomUUID()}`,
-          name: input.name,
-          email: input.email ?? null,
-          accessType: input.accessType ?? "team_member",
-          role: input.isAdmin ? "admin" : "user",
-          title: input.title ?? null,
-          phone: input.phone ?? null,
-          supervisorId: input.supervisorId ?? null,
-          jobRoleId: input.jobRoleId ?? null,
-          costRate: input.costRate ?? null,
-          billRate: input.billRate ?? null,
-          calendarId: input.calendarId ?? null,
-          loginMethod: null,
-          isActive: input.isActive ?? true,
-        })
-        .$returningId();
+      const [{ id }] = await d.insert(users).values(crewInsertValues(input)).$returningId();
       return { id };
     }),
-    update: adminProcedure
-      .input(userInput.partial().extend({ id: zId }))
-      .mutation(async ({ ctx, input }) => {
-        const d = await db();
-        const { id, isAdmin, ...rest } = input;
-        if (id === ctx.user.id && (isAdmin === false || rest.isActive === false || rest.accessType === "passive")) {
-          bad("You cannot remove your own admin access or deactivate yourself");
-        }
-        const set: Record<string, unknown> = defined(rest);
-        if (isAdmin !== undefined) set.role = isAdmin ? "admin" : "user";
-        if (Object.keys(set).length) await d.update(users).set(set).where(eq(users.id, id));
-        return { ok: true };
-      }),
+    update: adminProcedure.input(crewInput.partial().extend({ id: zId })).mutation(async ({ input }) => {
+      const d = await db();
+      const { id, ...rest } = input;
+      const [target] = await d.select({ role: users.role }).from(users).where(eq(users.id, id)).limit(1);
+      if (!target) bad("Crew member not found");
+      let set: Record<string, unknown>;
+      try {
+        set = crewUpdateSet(rest, target);
+      } catch (e) {
+        bad(e instanceof Error ? e.message : String(e));
+      }
+      if (Object.keys(set!).length) await d.update(users).set(set!).where(eq(users.id, id));
+      return { ok: true };
+    }),
   }),
 
   /* ---------------- Job roles ---------------- */
@@ -349,8 +319,6 @@ export const adminRouter = router({
 
   /* ---------------- Maintenance ---------------- */
   recomputeAll: adminProcedure.mutation(async () => ({ projects: await recomputeAll() })),
-  loadDemo: adminProcedure.mutation(async ({ ctx }) => loadDemoData(ctx.user.id)),
-  demoStatus: adminProcedure.query(async () => ({ loaded: await getSetting<boolean>("demo_loaded", false) })),
 
   /** Users who can be chosen as approvers / supervisors etc. */
   userIdsByIds: adminProcedure.input(z.object({ ids: z.array(zId) })).query(async ({ input }) => {

@@ -76,52 +76,6 @@ async function loggableProjects(ctx: Parameters<typeof sec>[0]) {
   return ids;
 }
 
-type ApprovalEntry = { projectId: number; userId: number };
-/** Shared by queue visibility, required-approver resolution, and decisions. */
-function canApprove(
-  s: SecurityData,
-  entry: ApprovalEntry,
-  supervisorId: number | null
-) {
-  if (!hasJobModuleAccess(s)) return false;
-  return s.isAdmin;
-}
-
-/** Resolve active, eligible PM + supervisor; an empty chain permits any eligible holder. */
-async function approvalResolver() {
-  const d = await db();
-  const [people, jobs] = await Promise.all([
-    d.select().from(users),
-    d.select({ id: projects.id, managerId: projects.managerId }).from(projects),
-  ]);
-  const peopleById = new Map(people.map(u => [u.id, u]));
-  const managers = new Map(jobs.map(p => [p.id, p.managerId]));
-  const security = new Map<number, Promise<SecurityData>>();
-  return {
-    supervisorId: (entry: ApprovalEntry) =>
-      peopleById.get(entry.userId)?.supervisorId ?? null,
-    async required(entry: ApprovalEntry) {
-      const supervisorId = peopleById.get(entry.userId)?.supervisorId ?? null;
-      const ids = Array.from(
-        new Set(
-          [managers.get(entry.projectId), supervisorId].filter(
-            (id): id is number => id != null
-          )
-        )
-      );
-      const out: { id: number; name: string }[] = [];
-      for (const id of ids) {
-        const u = peopleById.get(id);
-        if (!u?.isActive) continue;
-        if (!security.has(id)) security.set(id, loadSecurity(u));
-        if (canApprove(await security.get(id)!, entry, supervisorId))
-          out.push({ id, name: u.name ?? `User ${id}` });
-      }
-      return out;
-    },
-  };
-}
-
 const entryKey = (e: {
   projectId: number;
   taskId?: number | null;
@@ -323,7 +277,7 @@ export const timeRouter = router({
         const editable = existing.filter(
           e =>
             e.source === "timesheet" &&
-            ["saved", "rejected"].includes(e.state) &&
+            e.state === "saved" &&
             (!timeLockedThrough || e.entryDate > timeLockedThrough)
         );
         const locked = existing.filter(e => !editable.includes(e));
@@ -410,7 +364,8 @@ export const timeRouter = router({
       return { saved: changes.filter(c => c.action !== "delete").length };
     }),
 
-  submitWeek: protectedProcedure
+  /** Locks the week's saved timesheet hours; recorded hours count as job cost. */
+  recordWeek: protectedProcedure
     .input(z.object({ weekStart: zDay }))
     .mutation(async ({ ctx, input }) => {
       const d = await db();
@@ -426,21 +381,19 @@ export const timeRouter = router({
               gte(timeEntries.entryDate, days[0]),
               lte(timeEntries.entryDate, days[6]),
               eq(timeEntries.source, "timesheet"),
-              inArray(timeEntries.state, ["saved", "rejected"])
+              eq(timeEntries.state, "saved")
             )
           )
           .for("update");
-        if (!rows.length) bad("Nothing to submit for this week");
+        if (!rows.length) bad("Nothing to record for this week");
         for (const row of rows)
           assertTimeUnlocked(row.entryDate, timeLockedThrough);
         await tx
           .update(timeEntries)
           .set({
-            state: "submitted",
-            rejectReason: null,
-            approvals: [],
-            approvedBy: null,
-            approvedAt: null,
+            state: "recorded",
+            approvedBy: ctx.user.id,
+            approvedAt: new Date(),
           })
           .where(
             inArray(
@@ -450,213 +403,15 @@ export const timeRouter = router({
           );
         return rows;
       });
-      const resolver = await approvalResolver();
-      const required = await Promise.all(rows.map(r => resolver.required(r)));
-      await notify(
-        ctx,
-        required.flat().map(u => u.id),
-        {
-          title: `Timesheet submitted: ${ctx.user.name ?? "User"} — week of ${days[0]}`,
-          link: "/approvals",
-        }
-      );
       for (const pid of Array.from(new Set(rows.map(r => r.projectId))))
         await recomputeProject(pid);
       for (const e of rows)
         await emit(ctx, "timeEntry", "update", {
           id: e.id,
           projectId: e.projectId,
-          state: "submitted",
-          approvals: [],
+          state: "recorded",
         });
-      return { submitted: rows.length };
-    }),
-
-  approvals: protectedProcedure
-    .input(
-      z
-        .object({
-          state: z
-            .enum(["submitted", "approved", "rejected"])
-            .default("submitted"),
-        })
-        .optional()
-    )
-    .query(async ({ ctx, input }) => {
-      const d = await db();
-      const s = await sec(ctx);
-      if (!hasJobModuleAccess(s)) return [];
-      const pids = s.projectIds.filter(
-        pid =>
-          effectivePrivileges(s, pid).has("time.approve") ||
-          (input?.state === "approved" &&
-            effectivePrivileges(s, pid).has("project.financials"))
-      );
-      const supervised = await d
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.supervisorId, ctx.user.id));
-      const conds = [];
-      if (pids.length) conds.push(inArray(timeEntries.projectId, pids));
-      if (supervised.length)
-        conds.push(
-          inArray(
-            timeEntries.userId,
-            supervised.map(u => u.id)
-          )
-        );
-      if (!conds.length) return [];
-      const rows = await d
-        .select({
-          e: timeEntries,
-          userName: users.name,
-          supervisorId: users.supervisorId,
-          projectName: projects.name,
-          projectCode: projects.code,
-          taskName: tasks.name,
-        })
-        .from(timeEntries)
-        .innerJoin(users, eq(users.id, timeEntries.userId))
-        .innerJoin(projects, eq(projects.id, timeEntries.projectId))
-        .leftJoin(tasks, eq(tasks.id, timeEntries.taskId))
-        .where(
-          and(
-            eq(timeEntries.state, input?.state ?? "submitted"),
-            eq(timeEntries.source, "timesheet"),
-            or(...conds)
-          )
-        )
-        .limit(2000);
-      const fin = financialChecker(s);
-      const resolver = await approvalResolver();
-      const timeLockedThrough = await getTimeLock();
-      const visible = rows.filter(
-        r =>
-          canApprove(s, r.e, r.supervisorId) ||
-          (r.e.state === "approved" && fin(r.e.projectId))
-      );
-      return Promise.all(
-        visible.map(async r => {
-          const requiredApprovers = await resolver.required(r.e);
-          const approvals = r.e.approvals ?? [];
-          const approvedByYou = approvals.includes(ctx.user.id);
-          const locked =
-            !!timeLockedThrough && r.e.entryDate <= timeLockedThrough;
-          return {
-            ...r.e,
-            approvals,
-            costAmount: fin(r.e.projectId) ? r.e.costAmount : null,
-            billAmount: fin(r.e.projectId) ? r.e.billAmount : null,
-            userName: r.userName,
-            projectName: r.projectName,
-            projectCode: r.projectCode,
-            taskName: r.taskName,
-            canInvoice: fin(r.e.projectId),
-            canDecide:
-              !locked &&
-              !approvedByYou &&
-              canApprove(s, r.e, r.supervisorId) &&
-              (!requiredApprovers.length ||
-                requiredApprovers.some(u => u.id === ctx.user.id)),
-            requiredApprovers,
-            awaitingApprovers: requiredApprovers.filter(
-              u => !approvals.includes(u.id)
-            ),
-            approvedByYou,
-            locked,
-            timeLockedThrough,
-          };
-        })
-      );
-    }),
-
-  decide: protectedProcedure
-    .input(
-      z.object({
-        ids: z.array(zId).min(1).max(1000),
-        action: z.enum(["approve", "reject"]),
-        reason: z.string().max(500).optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      if (input.action === "reject" && !input.reason?.trim())
-        bad("A reason is required to reject time");
-      const d = await db();
-      const s = await sec(ctx);
-      const resolver = await approvalResolver();
-      const timeLockedThrough = await getTimeLock();
-      const changed = await d.transaction(async tx => {
-        const rows = await tx
-          .select()
-          .from(timeEntries)
-          .where(inArray(timeEntries.id, input.ids))
-          .for("update");
-        if (rows.length !== new Set(input.ids).size)
-          bad("Time entry not found");
-        const decisions = [];
-        for (const r of rows) {
-          assertTimeUnlocked(r.entryDate, timeLockedThrough);
-          if (r.state !== "submitted")
-            bad("Only submitted entries can be approved or rejected");
-          if (r.userId === ctx.user.id && !s.isAdmin)
-            bad("You cannot approve your own time");
-          if (!ctx.user.isActive || !canApprove(s, r, resolver.supervisorId(r)))
-            bad("You are not an approver for some of these entries");
-          const required = await resolver.required(r);
-          if (required.length && !required.some(u => u.id === ctx.user.id))
-            bad("This entry must be decided by its required approvers");
-          const approvals =
-            input.action === "reject"
-              ? []
-              : Array.from(new Set([...(r.approvals ?? []), ctx.user.id]));
-          const complete =
-            input.action === "approve" &&
-            (!required.length || required.every(u => approvals.includes(u.id)));
-          const state =
-            input.action === "reject"
-              ? "rejected"
-              : complete
-                ? "approved"
-                : "submitted";
-          decisions.push({ r, state, approvals });
-        }
-        for (const { r, state, approvals } of decisions)
-          await tx
-            .update(timeEntries)
-            .set({
-              state,
-              approvals,
-              approvedBy: state === "approved" ? ctx.user.id : null,
-              approvedAt: state === "approved" ? new Date() : null,
-              rejectReason:
-                input.action === "reject" ? input.reason!.trim() : null,
-            })
-            .where(eq(timeEntries.id, r.id));
-        return decisions;
-      });
-      const finished = changed.filter(c => c.state !== "submitted");
-      await notify(ctx, Array.from(new Set(finished.map(c => c.r.userId))), {
-        title:
-          input.action === "approve"
-            ? "Your time was approved"
-            : "Your time was rejected",
-        body: input.reason,
-        link: "/timesheet",
-      });
-      for (const pid of Array.from(new Set(changed.map(c => c.r.projectId))))
-        await recomputeProject(pid);
-      for (const c of changed)
-        await emit(ctx, "timeEntry", "update", {
-          id: c.r.id,
-          projectId: c.r.projectId,
-          state: c.state,
-          approvals: c.approvals,
-        });
-      return {
-        count: changed.length,
-        approved: changed.filter(c => c.state === "approved").length,
-        awaiting: changed.filter(c => c.state === "submitted").length,
-      };
+      return { recorded: rows.length };
     }),
 
   markInvoiced: protectedProcedure
@@ -669,7 +424,7 @@ export const timeRouter = router({
         .from(timeEntries)
         .where(inArray(timeEntries.id, input.ids));
       for (const r of rows) {
-        if (r.state !== "approved")
+        if (r.state !== "recorded")
           bad("Only approved entries can be invoiced");
         if (!effectivePrivileges(s, r.projectId).has("project.financials"))
           bad("Missing privilege: project.financials");
@@ -711,7 +466,7 @@ export const timeRouter = router({
         .where(
           and(
             eq(timeEntries.projectId, input.projectId),
-            eq(timeEntries.state, "approved")
+            eq(timeEntries.state, "recorded")
           )
         );
     }),

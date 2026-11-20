@@ -7,7 +7,6 @@ import {
   equipment,
   expenseCodes,
   jobRoles,
-  notifications,
   timeCodes,
   users,
   wfApps,
@@ -19,29 +18,6 @@ import { can } from "../security/access";
 import { financialChecker, sec } from "../security/guard";
 import { orgToday } from "../services/calendars";
 import { and, sql } from "drizzle-orm";
-import type { TrpcContext } from "../_core/context";
-
-/** Lazy import avoids a circular module dependency with server/routers.ts. */
-function appRouterCaller(ctx: TrpcContext) {
-  return {
-    time: {
-      approvals: async (i: { state: "submitted" }) =>
-        (await import("./time")).timeRouter.createCaller(ctx).approvals(i),
-    },
-    expenses: {
-      approvals: async () =>
-        (await import("./expenses")).expensesRouter
-          .createCaller(ctx)
-          .approvals(),
-    },
-    daily: {
-      pending: async () =>
-        (await import("./dailyReports")).dailyReportsRouter
-          .createCaller(ctx)
-          .pending(),
-    },
-  };
-}
 
 export type OrgSettings = {
   name: string;
@@ -154,37 +130,6 @@ export const refRouter = router({
       org,
       projectTypes,
       today,
-    };
-  }),
-
-  unreadCount: protectedProcedure.query(async ({ ctx }) => {
-    const d = await db();
-    const [r] = await d
-      .select({ n: sql<number>`count(*)` })
-      .from(notifications)
-      .where(
-        and(
-          eq(notifications.userId, ctx.user.id),
-          eq(notifications.isRead, false)
-        )
-      );
-    return Number(r?.n ?? 0);
-  }),
-
-  /** Counts for the shell's Approvals badge (same scoping as the approval queues). */
-  badges: protectedProcedure.query(async ({ ctx }) => {
-    const caller = appRouterCaller(ctx);
-    const [t, e, dr] = await Promise.all([
-      caller.time.approvals({ state: "submitted" }).catch(() => []),
-      caller.expenses.approvals().catch(() => []),
-      caller.daily.pending().catch(() => []),
-    ]);
-    const time = t.filter(entry => entry.canDecide).length;
-    return {
-      time,
-      expenses: e.length,
-      daily: dr.length,
-      total: time + e.length + dr.length,
     };
   }),
 

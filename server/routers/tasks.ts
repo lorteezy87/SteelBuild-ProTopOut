@@ -6,7 +6,6 @@ import {
   calendarExceptions,
   calendars,
   checklistItems,
-  comments,
   equipment,
   jobRoles,
   projects,
@@ -209,11 +208,6 @@ export const tasksRouter = router({
     const defs = await getDefs("task", p.projectType);
     const cf = (await getValues("task", [t.id])).get(t.id) ?? {};
     const privs = Array.from(effectivePrivileges(await sec(ctx), t.projectId));
-    const [cc] = await d
-      .select({ id: comments.id })
-      .from(comments)
-      .where(and(eq(comments.entityType, "task"), eq(comments.entityId, t.id)))
-      .limit(1);
     return {
       task: { ...t, budgetCost: fin ? t.budgetCost : null },
       isSummary: await isSummaryTask(t.id),
@@ -224,7 +218,6 @@ export const tasksRouter = router({
       customFieldDefs: fin ? defs : defs.filter(x => !x.isFinancial),
       customFields: maskFinancial(defs, cf, fin),
       privileges: privs,
-      hasComments: !!cc,
     };
   }),
 

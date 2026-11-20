@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
-import { CommentsPanel, FollowButton } from "@/components/brand/Collab";
 import {
   ConfirmButton,
   DateInput,
@@ -135,7 +134,6 @@ function ItemDetails({
         />
         {item.slaDueAt && <SlaBadge value={item.slaStatus} />}
         <div className="ml-auto">
-          <FollowButton entityType="logItem" entityId={item.id} />
         </div>
       </div>
       {data.project && (
@@ -405,9 +403,6 @@ function ItemDetails({
             </li>
           ))}
         </ol>
-      </Panel>
-      <Panel title="Comments" bodyClassName="p-3">
-        <CommentsPanel entityType="logItem" entityId={item.id} />
       </Panel>
     </div>
   );

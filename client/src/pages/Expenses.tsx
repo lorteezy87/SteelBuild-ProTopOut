@@ -44,14 +44,12 @@ export default function Expenses() {
     await Promise.all([
       utils.expenses.mine.invalidate(),
       utils.expenses.byProject.invalidate(),
-      utils.expenses.approvals.invalidate(),
-      utils.ref.badges.invalidate(),
       utils.financials.summary.invalidate(),
     ]);
   };
-  const submit = trpc.expenses.submit.useMutation({
+  const record = trpc.expenses.record.useMutation({
     onSuccess: async () => {
-      toast.success("Expenses submitted.");
+      toast.success("Expenses recorded.");
       await invalidate();
     },
     onError: error => toast.error(errMsg(error)),
@@ -71,13 +69,13 @@ export default function Expenses() {
     selectable.some(row => row.e.id === id)
   );
   const editable = (query.data ?? []).filter(row => editableState(row.e.state));
-  const pending = (query.data ?? []).filter(row => row.e.state === "submitted");
+  const recorded = (query.data ?? []).filter(row => row.e.state === "recorded");
   return (
     <>
       <PageHeader
         eyebrow="Out-of-pocket job costs"
         title="My expenses"
-        subtitle="Save receipts, then submit selected expenses for approval."
+        subtitle="Save receipts, then record selected expenses to post them as job cost."
         actions={
           <Button onClick={() => setEditing("new")}>
             <Plus className="size-4" />
@@ -88,15 +86,14 @@ export default function Expenses() {
       <div className="space-y-4 p-6">
         <div className="grid gap-3 sm:grid-cols-3">
           <Kpi
-            label="Ready to submit"
+            label="Saved"
             value={fmtMoney(editable.reduce((n, row) => n + row.e.amount, 0))}
-            sub={`${editable.length} saved / rejected expenses`}
+            sub={`${editable.length} saved expenses`}
           />
           <Kpi
-            label="Awaiting approval"
-            value={fmtMoney(pending.reduce((n, row) => n + row.e.amount, 0))}
-            tone="amber"
-            sub={`${pending.length} submitted expenses`}
+            label="Recorded"
+            value={fmtMoney(recorded.reduce((n, row) => n + row.e.amount, 0))}
+            sub={`${recorded.length} recorded expenses`}
           />
           <Kpi
             label="Total expenses"
@@ -117,20 +114,18 @@ export default function Expenses() {
                   options={{
                     all: "All states",
                     saved: "Saved",
-                    submitted: "Submitted",
-                    approved: "Approved",
-                    rejected: "Rejected",
+                    recorded: "Recorded",
                     invoiced: "Invoiced",
                   }}
                 />
               </div>
               <Button
                 size="sm"
-                disabled={!selectedIds.length || submit.isPending}
-                onClick={() => submit.mutate({ ids: selectedIds })}
+                disabled={!selectedIds.length || record.isPending}
+                onClick={() => record.mutate({ ids: selectedIds })}
               >
                 <Send className="size-3.5" />
-                Submit {selectedIds.length || "selected"}
+                Record {selectedIds.length || "selected"}
               </Button>
             </>
           }
@@ -397,7 +392,7 @@ function ExpenseDrawer({
           )}
           {locked && (
             <p className="mt-2 text-xs text-muted-foreground">
-              Submitted, approved and invoiced expenses are locked.
+              Recorded and invoiced expenses are locked.
             </p>
           )}
         </div>

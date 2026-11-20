@@ -4,12 +4,9 @@ import { z } from "zod";
 import { DOCUMENT_CATEGORIES } from "@shared/domain";
 import {
   activities,
-  comments,
   dailyReports,
   documentVersions,
   documents,
-  followers,
-  notifications,
   projects,
   tasks,
   users,
@@ -19,7 +16,7 @@ import {
 import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
 import { hasJobModuleAccess, requireJobModule, requirePriv, sec, visibleProjects } from "../security/guard";
-import { follow, logActivity, notify, notifyFollowers, resolveMentions } from "../services/events";
+import { follow, logActivity, notify, notifyFollowers } from "../services/events";
 import { getApp } from "../services/wf";
 import { storagePut } from "../storage";
 import { bad, zId, zText } from "./_util";
@@ -72,104 +69,6 @@ async function assertView(ctx: Ctx, type: EntityType, id: number) {
 
 export const collabRouter = router({
   /* ---------------- Comments ---------------- */
-  comments: protectedProcedure.input(z.object({ entityType, entityId: zId })).query(async ({ ctx, input }) => {
-    await assertView(ctx, input.entityType, input.entityId);
-    const d = await db();
-    const rows = await d
-      .select({ c: comments, userName: users.name })
-      .from(comments)
-      .leftJoin(users, eq(users.id, comments.userId))
-      .where(and(eq(comments.entityType, input.entityType), eq(comments.entityId, input.entityId)))
-      .orderBy(asc(comments.createdAt), asc(comments.id));
-    return rows.map(r => ({ ...r.c, userName: r.userName, mine: r.c.userId === ctx.user.id }));
-  }),
-
-  addComment: protectedProcedure
-    .input(z.object({ entityType, entityId: zId, body: z.string().trim().min(1).max(10000) }))
-    .mutation(async ({ ctx, input }) => {
-      const e = await assertView(ctx, input.entityType, input.entityId);
-      if (e.isGlobalLog) await requirePriv(ctx, "bid.manage");
-      else if (e.projectId) await requirePriv(ctx, "comment.create", e.projectId);
-      const d = await db();
-      const [{ id }] = await d
-        .insert(comments)
-        .values({ entityType: input.entityType, entityId: input.entityId, projectId: e.projectId, userId: ctx.user.id, body: input.body })
-        .$returningId();
-      await follow(input.entityType, input.entityId, ctx.user.id);
-      const mentioned = await resolveMentions(input.body);
-      for (const m of mentioned) await follow(input.entityType, input.entityId, m);
-      const who = ctx.user.name ?? "Someone";
-      await notify(ctx, mentioned, { title: `${who} mentioned you on ${e.title}`, body: input.body.slice(0, 300), link: e.link });
-      await notifyFollowers(
-        ctx,
-        input.entityType,
-        input.entityId,
-        { title: `${who} commented on ${e.title}`, body: input.body.slice(0, 300), link: e.link },
-        []
-      );
-      await logActivity(ctx, { projectId: e.projectId, entityType: input.entityType, entityId: input.entityId, action: "comment", summary: `commented on ${e.title}` });
-      return { id };
-    }),
-
-  removeComment: protectedProcedure.input(z.object({ id: zId })).mutation(async ({ ctx, input }) => {
-    const d = await db();
-    const [c] = await d.select().from(comments).where(eq(comments.id, input.id)).limit(1);
-    if (!c) bad("Comment not found");
-    if (c.userId !== ctx.user.id && ctx.user.role !== "admin") bad("You can delete only your own comments");
-    await assertView(ctx, c.entityType as EntityType, c.entityId);
-    await d.delete(comments).where(eq(comments.id, input.id));
-    return { ok: true };
-  }),
-
-  /* ---------------- Followers ---------------- */
-  followState: protectedProcedure.input(z.object({ entityType, entityId: zId })).query(async ({ ctx, input }) => {
-    await assertView(ctx, input.entityType, input.entityId);
-    const d = await db();
-    const rows = await d
-      .select({ userId: followers.userId, name: users.name })
-      .from(followers)
-      .leftJoin(users, eq(users.id, followers.userId))
-      .where(and(eq(followers.entityType, input.entityType), eq(followers.entityId, input.entityId)));
-    return { following: rows.some(r => r.userId === ctx.user.id), followers: rows.map(r => ({ userId: r.userId, name: r.name })) };
-  }),
-
-  setFollow: protectedProcedure
-    .input(z.object({ entityType, entityId: zId, follow: z.boolean() }))
-    .mutation(async ({ ctx, input }) => {
-      await assertView(ctx, input.entityType, input.entityId);
-      const d = await db();
-      if (input.follow) await follow(input.entityType, input.entityId, ctx.user.id);
-      else
-        await d
-          .delete(followers)
-          .where(and(eq(followers.entityType, input.entityType), eq(followers.entityId, input.entityId), eq(followers.userId, ctx.user.id)));
-      return { ok: true };
-    }),
-
-  /* ---------------- Notifications ---------------- */
-  notifications: protectedProcedure
-    .input(z.object({ unreadOnly: z.boolean().default(false), limit: z.number().int().min(1).max(200).default(50) }))
-    .query(async ({ ctx, input }) => {
-      const d = await db();
-      const conds = [eq(notifications.userId, ctx.user.id)];
-      if (input.unreadOnly) conds.push(eq(notifications.isRead, false));
-      const rows = await d.select().from(notifications).where(and(...conds)).orderBy(desc(notifications.createdAt), desc(notifications.id)).limit(input.limit);
-      const [{ n }] = await d
-        .select({ n: sql<number>`count(*)` })
-        .from(notifications)
-        .where(and(eq(notifications.userId, ctx.user.id), eq(notifications.isRead, false)));
-      return { items: rows, unread: Number(n) };
-    }),
-
-  markRead: protectedProcedure.input(z.object({ ids: z.array(zId).max(500).optional() })).mutation(async ({ ctx, input }) => {
-    const d = await db();
-    const conds = [eq(notifications.userId, ctx.user.id)];
-    if (input.ids?.length) conds.push(inArray(notifications.id, input.ids));
-    await d.update(notifications).set({ isRead: true }).where(and(...conds));
-    return { ok: true };
-  }),
-
-  /* ---------------- Activity ---------------- */
   activity: protectedProcedure
     .input(z.object({ projectId: zId.optional(), limit: z.number().int().min(1).max(200).default(60) }))
     .query(async ({ ctx, input }) => {

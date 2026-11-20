@@ -14,7 +14,6 @@ import { drawingsRouter } from "./routers/drawings";
 import { modelRouter } from "./routers/model";
 import { expensesRouter } from "./routers/expenses";
 import { financialsRouter } from "./routers/financials";
-import { integrationRouter } from "./routers/integration";
 import { projectsRouter } from "./routers/projects";
 import { refRouter } from "./routers/ref";
 import { reportsRouter } from "./routers/reports";
@@ -54,7 +53,6 @@ export const appRouter = router({
   customFields: customFieldsRouter,
   reports: reportsRouter,
   collab: collabRouter,
-  integration: integrationRouter,
   dashboard: dashboardRouter,
 });
 

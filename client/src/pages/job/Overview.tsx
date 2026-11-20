@@ -6,11 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmButton } from "@/components/brand/Controls";
 import { CfDisplay } from "@/components/brand/CustomFields";
-import {
-  ActivityFeed,
-  CommentsPanel,
-  FollowButton,
-} from "@/components/brand/Collab";
+import { ActivityFeed } from "@/components/brand/Collab";
 import {
   EmptyState,
   ErrorState,
@@ -321,19 +317,6 @@ export default function Overview() {
               )}
             </Panel>
           )}
-          <Panel
-            title="Job comments"
-            actions={<FollowButton entityType="project" entityId={projectId} />}
-            bodyClassName="p-4"
-          >
-            <CommentsPanel
-              entityType="project"
-              entityId={projectId}
-              className={
-                !can("comment.create") ? "[&>div:last-child]:hidden" : undefined
-              }
-            />
-          </Panel>
           <Panel title="Recent activity">
             <ActivityFeed projectId={projectId} limit={8} />
           </Panel>

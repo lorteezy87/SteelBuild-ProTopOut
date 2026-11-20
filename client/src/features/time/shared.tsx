@@ -10,19 +10,9 @@ import { useState } from "react";
 
 export type WeekData = RouterOutputs["time"]["week"];
 export type TimeEntry = WeekData["entries"][number];
-export const editableState = (state: string) =>
-  state === "saved" || state === "rejected";
+export const editableState = (state: string) => state === "saved";
 export function EntryState({ state }: { state: string }) {
-  const tone =
-    state === "approved"
-      ? "green"
-      : state === "submitted"
-        ? "amber"
-        : state === "rejected"
-          ? "red"
-          : state === "invoiced"
-            ? "blue"
-            : "gray";
+  const tone = state === "recorded" ? "green" : state === "invoiced" ? "blue" : "gray";
   return (
     <Pill tone={tone}>{state.charAt(0).toUpperCase() + state.slice(1)}</Pill>
   );

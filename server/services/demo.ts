@@ -276,8 +276,7 @@ export async function loadDemoData(userId: number) {
         ],
         progress: p.tons > 0 ? [{ taskId: seqId, tons: p.tons, pieces: p.pieces, note: null }] : [],
       });
-      await dr.submit({ id });
-      await dr.approve({ id });
+      await dr.finalize({ id });
     }
   };
   // Job 1: seq 1 done, seq 2 underway and a bit behind (late loads).
@@ -325,7 +324,7 @@ export async function loadDemoData(userId: number) {
     amount,
     billable,
     costable: true,
-    state: "approved",
+    state: "recorded",
     approvedBy: admin.id,
     approvedAt: new Date(),
   });

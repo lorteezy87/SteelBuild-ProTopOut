@@ -21,7 +21,6 @@ function SettingsForm({ initial }: { initial: RefData }) {
     onSuccess: () => {
       void utils.ref.all.invalidate();
       void utils.time.week.invalidate();
-      void utils.time.approvals.invalidate();
       toast.success("Organization settings saved");
     },
     onError: e => toast.error(errMsg(e)),

@@ -50,7 +50,7 @@ export async function projectCosts(projectId: number) {
     })
     .from(timeEntries)
     .where(
-      and(eq(timeEntries.projectId, projectId), inArray(timeEntries.state, ["submitted", "approved", "invoiced"]))
+      and(eq(timeEntries.projectId, projectId), inArray(timeEntries.state, ["recorded", "invoiced"]))
     );
   const [exp] = await d
     .select({
@@ -58,12 +58,12 @@ export async function projectCosts(projectId: number) {
       bill: sql<number>`coalesce(sum(case when ${expenses.billable} then ${expenses.amount} else 0 end),0)`,
     })
     .from(expenses)
-    .where(and(eq(expenses.projectId, projectId), inArray(expenses.state, ["approved", "invoiced"])));
+    .where(and(eq(expenses.projectId, projectId), inArray(expenses.state, ["recorded", "invoiced"])));
   const [equip] = await d
     .select({ cost: sql<number>`coalesce(sum(${dailyReportEquipment.cost}),0)` })
     .from(dailyReportEquipment)
     .innerJoin(dailyReports, eq(dailyReports.id, dailyReportEquipment.reportId))
-    .where(and(eq(dailyReports.projectId, projectId), eq(dailyReports.status, "approved")));
+    .where(and(eq(dailyReports.projectId, projectId), eq(dailyReports.status, "final")));
   const laborCost = Number(labor?.cost ?? 0);
   const expenseCost = Number(exp?.cost ?? 0);
   const equipmentCost = Number(equip?.cost ?? 0);

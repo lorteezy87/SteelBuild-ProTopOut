@@ -52,53 +52,39 @@ import { BrandGlyph, Wordmark } from "../brand/Status";
 type NavItem = { href: string; label: string; icon: ReactNode; match?: (path: string) => boolean; badge?: number };
 
 function useNav(): { section: string; items: NavItem[] }[] {
-  const { ref, canGlobal, isAdmin } = useRefData();
-  const approvals = trpc.ref.badges.useQuery(undefined, { staleTime: 60_000, refetchInterval: 120_000, enabled: !!ref, retry: false });
-  return useMemo(() => {
-    const at = ref?.me.accessType ?? "full";
-    const full = at === "full" || at === "team_member";
-    const sections: { section: string; items: NavItem[] }[] = [];
-    if (full) {
-      sections.push({
+  return useMemo(
+    () => [
+      {
         section: "Operations",
         items: [
-          { href: "/", label: "Portfolio", icon: <Gauge className="size-4" />, match: p => p === "/" },
-          { href: "/my-work", label: "My Work", icon: <HardHat className="size-4" /> },
-          { href: "/jobs", label: "Jobs", icon: <Briefcase className="size-4" />, match: p => p.startsWith("/jobs") },
-          { href: "/logs", label: "Logs", icon: <FileStack className="size-4" />, match: p => p.startsWith("/logs") },
-          ...(canGlobal("bid.manage") ? [{ href: "/bids", label: "Bids", icon: <Target className="size-4" />, match: (p: string) => p.startsWith("/bids") }] : []),
-          ...(canGlobal("resource.view") || ref?.me.managesProjects
-            ? [{ href: "/resources", label: "Resources", icon: <Users className="size-4" /> }]
-            : []),
+          { href: "/", label: "Portfolio", icon: <Gauge className="size-4" />, match: (p: string) => p === "/" },
+          { href: "/jobs", label: "Jobs", icon: <Briefcase className="size-4" />, match: (p: string) => p.startsWith("/jobs") },
+          { href: "/logs", label: "Logs", icon: <FileStack className="size-4" />, match: (p: string) => p.startsWith("/logs") },
+          { href: "/bids", label: "Bids", icon: <Target className="size-4" />, match: (p: string) => p.startsWith("/bids") },
+          { href: "/resources", label: "Crew & equipment", icon: <Users className="size-4" /> },
         ],
-      });
-    } else if (at === "app_only") {
-      sections.push({ section: "Operations", items: [{ href: "/logs", label: "Logs", icon: <FileStack className="size-4" />, match: p => p.startsWith("/logs") }] });
-    }
-    const apCount = approvals.data?.total ?? 0;
-    sections.push({
-      section: "Time & Cost",
-      items: [
-        { href: "/timesheet", label: "Timesheet", icon: <Timer className="size-4" /> },
-        { href: "/expenses", label: "Expenses", icon: <Receipt className="size-4" /> },
-        ...(full ? [{ href: "/approvals", label: "Approvals", icon: <CheckCheck className="size-4" />, badge: apCount || undefined }] : []),
-      ],
-    });
-    if (full) {
-      sections.push({
+      },
+      {
+        section: "Time & Cost",
+        items: [
+          { href: "/timesheet", label: "Hours", icon: <Timer className="size-4" /> },
+          { href: "/expenses", label: "Expenses", icon: <Receipt className="size-4" /> },
+        ],
+      },
+      {
         section: "Insight",
         items: [
-          { href: "/reports", label: "Reports", icon: <BarChart3 className="size-4" />, match: p => p.startsWith("/reports") },
-          { href: "/dashboards", label: "Dashboards", icon: <LayoutDashboard className="size-4" />, match: p => p.startsWith("/dashboards") },
+          { href: "/reports", label: "Reports", icon: <BarChart3 className="size-4" />, match: (p: string) => p.startsWith("/reports") },
+          { href: "/dashboards", label: "Dashboards", icon: <LayoutDashboard className="size-4" />, match: (p: string) => p.startsWith("/dashboards") },
         ],
-      });
-    }
-    const sys: NavItem[] = [];
-    if (isAdmin) sys.push({ href: "/admin", label: "Admin", icon: <Settings2 className="size-4" />, match: p => p.startsWith("/admin") });
-    sys.push({ href: "/api-docs", label: "API", icon: <Code2 className="size-4" /> });
-    sections.push({ section: "System", items: sys });
-    return sections;
-  }, [ref, canGlobal, isAdmin, approvals.data]);
+      },
+      {
+        section: "System",
+        items: [{ href: "/admin", label: "Settings", icon: <Settings2 className="size-4" />, match: (p: string) => p.startsWith("/admin") }],
+      },
+    ],
+    []
+  );
 }
 
 function Rail({ onNavigate }: { onNavigate?: () => void }) {
@@ -156,7 +142,7 @@ function BottomNav({ onMenu }: { onMenu: () => void }) {
   const [path] = useLocation();
   const nav = useNav();
   const all = nav.flatMap(s => s.items);
-  const pick = ["/my-work", "/jobs", "/timesheet", "/approvals"]
+  const pick = ["/", "/jobs", "/logs", "/timesheet"]
     .map(h => all.find(i => i.href === h))
     .filter((i): i is NavItem => !!i);
   const items = pick.length ? pick : all.slice(0, 4);
@@ -258,64 +244,6 @@ function GlobalSearch() {
   );
 }
 
-function NotificationsBell() {
-  const utils = trpc.useUtils();
-  const [open, setOpen] = useState(false);
-  const [, navigate] = useLocation();
-  const count = trpc.ref.unreadCount.useQuery(undefined, { refetchInterval: 60_000 });
-  const list = trpc.collab.notifications.useQuery({ unreadOnly: false, limit: 30 }, { enabled: open });
-  const mark = trpc.collab.markRead.useMutation({
-    onSuccess: () => {
-      utils.ref.unreadCount.invalidate();
-      utils.collab.notifications.invalidate();
-    },
-  });
-  const n = count.data ?? 0;
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button type="button" className="relative flex size-9 items-center justify-center rounded-lg text-[var(--tp-ink-2)] hover:bg-[var(--tp-gray-soft)]" aria-label="Notifications">
-          <Bell className="size-[18px]" />
-          {n > 0 && (
-            <span className="num absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-[var(--tp-red-fill)] px-1 text-center text-[10px] font-semibold leading-4 text-white ring-2 ring-[var(--tp-paper)]">
-              {n > 99 ? "99+" : n}
-            </span>
-          )}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-[380px] overflow-hidden rounded-xl p-0 shadow-[0_12px_32px_rgba(16,24,40,0.12)]">
-        <div className="flex items-center justify-between border-b border-[var(--tp-rule-soft)] px-4 py-2.5">
-          <div className="tp-section-title">Notifications</div>
-          <Button variant="ghost" size="sm" className="h-7 text-[12px]" disabled={!n} onClick={() => mark.mutate({})}>
-            Mark all read
-          </Button>
-        </div>
-        <div className="max-h-[420px] overflow-y-auto">
-          {(list.data?.items ?? []).length === 0 && <div className="px-3 py-8 text-center text-[12.5px] text-muted-foreground">You're caught up.</div>}
-          {(list.data?.items ?? []).map(it => (
-            <button
-              key={it.id}
-              type="button"
-              className={cn("flex w-full flex-col gap-0.5 border-b border-[var(--tp-rule-soft)] px-4 py-2.5 text-left hover:bg-[var(--tp-surface)]", !it.isRead && "bg-[var(--tp-checked)] shadow-[inset_2px_0_0_var(--tp-accent-ink)]")}
-              onClick={() => {
-                if (!it.isRead) mark.mutate({ ids: [it.id] });
-                setOpen(false);
-                if (it.link) navigate(it.link);
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="truncate text-[13px] font-semibold">{it.title}</span>
-                <span className="num ml-auto shrink-0 text-[10.5px] text-muted-foreground">{fmtAgo(it.createdAt)}</span>
-              </div>
-              {it.body && <div className="line-clamp-2 text-[12px] text-muted-foreground">{it.body}</div>}
-            </button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 function UserMenu() {
   const { user, logout } = useAuth();
   const { ref } = useRefData();
@@ -335,17 +263,11 @@ function UserMenu() {
         <DropdownMenuLabel>
           <div className="truncate text-[13px]">{user?.name}</div>
           <div className="truncate text-[11.5px] font-normal text-muted-foreground">{user?.email}</div>
-          <div className="label-caps mt-1 capitalize">{ref?.me.isAdmin ? "Administrator" : ref?.me.accessType?.replace("_", " ")}</div>
+          <div className="label-caps mt-1">Owner</div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate("/account")}>
-          <KeyRound className="size-4" /> API tokens & profile
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/my-work")}>
-          <ClipboardList className="size-4" /> My work
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/timesheet")}>
-          <CalendarClock className="size-4" /> My timesheet
+          <KeyRound className="size-4" /> Profile & password
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel className="text-[11.5px] font-medium text-muted-foreground">Appearance</DropdownMenuLabel>
@@ -411,7 +333,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <NotificationsBell />
                 </span>
               </TooltipTrigger>
               <TooltipContent>Notifications</TooltipContent>

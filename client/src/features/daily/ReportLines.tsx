@@ -123,7 +123,6 @@ export function ReportLines({
                     <UserSelect
                       value={line.userId || null}
                       allowNone={false}
-                      includePassive
                       onChange={v =>
                         setCrew(i, {
                           userId: v ?? 0,

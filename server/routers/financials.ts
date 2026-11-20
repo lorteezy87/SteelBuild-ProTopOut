@@ -135,7 +135,7 @@ export const financialsRouter = router({
         .where(
           and(
             eq(timeEntries.projectId, p.id),
-            inArray(timeEntries.state, ["submitted", "approved", "invoiced"])
+            inArray(timeEntries.state, ["recorded", "invoiced"])
           )
         )
         .groupBy(timeCodes.name);
@@ -149,7 +149,7 @@ export const financialsRouter = router({
         .where(
           and(
             eq(expenses.projectId, p.id),
-            inArray(expenses.state, ["approved", "invoiced"])
+            inArray(expenses.state, ["recorded", "invoiced"])
           )
         )
         .groupBy(expenseCodes.name);
@@ -172,7 +172,7 @@ export const financialsRouter = router({
         .where(
           and(
             eq(dailyReports.projectId, p.id),
-            eq(dailyReports.status, "approved")
+            eq(dailyReports.status, "final")
           )
         )
         .groupBy(equipment.name);
@@ -185,7 +185,7 @@ export const financialsRouter = router({
         .where(
           and(
             eq(timeEntries.projectId, p.id),
-            inArray(timeEntries.state, ["submitted", "approved", "invoiced"])
+            inArray(timeEntries.state, ["recorded", "invoiced"])
           )
         )
         .groupBy(sql`1`);

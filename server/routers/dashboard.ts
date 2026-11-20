@@ -70,7 +70,7 @@ export async function tonsCurve(projectIds: number[], today: string) {
     .where(
       and(
         inArray(dailyReportProgress.projectId, projectIds),
-        eq(dailyReports.status, "approved")
+        eq(dailyReports.status, "final")
       )
     );
   const actual = new Map<string, number>();

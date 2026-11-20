@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { computeSla, endOfDayInTz, slaStatusAt } from "./services/wf";
-import { signPayload, verifySignature } from "./webhooks/dispatcher";
-import { createHmac } from "node:crypto";
 
 type Policy = Parameters<typeof computeSla>[1][number];
 
@@ -49,25 +47,5 @@ describe("workflow SLA", () => {
     expect(slaStatusAt(new Date("2026-11-04T05:00:00Z"), due, risk)).toBe("at_risk");
     expect(slaStatusAt(new Date("2026-11-04T15:00:00Z"), due, risk)).toBe("delayed");
     expect(slaStatusAt(new Date(), null, null)).toBe("ok");
-  });
-});
-
-describe("webhook signatures", () => {
-  const secret = "whsec_test";
-  const ts = "1793900000";
-  const body = JSON.stringify({ event: "logItem.update", data: { id: 1 } });
-
-  it("signs hex(HMAC-SHA256(secret, `${timestamp}.${body}`))", () => {
-    const expected = createHmac("sha256", secret).update(`${ts}.${body}`).digest("hex");
-    expect(signPayload(secret, ts, body)).toBe(expected);
-  });
-
-  it("verifies valid signatures and rejects tampering", () => {
-    const sig = signPayload(secret, ts, body);
-    expect(verifySignature(secret, ts, body, sig)).toBe(true);
-    expect(verifySignature(secret, ts, body + " ", sig)).toBe(false);
-    expect(verifySignature(secret, "1793900001", body, sig)).toBe(false);
-    expect(verifySignature("other", ts, body, sig)).toBe(false);
-    expect(verifySignature(secret, ts, body, "abc")).toBe(false);
   });
 });

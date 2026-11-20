@@ -9,7 +9,7 @@ export type TrpcContext = {
   user: User | null;
   /** Lazily-loaded permission data (see server/security/guard.ts). */
   sec?: Promise<SecurityData>;
-  /** When true, mutations skip notifications and webhooks (REST ?notifications=false). */
+  /** When true, mutations skip side effects (used by seeding). */
   quiet?: boolean;
 };
 

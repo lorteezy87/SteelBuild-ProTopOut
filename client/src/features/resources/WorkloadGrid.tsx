@@ -86,9 +86,6 @@ export function WorkloadGrid({
                             <div className="font-semibold">{person.name}</div>
                             <div className="text-xs text-muted-foreground">
                               {jobRoleName(person.jobRoleId)}
-                              {person.accessType === "passive"
-                                ? " · Passive resource"
-                                : ""}
                             </div>
                           </div>
                         </button>

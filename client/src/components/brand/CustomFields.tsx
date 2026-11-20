@@ -124,7 +124,7 @@ export function CfInput({ def, value, onChange }: { def: CfDef; value: unknown; 
       );
     }
     case "user":
-      return <UserSelect value={(value as number) ?? null} onChange={onChange} includePassive />;
+      return <UserSelect value={(value as number) ?? null} onChange={onChange} />;
     case "formula":
       return (
         <div className="flex h-9 items-center rounded-md border border-dashed border-input px-3 text-[13px] text-muted-foreground">

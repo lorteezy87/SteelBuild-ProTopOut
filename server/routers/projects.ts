@@ -6,7 +6,6 @@ import {
   activities,
   baselines,
   checklistItems,
-  comments,
   dailyReportCrew,
   dailyReportEquipment,
   dailyReportProgress,
@@ -415,7 +414,6 @@ export const projectsRouter = router({
     await d.delete(drawingSheets).where(eq(drawingSheets.projectId, p.id));
     await d.delete(drawingSetIssues).where(eq(drawingSetIssues.projectId, p.id));
     await d.delete(drawingSets).where(eq(drawingSets.projectId, p.id));
-    await d.delete(comments).where(eq(comments.projectId, p.id));
     await d.delete(activities).where(eq(activities.projectId, p.id));
     await d.delete(projectCompanies).where(eq(projectCompanies.projectId, p.id));
     await deleteValues("project", [p.id]);

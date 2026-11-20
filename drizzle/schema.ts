@@ -726,45 +726,6 @@ export const dashboards = mysqlTable("dashboards", {
 /* Collaboration                                                       */
 /* ------------------------------------------------------------------ */
 
-export const comments = mysqlTable(
-  "comments",
-  {
-    id: id(),
-    entityType: varchar("entityType", { length: 32 }).notNull(),
-    entityId: int("entityId").notNull(),
-    projectId: int("projectId"),
-    userId: int("userId").notNull(),
-    body: text("body").notNull(),
-    createdAt: createdAt(),
-  },
-  t => [index("cm_entity").on(t.entityType, t.entityId)]
-);
-
-export const followers = mysqlTable(
-  "followers",
-  {
-    id: id(),
-    entityType: varchar("entityType", { length: 32 }).notNull(),
-    entityId: int("entityId").notNull(),
-    userId: int("userId").notNull(),
-  },
-  t => [uniqueIndex("fl_uq").on(t.entityType, t.entityId, t.userId)]
-);
-
-export const notifications = mysqlTable(
-  "notifications",
-  {
-    id: id(),
-    userId: int("userId").notNull(),
-    title: varchar("title", { length: 255 }).notNull(),
-    body: text("body"),
-    link: varchar("link", { length: 500 }),
-    isRead: boolean("isRead").default(false).notNull(),
-    createdAt: createdAt(),
-  },
-  t => [index("nt_user").on(t.userId, t.isRead)]
-);
-
 export const activities = mysqlTable(
   "activities",
   {
@@ -1017,52 +978,6 @@ export const modelJobs = mysqlTable("model_jobs", {
 /* ------------------------------------------------------------------ */
 /* Integration                                                         */
 /* ------------------------------------------------------------------ */
-
-export const apiTokens = mysqlTable(
-  "api_tokens",
-  {
-    id: id(),
-    userId: int("userId").notNull(),
-    name: varchar("name", { length: 128 }).notNull(),
-    tokenHash: varchar("tokenHash", { length: 128 }).notNull().unique(),
-    last4: varchar("last4", { length: 8 }).notNull(),
-    windowStart: timestamp("windowStart"),
-    windowCount: int("windowCount").default(0).notNull(),
-    lastUsedAt: timestamp("lastUsedAt"),
-    createdAt: createdAt(),
-  },
-  t => [index("tok_user").on(t.userId)]
-);
-
-export const webhooks = mysqlTable("webhooks", {
-  id: id(),
-  name: varchar("name", { length: 128 }).notNull(),
-  url: varchar("url", { length: 1000 }).notNull(),
-  secret: varchar("secret", { length: 128 }).notNull(),
-  events: json("events").$type<string[]>().notNull(),
-  isActive: boolean("isActive").default(true).notNull(),
-  createdBy: int("createdBy"),
-  createdAt: createdAt(),
-});
-
-export const webhookDeliveries = mysqlTable(
-  "webhook_deliveries",
-  {
-    id: id(),
-    webhookId: int("webhookId").notNull(),
-    deliveryId: varchar("deliveryId", { length: 64 }).notNull(),
-    event: varchar("event", { length: 64 }).notNull(),
-    payload: json("payload").notNull(),
-    /** pending | success | failed */
-    status: varchar("status", { length: 16 }).default("pending").notNull(),
-    attempts: int("attempts").default(0).notNull(),
-    responseCode: int("responseCode"),
-    responseBody: varchar("responseBody", { length: 1000 }),
-    nextAttemptAt: timestamp("nextAttemptAt"),
-    createdAt: createdAt(),
-  },
-  t => [index("wd_hook").on(t.webhookId), index("wd_status").on(t.status, t.nextAttemptAt)]
-);
 
 /* ------------------------------------------------------------------ */
 /* Local email + password sign-in (self-hosted deployments)            */

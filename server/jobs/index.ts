@@ -3,7 +3,6 @@ import { recomputeAll } from "../services/recompute";
 import { orgToday } from "../services/calendars";
 import { getSetting, setSetting } from "../bootstrap";
 import { sweepSla } from "../services/wf";
-import { retryDueDeliveries } from "../webhooks/dispatcher";
 
 const FIVE_MIN = 5 * 60_000;
 let started = false;
@@ -20,7 +19,6 @@ async function tick() {
   try {
     await ensureBootstrap();
     await sweepSla();
-    await retryDueDeliveries();
     const today = await orgToday();
     const last = await getSetting<string | null>("last_daily_reforecast", null);
     if (last !== today) {

@@ -1,5 +1,4 @@
 import { RecordDrawer } from "@/components/brand/Controls";
-import { CommentsPanel, FollowButton } from "@/components/brand/Collab";
 import { ErrorState, Field, Loading, Panel } from "@/components/brand/Layout";
 import { Pill, ProgressBar, ScheduleHealth } from "@/components/brand/Status";
 import { fmtDate, fmtNum, fmtPct } from "@/lib/format";
@@ -74,7 +73,6 @@ export function TaskDrawer({
                 Constraint violated
               </Pill>
             )}
-            <FollowButton entityType="task" entityId={t.id} />
           </>
         )
       }
@@ -125,17 +123,6 @@ export function TaskDrawer({
             <TaskDependencies data={q.data} changed={changed} />
             <TaskResources data={q.data} changed={changed} />
             <TaskChecklist data={q.data} changed={changed} />
-            <Panel title="Task comments" bodyClassName="p-3">
-              <CommentsPanel
-                entityType="task"
-                entityId={t.id}
-                className={
-                  !q.data.privileges.includes("comment.create")
-                    ? "[&>div:last-child]:hidden"
-                    : undefined
-                }
-              />
-            </Panel>
           </div>
         )
       )}

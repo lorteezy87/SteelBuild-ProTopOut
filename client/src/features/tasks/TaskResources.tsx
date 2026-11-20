@@ -87,7 +87,6 @@ export function TaskResources({
               <UserSelect
                 value={a.userId}
                 onChange={v => update(i, { userId: v })}
-                includePassive
               />
             ) : (
               userName(a.userId)

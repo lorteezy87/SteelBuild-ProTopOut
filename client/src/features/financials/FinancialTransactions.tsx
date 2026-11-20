@@ -30,10 +30,8 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
       toast.success("Time marked invoiced.");
       await Promise.all([
         utils.time.billable.invalidate({ projectId }),
-        utils.time.approvals.invalidate(),
         utils.time.week.invalidate(),
         utils.financials.summary.invalidate({ projectId }),
-        utils.ref.badges.invalidate(),
       ]);
     },
     onError: error => toast.error(errMsg(error)),

@@ -7,7 +7,6 @@ import { registerStorageRoute } from "../storageR2";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { createApiV2Router } from "../api/v2";
 import { startJobs } from "../jobs";
 import { registerDrawingFiles } from "../drawingFiles";
 
@@ -24,8 +23,6 @@ async function startServer() {
   registerStorageRoute(app);
   // Drawing files (PDF / page image) streamed same-origin for the sheet viewer
   registerDrawingFiles(app);
-  // REST API v2 (bearer tokens)
-  app.use("/api/v2", createApiV2Router());
   // tRPC API
   app.use(
     "/api/trpc",

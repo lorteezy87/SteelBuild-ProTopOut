@@ -12,7 +12,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 const Portfolio = lazy(() => import("./pages/Portfolio"));
-const MyWork = lazy(() => import("./pages/MyWork"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const JobLayout = lazy(() => import("./pages/job/JobLayout"));
 const LogsIndex = lazy(() => import("./pages/LogsIndex"));
@@ -20,13 +19,11 @@ const Bids = lazy(() => import("./pages/Bids"));
 const Resources = lazy(() => import("./pages/Resources"));
 const Timesheet = lazy(() => import("./pages/Timesheet"));
 const Expenses = lazy(() => import("./pages/Expenses"));
-const Approvals = lazy(() => import("./pages/Approvals"));
 const Reports = lazy(() => import("./pages/Reports"));
 const ReportEditor = lazy(() => import("./pages/ReportEditor"));
 const Dashboards = lazy(() => import("./pages/Dashboards"));
 const DashboardView = lazy(() => import("./pages/DashboardView"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
-const ApiDocs = lazy(() => import("./pages/ApiDocs"));
 const Account = lazy(() => import("./pages/Account"));
 
 function Routes() {
@@ -34,7 +31,6 @@ function Routes() {
     <Suspense fallback={<Loading />}>
       <Switch>
         <Route path="/" component={Portfolio} />
-        <Route path="/my-work" component={MyWork} />
         <Route path="/jobs" component={Jobs} />
         <Route path="/jobs/:id">{p => <JobLayout params={p} />}</Route>
         <Route path="/jobs/:id/:tab">{p => <JobLayout params={p} />}</Route>
@@ -48,7 +44,6 @@ function Routes() {
         <Route path="/resources" component={Resources} />
         <Route path="/timesheet" component={Timesheet} />
         <Route path="/expenses" component={Expenses} />
-        <Route path="/approvals" component={Approvals} />
         <Route path="/reports" component={Reports} />
         <Route path="/reports/new" component={ReportEditor} />
         <Route path="/reports/:id" component={ReportEditor} />
@@ -56,7 +51,6 @@ function Routes() {
         <Route path="/dashboards/:id" component={DashboardView} />
         <Route path="/admin" component={AdminLayout} />
         <Route path="/admin/:section" component={AdminLayout} />
-        <Route path="/api-docs" component={ApiDocs} />
         <Route path="/account" component={Account} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

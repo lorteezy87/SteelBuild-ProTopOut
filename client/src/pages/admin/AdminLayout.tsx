@@ -7,7 +7,7 @@ import {
   ErrorState,
 } from "@/components/brand/Layout";
 import { useRefData } from "@/lib/ref";
-import Users from "@/features/admin/Users";
+import Crew from "@/features/settings/Crew";
 import JobRoles from "@/features/admin/JobRoles";
 import Calendars from "@/features/admin/Calendars";
 import Companies from "@/features/admin/Companies";
@@ -16,14 +16,12 @@ import Codes from "@/features/admin/Codes";
 import CustomFields from "@/features/admin/CustomFields";
 import Workflows from "@/features/admin/Workflows";
 import Settings from "@/features/admin/Settings";
-import Integrations from "@/features/admin/Integrations";
-import Demo from "@/features/admin/Demo";
 const sections = [
-  { key: "users", label: "People", group: "Access", component: Users },
+  { key: "users", label: "Crew", group: "People & rates", component: Crew },
   {
     key: "job-roles",
-    label: "Job roles & rates",
-    group: "Reference data",
+    label: "Classifications & rates",
+    group: "People & rates",
     component: JobRoles,
   },
   {
@@ -68,18 +66,6 @@ const sections = [
     group: "Configuration",
     component: Settings,
   },
-  {
-    key: "integrations",
-    label: "Integrations",
-    group: "Configuration",
-    component: Integrations,
-  },
-  {
-    key: "demo",
-    label: "Demo & maintenance",
-    group: "Configuration",
-    component: Demo,
-  },
 ];
 export default function AdminLayout({
   params,
@@ -103,13 +89,13 @@ export default function AdminLayout({
   return (
     <div>
       <PageHeader
-        eyebrow={`${ref?.org.name ?? "SteelBuild Pro TopOut"} · Administration`}
-        title={current?.label ?? "Administration"}
-        subtitle="Organization-wide configuration. Changes apply to every job."
+        eyebrow={`${ref?.org.name ?? "SteelBuild Pro TopOut"} · Settings`}
+        title={current?.label ?? "Settings"}
+        subtitle="Crew, rates, reference data and configuration. Changes apply to every job."
       />
       <div className="flex flex-col md:flex-row">
         <nav
-          aria-label="Administration sections"
+          aria-label="Settings sections"
           className="shrink-0 border-b border-[var(--tp-rule)] bg-[var(--tp-paper)] p-3 md:w-52 md:border-b-0 md:border-r"
         >
           <div className="flex flex-wrap gap-1 md:block">
