@@ -34,9 +34,9 @@ export default function Timesheet() {
   return (
     <>
       <PageHeader
-        eyebrow="Crew hours"
-        title="Weekly timesheet"
-        subtitle="Monday–Sunday · Saved and rejected time is editable. Approved field-report hours are read-only."
+        eyebrow="My hours"
+        title="Weekly hours"
+        subtitle="Monday–Sunday · Saved hours are editable until you record the week. Crew hours from final daily reports are read-only."
         actions={
           <WeekPicker
             value={start}

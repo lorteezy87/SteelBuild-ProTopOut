@@ -33,7 +33,7 @@ export function TonsChart({ data }: { data: Portfolio["tons"] }) {
     return (
       <EmptyState
         title="No tonnage plan"
-        body="Plan erection sequences and approve daily progress to build the curve."
+        body="Plan erection sequences and finalize daily reports to build the curve."
         className="py-10"
       />
     );
@@ -117,7 +117,7 @@ export function CrewChart({ data }: { data: Portfolio["crewHours"]["byJob"] }) {
     return (
       <EmptyState
         title="No crew hours this week"
-        body="Submit timesheets or approve daily reports to post hours."
+        body="Record hours or finalize daily reports to post hours."
         className="py-8"
       />
     );

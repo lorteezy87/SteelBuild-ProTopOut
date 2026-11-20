@@ -351,7 +351,7 @@ export function TaskForm({
               />
             </Field>
             <p className="text-[11px] text-muted-foreground sm:col-span-2">
-              Approved daily reports post erected quantities. Tonnage / Pieces
+              Final daily reports post erected quantities. Tonnage / Pieces
               progress methods calculate % complete from these quantities.
             </p>
           </section>

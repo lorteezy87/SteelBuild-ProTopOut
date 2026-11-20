@@ -279,7 +279,7 @@ export function ReportLines({
           </table>
         </fieldset>
         <p className="border-t border-[var(--tp-rule)] px-3 py-2 text-xs text-muted-foreground">
-          Equipment cost is posted at approval. Equipment-to-task allocation is
+          Equipment cost is posted when the report is finalized. Equipment-to-task allocation is
           not supported on daily reports.
         </p>
       </Panel>
@@ -408,7 +408,7 @@ export function ReportLines({
         </fieldset>
         <p className="border-t border-[var(--tp-rule)] px-3 py-2 text-xs text-muted-foreground">
           * Cumulative tonnage % (pieces when no planned tons), including this
-          report. Preview only until approved.
+          report. Preview only until finalized.
         </p>
       </Panel>
     </div>

@@ -107,11 +107,11 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
         )}
       </Panel>
       <Panel
-        title="Approved time · ready to bill"
+        title="Recorded time · ready to bill"
         actions={
           <ConfirmButton
             title="Mark selected time invoiced?"
-            body="Includes approved timesheet and daily-report hours. This updates billing state; it does not send an invoice."
+            body="Includes recorded hours and finalized daily-report hours. This updates billing state; it does not send an invoice."
             confirmLabel="Mark invoiced"
             disabled={!ids.length || invoice.isPending}
             onConfirm={() => invoice.mutate({ ids })}
@@ -126,8 +126,8 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
           <ErrorState error={time.error} />
         ) : !time.data?.length ? (
           <EmptyState
-            title="No approved time awaiting billing."
-            body="Approved timesheet and field-report hours appear here until invoiced."
+            title="No recorded time awaiting billing."
+            body="Recorded hours and finalized field-report hours appear here until invoiced."
           />
         ) : (
           <div className="overflow-x-auto">
@@ -136,7 +136,7 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
                 <tr>
                   <th>
                     <Checkbox
-                      aria-label="Select all approved job time"
+                      aria-label="Select all recorded job time"
                       disabled={invoice.isPending}
                       checked={
                         time.data.length > 0 && ids.length === time.data.length
@@ -167,7 +167,7 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
                   >
                     <td>
                       <Checkbox
-                        aria-label={`Select approved time ${row.e.id}`}
+                        aria-label={`Select recorded time ${row.e.id}`}
                         disabled={invoice.isPending}
                         checked={ids.includes(row.e.id)}
                         onCheckedChange={checked =>
@@ -254,13 +254,6 @@ export function FinancialTransactions({ projectId }: { projectId: number }) {
               {selected.e.billable ? "Billable" : "Non-billable"} /{" "}
               {selected.e.costable ? "Costable" : "Non-costable"}
             </Field>
-            {selected.e.rejectReason && (
-              <Field label="Rejection reason" className="sm:col-span-2">
-                <span className="text-[var(--tp-red-strong)]">
-                  {selected.e.rejectReason}
-                </span>
-              </Field>
-            )}
             {selected.e.receiptUrl && (
               <Field label="Receipt">
                 <a

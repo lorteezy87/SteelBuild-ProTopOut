@@ -105,12 +105,12 @@ export default function Financials() {
         <Kpi
           label="Equipment cost"
           value={fmtMoney(data.costs.equipmentCost)}
-          sub="Approved daily reports · operating + standby"
+          sub="Final daily reports · operating + standby"
         />
         <Kpi
           label="Expense cost"
           value={fmtMoney(data.costs.expenseCost)}
-          sub="Approved / invoiced · costable only"
+          sub="Recorded / invoiced · costable only"
         />
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -219,8 +219,7 @@ export default function Financials() {
         <p className="mt-3 text-xs text-muted-foreground">
           Active-baseline values. CPI / SPI below 0.95 are red; below 1.00 are
           amber. A dash means no valid denominator. Labor actuals include
-          submitted, approved and invoiced time; saved / rejected entries are
-          excluded.
+          recorded and invoiced time; saved entries are excluded.
         </p>
       </Panel>
       <div className="grid items-start gap-4 xl:grid-cols-3">
@@ -273,12 +272,12 @@ export default function Financials() {
           </table>
           {!data.byExpenseCode.length && (
             <EmptyState
-              title="No approved expenses."
-              body="Approve job expenses to include them here."
+              title="No recorded expenses."
+              body="Record job expenses to include them here."
             />
           )}
           <p className="border-t border-[var(--tp-rule)] px-3 py-2 text-[11px] text-muted-foreground">
-            Gross approved / invoiced amounts, including non-costable expenses.
+            Gross recorded / invoiced amounts, including non-costable expenses.
           </p>
         </Panel>
         <Panel title="Equipment cost">
@@ -306,8 +305,8 @@ export default function Financials() {
           </div>
           {!data.byEquipment.length && (
             <EmptyState
-              title="No approved equipment use."
-              body="Approve daily reports with crane or equipment hours."
+              title="No equipment use posted."
+              body="Finalize daily reports with crane or equipment hours."
             />
           )}
         </Panel>

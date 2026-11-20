@@ -34,7 +34,7 @@ export default function DailyReports() {
     <>
       <PageHeader
         title="Daily field reports"
-        subtitle="Crew time, crane standby and erection progress. Submitted reports require approval before posting."
+        subtitle="Crew time, crane standby and erection progress. Finalizing a report posts its hours and tons."
         actions={
           can("dailyreport.create") && (
             <Button size="sm" onClick={() => navigate(`${base}/new`)}>
@@ -55,9 +55,7 @@ export default function DailyReports() {
                 options={{
                   all: "All reports",
                   draft: "Draft",
-                  submitted: "Submitted",
-                  approved: "Approved",
-                  rejected: "Rejected",
+                  final: "Final",
                 }}
               />
             </div>
