@@ -1,6 +1,6 @@
 import type { CookieOptions, Request } from "express";
 
+/** First-party session cookie. TopOut is served over HTTPS in production; browsers treat localhost as secure. */
 export function getSessionCookieOptions(_req: Request): CookieOptions {
-  // Preview is public HTTPS in a cross-site frame even when the upstream request is HTTP.
-  return { httpOnly: true, path: "/", sameSite: "none", secure: true };
+  return { httpOnly: true, path: "/", sameSite: "lax", secure: true };
 }

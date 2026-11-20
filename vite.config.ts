@@ -1,28 +1,10 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
-import { defineConfig, type Plugin } from "vite";
-import { publicPlatformScript } from "./server/_core/publicConfig";
-
-// Serves the public runtime config in dev and emits it for static builds. Express serves it in production.
-function vitePluginPublicPlatformConfig(): Plugin {
-  return {
-    name: "public-platform-config",
-    configureServer(server) {
-      server.middlewares.use("/api/platform/config.js", (_req, res) => {
-        res.setHeader("Content-Type", "application/javascript");
-        res.setHeader("Cache-Control", "no-store");
-        res.end(publicPlatformScript());
-      });
-    },
-    generateBundle() {
-      this.emitFile({ type: "asset", fileName: "api/platform/config.js", source: publicPlatformScript() });
-    },
-  };
-}
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [vitePluginPublicPlatformConfig(), react(), tailwindcss()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),

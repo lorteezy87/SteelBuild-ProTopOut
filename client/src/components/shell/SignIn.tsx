@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { startLogin } from "@/const";
 import { BarChart3, CalendarRange, ClipboardCheck } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { BrandGlyph, Wordmark } from "../brand/Status";
@@ -46,20 +45,8 @@ export function SignIn() {
               <Wordmark size="md" />
             </div>
           </div>
-          {window.__MANUS_CONFIG__?.oauthPortalUrl ? (
-            <div className="tp-panel p-8">
-              <h2 className="text-[22px] font-semibold leading-tight tracking-[-0.015em] text-[var(--tp-ink)]">Sign in to SteelBuild Pro TopOut</h2>
-              <p className="mt-2 text-[14px] leading-relaxed text-[var(--tp-muted)]">
-                Use your company account. The first person to sign in becomes the administrator and can invite the rest of the team.
-              </p>
-              <Button className="mt-7 h-11 w-full text-[14.5px]" onClick={() => startLogin()}>
-                Continue to sign in
-              </Button>
-            </div>
-          ) : (
-            <PasswordSignIn />
-          )}
-          <p className="mt-6 text-center text-[12px] text-[var(--tp-muted)]">Access is limited to authorized company users.</p>
+          <OwnerSignIn />
+          <p className="mt-6 text-center text-[12px] text-[var(--tp-muted)]">Forgot your password? Set OWNER_RESET_PASSWORD on the server and restart.</p>
         </div>
       </div>
     </div>
@@ -96,10 +83,9 @@ async function post(path: string, body: unknown) {
   if (!res.ok) throw new Error(data.error || "Something went wrong. Try again.");
 }
 
-/** Email + password sign-in for self-hosted installs. The first account becomes the administrator. */
-function PasswordSignIn() {
-  const [mode, setMode] = useState<"signin" | "register">("signin");
-  const [setupRequired, setSetupRequired] = useState(false);
+/** Owner sign-in. On a fresh install it becomes first-run setup and creates the owner. */
+function OwnerSignIn() {
+  const [setupRequired, setSetupRequired] = useState<boolean | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -107,25 +93,21 @@ function PasswordSignIn() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    fetch("/api/auth/local/status", { credentials: "include" })
+    fetch("/api/auth/status", { credentials: "include" })
       .then(r => (r.ok ? r.json() : null))
-      .then((s: { setupRequired?: boolean } | null) => {
-        if (s?.setupRequired) {
-          setSetupRequired(true);
-          setMode("register");
-        }
-      })
-      .catch(() => {});
+      .then((s: { setupRequired?: boolean } | null) => setSetupRequired(!!s?.setupRequired))
+      .catch(() => setSetupRequired(false));
   }, []);
 
+  const setup = setupRequired === true;
   const submit = async (e?: FormEvent) => {
     e?.preventDefault();
     if (busy) return;
     setError(null);
     setBusy(true);
     try {
-      if (mode === "register") await post("/api/auth/local/register", { name, email, password });
-      else await post("/api/auth/local/login", { email, password });
+      if (setup) await post("/api/auth/setup", { name, email, password });
+      else await post("/api/auth/login", { email, password });
       window.location.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -133,21 +115,16 @@ function PasswordSignIn() {
     }
   };
 
-  const register = mode === "register";
   return (
     <form className="tp-panel p-8" onSubmit={submit} noValidate>
       <h2 className="text-[22px] font-semibold leading-tight tracking-[-0.015em] text-[var(--tp-ink)]">
-        {setupRequired ? "Set up SteelBuild Pro TopOut" : register ? "Create your account" : "Sign in to SteelBuild Pro TopOut"}
+        {setup ? "Set up SteelBuild Pro TopOut" : "Sign in to SteelBuild Pro TopOut"}
       </h2>
       <p className="mt-2 text-[14px] leading-relaxed text-[var(--tp-muted)]">
-        {setupRequired
-          ? "No administrator exists yet. This first account becomes the administrator and can invite the rest of the team."
-          : register
-            ? "Use the email your administrator added for you."
-            : "Use your company email and password."}
+        {setup ? "Create your login. You are the only person who signs in to this app." : "Use your email and password."}
       </p>
       <div className="mt-6 space-y-4">
-        {register && (
+        {setup && (
           <div className="space-y-1.5">
             <Label htmlFor="si-name">Full name</Label>
             <Input id="si-name" autoComplete="name" value={name} onChange={e => setName(e.target.value)} />
@@ -162,11 +139,11 @@ function PasswordSignIn() {
           <Input
             id="si-password"
             type="password"
-            autoComplete={register ? "new-password" : "current-password"}
+            autoComplete={setup ? "new-password" : "current-password"}
             value={password}
             onChange={e => setPassword(e.target.value)}
           />
-          {register && <p className="text-[12px] text-[var(--tp-muted)]">At least 10 characters.</p>}
+          {setup && <p className="text-[12px] text-[var(--tp-muted)]">At least 10 characters.</p>}
         </div>
       </div>
       {error && (
@@ -174,21 +151,9 @@ function PasswordSignIn() {
           {error}
         </p>
       )}
-      <Button type="submit" className="mt-6 h-11 w-full text-[14.5px]" disabled={busy}>
-        {busy ? "Please wait…" : register ? "Create account" : "Sign in"}
+      <Button type="submit" className="mt-6 h-11 w-full text-[14.5px]" disabled={busy || setupRequired === null}>
+        {busy ? "Please wait…" : setup ? "Create login" : "Sign in"}
       </Button>
-      {!setupRequired && (
-        <button
-          type="button"
-          className="mt-4 w-full text-center text-[13px] text-[var(--tp-accent-ink,var(--tp-ink-2))] underline-offset-2 hover:underline"
-          onClick={() => {
-            setMode(register ? "signin" : "register");
-            setError(null);
-          }}
-        >
-          {register ? "Already have an account? Sign in" : "Invited by your administrator? Create your account"}
-        </button>
-      )}
     </form>
   );
 }

@@ -1,20 +1,17 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { and, eq, like, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { Express, Request, Response } from "express";
 import { randomBytes, randomUUID, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { localCredentials, users } from "../../drizzle/schema";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
+import { applyResetPassword, pickLoginUser, registrationAllowed } from "./ownerAuth";
 import { sdk } from "./sdk";
 
 /**
- * Email + password sign-in for self-hosted deployments (e.g. Railway), where Manus OAuth is unavailable.
- *
- * Registration is closed by default:
- *  - the very first account (no admin exists yet) may register and becomes Admin / Full access;
- *  - afterwards only people an admin pre-created (Admin → Users, by email) can claim their account.
- * Sessions reuse the existing signed session cookie, so every server-side access check is unchanged.
+ * Owner sign-in. TopOut has one login: the owner, created on first run at /api/auth/setup.
+ * Crew records live in `users` too but have no credential and can never sign in.
  */
 
 const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number) => Promise<Buffer>;
@@ -66,18 +63,16 @@ async function startSession(req: Request, res: Response, openId: string, name: s
 const fail = (res: Response, status: number, error: string) => res.status(status).json({ error });
 
 export function registerLocalAuthRoutes(app: Express) {
-  /** Tells the sign-in screen whether this is a fresh install (first account becomes admin). */
-  app.get("/api/auth/local/status", async (_req, res) => {
+  /** Whether first-run setup is still open. */
+  app.get("/api/auth/status", async (_req, res) => {
     try {
-      const d = await db.db();
-      const [admin] = await d.select({ id: users.id }).from(users).where(eq(users.role, "admin")).limit(1);
-      res.set("Cache-Control", "no-store").json({ setupRequired: !admin });
+      res.set("Cache-Control", "no-store").json({ setupRequired: registrationAllowed({ ownerExists: await ownerExists() }) });
     } catch {
       fail(res, 503, "Database unavailable");
     }
   });
 
-  app.post("/api/auth/local/login", async (req, res) => {
+  app.post("/api/auth/login", async (req, res) => {
     const email = normEmail(req.body?.email);
     const password = typeof req.body?.password === "string" ? req.body.password : "";
     if (!email || !password) return fail(res, 400, "Enter your email and password.");
@@ -92,31 +87,28 @@ export function registerLocalAuthRoutes(app: Express) {
         .where(eq(localCredentials.email, email))
         .limit(1);
       const ok = row ? await verifyPassword(password, row.hash) : await verifyPassword(password, DUMMY_HASH).then(() => false);
-      if (!row || !ok) {
+      const owner = row && ok ? pickLoginUser([row.user], row.user.id) : null;
+      if (!owner) {
         noteFail(key);
         return fail(res, 401, "Email or password is incorrect.");
       }
-      if (!row.user.isActive || row.user.accessType === "passive") {
-        return fail(res, 403, "This account is not allowed to sign in. Ask your administrator.");
-      }
       fails.delete(key);
-      await d.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, row.user.id));
-      await startSession(req, res, row.user.openId, row.user.name ?? "");
+      await d.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, owner.id));
+      await startSession(req, res, owner.openId, owner.name ?? "");
       res.json({ ok: true });
     } catch (e) {
-      console.error("[LocalAuth] login failed", e instanceof Error ? e.message : e);
+      console.error("[auth] login failed", e instanceof Error ? e.message : e);
       fail(res, 500, "Sign-in failed. Try again.");
     }
   });
 
-  app.post("/api/auth/local/register", async (req, res) => {
+  /** First run only: creates the owner. Refused once an owner exists. */
+  app.post("/api/auth/setup", async (req, res) => {
     const email = normEmail(req.body?.email);
     const name = typeof req.body?.name === "string" ? req.body.name.trim().slice(0, 200) : "";
     const password = typeof req.body?.password === "string" ? req.body.password : "";
     if (!validEmail(email)) return fail(res, 400, "Enter a valid email address.");
     if (password.length < MIN_PASSWORD || password.length > 200) return fail(res, 400, `Password must be at least ${MIN_PASSWORD} characters.`);
-    const key = throttleKey(req, email);
-    if (throttled(key)) return fail(res, 429, "Too many attempts. Try again in 15 minutes.");
 
     let d: db.Db;
     try {
@@ -124,42 +116,22 @@ export function registerLocalAuthRoutes(app: Express) {
     } catch {
       return fail(res, 503, "Database unavailable");
     }
-    // Serialize registrations so two simultaneous first sign-ups cannot both become admin.
+    // Serialize so two simultaneous first-run requests cannot both create an owner.
     const conn = await (d.$client as unknown as { promise(): { getConnection(): Promise<LockConn> } }).promise().getConnection();
     try {
       const [[lock]] = (await conn.query("SELECT GET_LOCK('topout_owner_setup', 10) AS ok")) as unknown as [[{ ok: number }]];
       if (!lock?.ok) return fail(res, 503, "Busy. Try again.");
-
-      const [existingCred] = await d.select({ id: localCredentials.userId }).from(localCredentials).where(eq(localCredentials.email, email)).limit(1);
-      if (existingCred) {
-        noteFail(key);
-        return fail(res, 409, "An account with this email already exists. Sign in instead.");
-      }
-      const [admin] = await d.select({ id: users.id }).from(users).where(eq(users.role, "admin")).limit(1);
-      const [invited] = await d
-        .select()
-        .from(users)
-        .where(and(sql`lower(${users.email}) = ${email}`, like(users.openId, "local:%")))
-        .limit(1);
-      if (admin && !invited) {
-        noteFail(key);
-        return fail(res, 403, "Sign-up is by invitation. Ask your administrator to add your email under Admin → Users.");
-      }
-      if (invited && (!invited.isActive || invited.accessType === "passive")) {
-        return fail(res, 403, "This account is not allowed to sign in. Ask your administrator.");
-      }
-
-      const openId = `pw:${randomUUID()}`;
-      // upsertUser links a pre-created ("local:") user by email, or creates the first user as Admin.
-      await db.upsertUser({ openId, name: name || null, email, loginMethod: "password", lastSignedIn: new Date() });
-      const user = await db.getUserByOpenId(openId);
-      if (!user) throw new Error("user not created");
-      await d.insert(localCredentials).values({ userId: user.id, email, passwordHash: await hashPassword(password) });
-      fails.delete(key);
-      await startSession(req, res, user.openId, user.name ?? "");
-      res.json({ ok: true, admin: user.role === "admin" });
+      if (!registrationAllowed({ ownerExists: await ownerExists() })) return fail(res, 403, "This app already has an owner. Sign in instead.");
+      const openId = `owner:${randomUUID()}`;
+      // Inserted directly as the owner: never linked to an existing crew record by email.
+      await d.insert(users).values({ openId, name: name || null, email, loginMethod: "password", role: "admin", accessType: "full", lastSignedIn: new Date() });
+      const owner = await db.getUserByOpenId(openId);
+      if (!owner) throw new Error("owner not created");
+      await d.insert(localCredentials).values({ userId: owner.id, email, passwordHash: await hashPassword(password) });
+      await startSession(req, res, owner.openId, owner.name ?? "");
+      res.json({ ok: true });
     } catch (e) {
-      console.error("[LocalAuth] register failed", e instanceof Error ? e.message : e);
+      console.error("[auth] setup failed", e instanceof Error ? e.message : e);
       fail(res, 500, "Could not create the account. Try again.");
     } finally {
       try {
@@ -168,6 +140,33 @@ export function registerLocalAuthRoutes(app: Express) {
       conn.release();
     }
   });
+}
+
+async function ownerExists(): Promise<boolean> {
+  const d = await db.db();
+  const [owner] = await d.select({ id: users.id }).from(users).where(eq(users.role, "admin")).limit(1);
+  return Boolean(owner);
+}
+
+/** Applies OWNER_RESET_PASSWORD (if set) to the owner's credential at startup. */
+export async function applyOwnerPasswordReset(): Promise<void> {
+  if (!process.env.OWNER_RESET_PASSWORD) return;
+  const d = await db.db();
+  const [row] = await d
+    .select({ userId: localCredentials.userId, hash: localCredentials.passwordHash })
+    .from(localCredentials)
+    .innerJoin(users, eq(users.id, localCredentials.userId))
+    .where(eq(users.role, "admin"))
+    .limit(1);
+  if (!row) {
+    console.warn("[auth] OWNER_RESET_PASSWORD is set but no owner exists yet; ignored");
+    return;
+  }
+  const r = await applyResetPassword(process.env.OWNER_RESET_PASSWORD, row.hash);
+  if (r?.changed) {
+    await d.update(localCredentials).set({ passwordHash: r.hash }).where(eq(localCredentials.userId, row.userId));
+    console.warn("[auth] owner password reset from OWNER_RESET_PASSWORD");
+  }
 }
 
 type LockConn = { query(sql: string): Promise<unknown>; release(): void };

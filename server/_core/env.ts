@@ -1,12 +1,8 @@
-// Platform values are read at use time. See the Webdev service/authentication skills.
+// Runtime configuration, read at use time.
 export const ENV = {
-  get appId() { return process.env.MANUS_PROJECT_ID || process.env.APP_ID || "steelbuild-pro"; },
-  get cookieSecret() { return process.env.MANUS_JWT_SECRET || process.env.SESSION_SECRET || ""; },
+  /** Sessions are bound to this app id so a token from another app never validates here. */
+  get appId() { return "topout"; },
+  get cookieSecret() { return process.env.SESSION_SECRET ?? ""; },
   get databaseUrl() { return process.env.DATABASE_URL ?? ""; },
-  get oAuthServerUrl() { return process.env.MANUS_OAUTH_API_URL ?? ""; },
-  // Preserve the legacy hint when supplied; otherwise roles remain application data.
-  get ownerOpenId() { return process.env.OWNER_OPEN_ID ?? ""; },
   get isProduction() { return process.env.NODE_ENV === "production"; },
-  get forgeApiUrl() { return process.env.MANUS_API_URL ?? ""; },
-  get forgeApiKey() { return process.env.MANUS_API_KEY ?? ""; },
 };

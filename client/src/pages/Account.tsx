@@ -18,6 +18,7 @@ import { trpc } from "@/lib/trpc";
 import { ACCESS_TYPES } from "@shared/domain";
 import { errMsg, fmtDateTime } from "@/lib/format";
 import { CopySecret } from "@/features/admin/Editor";
+import { ChangePassword } from "@/features/settings/ChangePassword";
 export default function Account() {
   const { ref, user, userName, jobRoleName, isLoading, error } = useRefData();
   const tokens = trpc.integration.tokens.useQuery();
@@ -88,6 +89,7 @@ export default function Account() {
             An organization admin manages your profile, rates and access.
           </p>
         </Panel>
+        <ChangePassword />
         <Panel
           title={`Personal API tokens · ${tokens.data?.length ?? 0} / 5`}
           actions={
