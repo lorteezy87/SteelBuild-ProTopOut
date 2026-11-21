@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { errMsg, fileToBase64, fmtDate } from "@/lib/format";
 import type { RouterOutputs } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
+import { uploadPhoto } from "@/features/offline/sync";
 
 export type Photo = RouterOutputs["photos"]["list"][number];
 
@@ -18,17 +19,18 @@ export const photoDayLabel = (p: Pick<Photo, "day" | "estimated">) => (p.estimat
 
 /** Upload photos to the job's photo log, optionally owned by a record. */
 export function usePhotoUpload(projectId: number) {
-  const upload = trpc.collab.upload.useMutation();
   const utils = trpc.useUtils();
   const [busy, setBusy] = useState(false);
-  const run = async (files: FileList | File[] | null, meta: { caption?: string | null; takenOn?: string | null; sequenceTaskId?: number | null; entityType?: PhotoEntity; entityId?: number }) => {
+  const run = async (files: FileList | File[] | null, meta: { caption?: string | null; takenOn?: string | null; sequenceTaskId?: number | null; entityType?: PhotoEntity; entityId?: number; parentKey?: string | null }) => {
     const list = Array.from(files ?? []);
     if (!list.length) return;
     setBusy(true);
+    let queued = 0;
+    let sent = 0;
     try {
       for (const file of list) {
         if (file.size > 25 * 1024 * 1024) throw new Error(`${file.name} is larger than 25 MB.`);
-        await upload.mutateAsync({
+        const r = await uploadPhoto({
           projectId,
           name: file.name,
           category: "photos",
@@ -38,13 +40,17 @@ export function usePhotoUpload(projectId: number) {
           sequenceTaskId: meta.sequenceTaskId ?? null,
           ...(meta.entityType && meta.entityId ? { entityType: meta.entityType, entityId: meta.entityId } : {}),
           file: { fileName: file.name, mimeType: file.type || "application/octet-stream", base64: await fileToBase64(file) },
-        });
+        }, { parentKey: meta.parentKey ?? null, label: file.name });
+        if (r.queued) queued++;
+        else sent++;
       }
-      await Promise.all([utils.photos.invalidate(), utils.collab.documents.invalidate()]);
-      toast.success(list.length === 1 ? "Photo added" : `${list.length} photos added`);
     } catch (e) {
       toast.error(errMsg(e));
     } finally {
+      // Refresh even after a partial failure, so the photos that did upload show up.
+      if (sent) await Promise.all([utils.photos.invalidate(), utils.collab.documents.invalidate()]);
+      if (sent) toast.success(sent === 1 ? "Photo added" : `${sent} photos added`);
+      if (queued) toast.warning(`${queued === 1 ? "Photo" : `${queued} photos`} saved on this device — will upload when you're back online.`);
       setBusy(false);
     }
   };

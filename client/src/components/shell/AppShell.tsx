@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { SyncBadge } from "@/features/offline/SyncBadge";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -333,6 +334,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <GlobalSearch />
           <div className="ml-auto flex shrink-0 items-center gap-1">
+            <SyncBadge />
             <ThemeButton />
             <Tooltip>
               <TooltipTrigger asChild>

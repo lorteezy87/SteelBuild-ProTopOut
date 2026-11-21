@@ -110,6 +110,45 @@ export const weatherRouter = router({
     }
   }),
 
+  /** Today: forecast days over the limits in the next three days, across the given active jobs. */
+  outlook: protectedProcedure.input(z.object({ projectIds: z.array(zId).max(100) })).query(async ({ ctx, input }) => {
+    const d = await db();
+    const ids: number[] = [];
+    for (const id of input.projectIds) {
+      try {
+        await requireJobModule(ctx, id);
+        ids.push(id);
+      } catch {
+        /* not visible: skip */
+      }
+    }
+    const rows = ids.length ? await d.select().from(projects).where(inArray(projects.id, ids)) : [];
+    const t = await thresholds();
+    const flagged: { id: number; projectId: number; label: string; date: string }[] = [];
+    const noLocation: number[] = [];
+    const unavailable: number[] = [];
+    for (const p of rows) {
+      if (p.latitude == null || p.longitude == null) {
+        noLocation.push(p.id);
+        continue;
+      }
+      try {
+        const point = (await pointFor(p))!;
+        const periods = await hourly(point);
+        const today = todayIn(point.timeZone);
+        for (let i = 0; i <= 3; i++) {
+          const s = summarizeForecast(periods, addDays(today, i));
+          const f = s ? weatherFlags(s, t) : [];
+          if (s && f.length) flagged.push({ id: p.id * 10 + i, projectId: p.id, label: `${s.conditions ?? "Forecast"} — ${f.join(" · ")}`, date: s.day });
+        }
+      } catch (e) {
+        if (e instanceof WeatherUnavailable) unavailable.push(p.id);
+        else throw e;
+      }
+    }
+    return { flagged, noLocation, unavailable };
+  }),
+
   /** Weather-delay register: each daily report's delay call with the stored conditions, and the totals. */
   register: protectedProcedure.input(z.object({ projectId: zId })).query(async ({ ctx, input }) => {
     await requireJobModule(ctx, input.projectId);
@@ -125,6 +164,16 @@ export const weatherRouter = router({
       : [];
     const t = await thresholds();
     const byDay = new Map(days.map(w => [w.day, w.summary]));
+    // A weather day marked the same day it happened has nothing stored yet: fetch it while NWS still has it.
+    if (p.latitude != null && p.longitude != null) {
+      const today = todayIn(p.nwsTimeZone || "America/Phoenix");
+      const missing = [...new Set(reports.filter(r => (r.weatherDelay === "full" || r.weatherDelay === "partial") && !byDay.has(r.reportDate) && classifyDay(r.reportDate, today) === "observed").map(r => r.reportDate))];
+      for (const day of missing.slice(0, 7)) {
+        const w = await weatherForDay(input.projectId, day);
+        if (w.status === "unavailable") break;
+        if (w.summary) byDay.set(day, w.summary);
+      }
+    }
     const rows = reports.map(r => {
       const s = byDay.get(r.reportDate) ?? null;
       return { ...r, summary: s, flags: s ? weatherFlags(s, t) : [] };

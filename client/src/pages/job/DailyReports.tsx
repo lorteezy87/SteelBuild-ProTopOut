@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { ClipboardList, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import {
   Panel,
 } from "@/components/brand/Layout";
 import { Pill } from "@/components/brand/Status";
-import { ReportEditor, reportTone } from "@/features/daily/ReportEditor";
+import { ReportEditor, reportKey, reportTone } from "@/features/daily/ReportEditor";
+import { outboxStore, useSyncState, type DailySaveInput } from "@/features/offline/sync";
+import { WeatherDays } from "@/features/weather/WeatherDays";
 import { fmtDate, fmtHours, fmtTons } from "@/lib/format";
 import { useRefData } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
@@ -29,7 +31,18 @@ export default function DailyReports() {
   );
   const newReport = params.a === "new";
   const id = params.a && /^\d+$/.test(params.a) ? Number(params.a) : null;
+  const localKey = params.a?.startsWith("local-") ? params.a.slice(6) : null;
   const base = `/jobs/${projectId}/daily`;
+  const sync = useSyncState();
+  const queued = sync.items.filter(i => i.kind === "dailySave" && i.projectId === projectId);
+  const localRows = queued.filter(i => !(i.input as DailySaveInput).id);
+  const queuedFor = new Map(queued.map(i => [i.id, i]));
+  const localGone = !!localKey && !queued.some(i => i.clientKey === localKey);
+  // Once a report made on this device syncs, its page moves to the stored report.
+  useEffect(() => {
+    if (!localKey || !localGone) return;
+    void outboxStore.getMap(localKey).then(rid => navigate(rid ? `${base}/${rid}` : base, { replace: true }));
+  }, [localKey, localGone, base, navigate]);
   return (
     <>
       <PageHeader
@@ -65,7 +78,7 @@ export default function DailyReports() {
             <Loading />
           ) : q.error ? (
             <ErrorState error={q.error} />
-          ) : !rows.length ? (
+          ) : !rows.length && !localRows.length ? (
             <EmptyState
               icon={<ClipboardList className="size-6" />}
               title="No field reports."
@@ -87,6 +100,25 @@ export default function DailyReports() {
                   </tr>
                 </thead>
                 <tbody>
+                  {localRows.map(i => {
+                    const r = i.input as DailySaveInput;
+                    return (
+                      <tr key={i.id} className={localKey === i.clientKey ? "is-selected" : "cursor-pointer"} onClick={() => navigate(`${base}/local-${i.clientKey}`)}>
+                        <td className="num">
+                          <button className="font-medium text-[var(--tp-accent-ink)]">{fmtDate(r.reportDate)}</button>
+                        </td>
+                        <td>{userName(r.foremanId ?? null)}</td>
+                        <td>
+                          <Pill tone="amber">{i.status === "conflict" || i.status === "failed" ? "Not synced — needs attention" : "On this device"}</Pill>
+                        </td>
+                        <td className="right num">{r.crew.length}</td>
+                        <td className="right num">{fmtHours(r.crew.reduce((n, c) => n + c.stHours + c.otHours, 0))}</td>
+                        <td className="right num">{fmtTons(r.progress.filter(p => (p.stage ?? "set") === "set").reduce((n, p) => n + p.tons, 0))}</td>
+                        <td className="right num">{r.progress.filter(p => (p.stage ?? "set") === "set").reduce((n, p) => n + p.pieces, 0)}</td>
+                        <td>{r.weather || "—"}</td>
+                      </tr>
+                    );
+                  })}
                   {rows.map(r => (
                     <tr
                       key={r.id}
@@ -106,6 +138,9 @@ export default function DailyReports() {
                         <Pill tone={reportTone(r.status)}>
                           {r.status[0].toUpperCase() + r.status.slice(1)}
                         </Pill>
+                        {queuedFor.has(`daily:${reportKey(r.id)}`) && (
+                          <Pill tone="amber">Unsynced changes</Pill>
+                        )}
                       </td>
                       <td className="right num">{r.crewCount}</td>
                       <td className="right num">{fmtHours(r.crewHours)}</td>
@@ -119,12 +154,15 @@ export default function DailyReports() {
             </div>
           )}
         </Panel>
+        <WeatherDays projectId={projectId} onOpen={rid => navigate(`${base}/${rid}`)} />
       </div>
-      {(id || (newReport && can("dailyreport.create"))) && (
+      {(id || localKey || (newReport && can("dailyreport.create"))) && (
         <ReportEditor
-          key={id ?? "new"}
+          key={id ?? (localKey ? `local-${localKey}` : "new")}
           projectId={projectId}
           reportId={id}
+          localKey={localKey}
+          onSavedLocal={key => navigate(`${base}/local-${key}`)}
           canCreate={can("dailyreport.create")}
           canUpload={can("document.upload")}
           onClose={() => navigate(base)}
@@ -132,7 +170,7 @@ export default function DailyReports() {
           onChanged={() => void invalidate(projectId)}
         />
       )}
-      {params.a && !id && !newReport && (
+      {params.a && !id && !localKey && !newReport && (
         <ErrorState error={{ message: "Invalid report id." }} />
       )}
     </>

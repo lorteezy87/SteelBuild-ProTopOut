@@ -10,6 +10,7 @@ import {
 } from "@/components/brand/Controls";
 import { ErrorState, Field, Loading, Panel } from "@/components/brand/Layout";
 import { RecordPhotos } from "@/features/photos/RecordPhotos";
+import { DelayWeather } from "@/features/weather/DelayWeather";
 import { SlaBadge, StateChip } from "@/components/brand/Status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -381,6 +382,9 @@ function ItemDetails({
             </Link>
           )}
         </Panel>
+      )}
+      {item.projectId != null && app.key === "delay" && (
+        <DelayWeather projectId={item.projectId} eventDate={typeof draft.customFields?.event_date === "string" ? draft.customFields.event_date : null} />
       )}
       {item.projectId != null && (
         <Panel title="Photos" bodyClassName="p-3">

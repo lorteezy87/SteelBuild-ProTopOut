@@ -13,6 +13,7 @@ import Calendars from "@/features/admin/Calendars";
 import Companies from "@/features/admin/Companies";
 import Equipment from "@/features/admin/Equipment";
 import Cranes from "@/features/settings/Cranes";
+import Weather from "@/features/settings/Weather";
 import Certifications from "@/features/settings/Certifications";
 import Codes from "@/features/admin/Codes";
 import CustomFields from "@/features/admin/CustomFields";
@@ -51,6 +52,7 @@ const sections = [
     group: "Reference data",
     component: Cranes,
   },
+  { key: "weather", label: "Weather limits", group: "Reference data", component: Weather },
   {
     key: "codes",
     label: "Time & expense codes",

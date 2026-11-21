@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { AlertTriangle, BadgeCheck, ClipboardList, PhoneCall, Hourglass, ShieldAlert, Truck } from "lucide-react";
+import { AlertTriangle, BadgeCheck, ClipboardList, CloudLightning, PhoneCall, Hourglass, ShieldAlert, Truck } from "lucide-react";
 import type { ReactNode } from "react";
 import { ErrorState, Kpi, Loading, PageHeader, Panel } from "@/components/brand/Layout";
 import { fmtDate } from "@/lib/format";
@@ -64,6 +64,7 @@ function TodayPanel({
 /** The PM's landing page: what is slipping, arriving, owed and about to lapse across active jobs. */
 export default function Today() {
   const q = trpc.today.summary.useQuery();
+  const outlook = trpc.weather.outlook.useQuery({ projectIds: (q.data?.jobs ?? []).map(j => j.id) }, { enabled: !!q.data?.jobs.length, staleTime: 30 * 60_000, retry: false });
   if (q.isLoading) return <Loading />;
   if (q.error || !q.data) return <ErrorState error={q.error} />;
   const d = q.data;
@@ -141,6 +142,25 @@ export default function Today() {
             href={r => `/jobs/${r.projectId}/rentals`}
             dateLabel={r => (r.status === "overdue" ? "Overdue — still on rent" : r.status === "call_off_now" ? "Call off today" : "Call off by")}
             empty="No rentals due to be called off in the next few days."
+          />
+          <TodayPanel
+            title="Weather risk — next 3 days"
+            icon={<CloudLightning className="size-4 text-[var(--tp-amber)]" />}
+            rows={outlook.data?.flagged ?? []}
+            jobLabel={jobLabel}
+            href={r => `/jobs/${r.projectId}/daily`}
+            dateLabel="NWS forecast"
+            empty={
+              outlook.isLoading
+                ? "Checking the forecast…"
+                : outlook.error
+                  ? "Forecast needs a connection."
+                  : [
+                      "No forecast days over your weather limits.",
+                      outlook.data?.noLocation.length ? `${outlook.data.noLocation.length} active job${outlook.data.noLocation.length === 1 ? " has" : "s have"} no site location.` : "",
+                      outlook.data?.unavailable.length ? `Forecast unavailable for ${outlook.data.unavailable.length} job${outlook.data.unavailable.length === 1 ? "" : "s"}.` : "",
+                    ].filter(Boolean).join(" ")
+            }
           />
         </div>
       </div>
