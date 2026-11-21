@@ -25,20 +25,26 @@ const notify = () => statusListeners.forEach(f => f());
 /** No signal: the device says so, or the last request never got an answer (see trpcClient). */
 const isOffline = () => (typeof navigator !== "undefined" && navigator.onLine === false) || !onlineManager.isOnline();
 
-export type SaveResult = { id: number; queued: false } | { queued: true; clientKey: string; conflict: boolean };
+export type SaveResult = { id: number; rev: string; queued: false } | { queued: true; clientKey: string; conflict: boolean };
 
 /**
- * Save a daily report. `base` is the stored report the form was opened from (null for a new one); its
- * updatedAt goes with the save so an edit from an old copy can't silently overwrite a newer one.
+ * Save a daily report. `base` is the stored report the form was opened from (null for a new one). Its save
+ * revision goes with the save, so an edit made from an older copy is refused (CONFLICT) and held for the PM
+ * instead of overwriting the newer one. Each save carries a fresh revision, so a resend whose first answer was
+ * lost is recognized as already applied.
  */
-export async function saveDaily(input: Omit<DailySaveInput, "clientKey" | "baseUpdatedAt">, opts: { base: { id: number; updatedAt: Date } | null; clientKey: string; label: string }): Promise<SaveResult> {
-  const full: DailySaveInput = {
-    ...input,
-    ...(opts.base ? { id: opts.base.id, baseUpdatedAt: opts.base.updatedAt } : { clientKey: opts.clientKey }),
-  };
+export async function saveDaily(
+  input: Omit<DailySaveInput, "clientKey" | "saveRev" | "baseRev" | "id">,
+  opts: { base: { id: number; rev: string | null } | null; clientKey: string; label: string }
+): Promise<SaveResult> {
+  // A report first saved on this device and since synced is edited as the stored report, from the revision this device wrote.
+  const mapped = opts.base ? null : await outboxStore.getMap(opts.clientKey);
+  const base = opts.base ?? (mapped ? { id: mapped.id, rev: mapped.rev } : null);
+  const saveRev = newClientKey();
+  const full: DailySaveInput = { ...input, saveRev, ...(base ? { id: base.id, baseRev: base.rev } : { clientKey: opts.clientKey }) };
   const queue = async (conflict: string | null) => {
     const item = await enqueue(outboxStore, { id: `daily:${opts.clientKey}`, kind: "dailySave", clientKey: opts.clientKey, dependsOn: null, projectId: input.projectId, label: opts.label, input: full });
-    if (conflict) await outboxStore.put({ ...item, status: "conflict", error: conflict });
+    if (conflict) await outboxStore.update(item.id, c => c && { ...c, status: "conflict", error: conflict });
     else void syncNow();
     return { queued: true as const, clientKey: opts.clientKey, conflict: !!conflict };
   };
@@ -46,7 +52,8 @@ export async function saveDaily(input: Omit<DailySaveInput, "clientKey" | "baseU
   if (isOffline() || (await queuedDaily(opts.clientKey))) return queue(null);
   try {
     const r = await vanillaTrpc.daily.save.mutate(full);
-    return { id: r.id, queued: false };
+    await outboxStore.setMap(opts.clientKey, { id: r.id, rev: saveRev });
+    return { id: r.id, rev: saveRev, queued: false };
   } catch (e) {
     const err = classifyError(e);
     if (err.kind === "network") return queue(null);

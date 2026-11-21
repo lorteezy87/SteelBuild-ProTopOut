@@ -1,5 +1,5 @@
 /** IndexedDB on this device: the outbox, its clientKey → server id map, and the cached job data. */
-import type { OutboxItem, OutboxStore } from "./outbox";
+import type { MappedReport, OutboxItem, OutboxStore } from "./outbox";
 
 const DB = "topout-offline";
 const VERSION = 1;
@@ -52,16 +52,28 @@ const changed = () => listeners.forEach(f => f());
 export function idbStore(): OutboxStore {
   return {
     all: async () => ((await run(OUTBOX, "readonly", s => s.getAll())) as OutboxItem[]).sort((a, b) => a.createdAt - b.createdAt),
-    put: async item => {
-      await run(OUTBOX, "readwrite", s => s.put(item));
+    // One readwrite transaction: no other write to the outbox can land between the read and the write.
+    update: async (id, fn) => {
+      const db = await open();
+      const result = await new Promise<OutboxItem | undefined>((resolve, reject) => {
+        const tx = db.transaction(OUTBOX, "readwrite");
+        const store = tx.objectStore(OUTBOX);
+        let out: OutboxItem | undefined;
+        const get = store.get(id);
+        get.onsuccess = () => {
+          out = fn(get.result as OutboxItem | undefined);
+          if (out) store.put(out);
+          else store.delete(id);
+        };
+        tx.oncomplete = () => resolve(out);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+      });
       changed();
+      return result;
     },
-    remove: async id => {
-      await run(OUTBOX, "readwrite", s => s.delete(id));
-      changed();
-    },
-    getMap: async k => (await run(KEYS, "readonly", s => s.get(k))) as number | undefined,
-    setMap: async (k, id) => void (await run(KEYS, "readwrite", s => s.put(id, k))),
+    getMap: async k => (await run(KEYS, "readonly", s => s.get(k))) as MappedReport | undefined,
+    setMap: async (k, v) => void (await run(KEYS, "readwrite", s => s.put(v, k))),
   };
 }
 

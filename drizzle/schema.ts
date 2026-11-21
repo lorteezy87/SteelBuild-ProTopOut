@@ -714,6 +714,8 @@ export const dailyReports = mysqlTable(
     weatherDelay: varchar("weatherDelay", { length: 8 }),
     /** Set by a device that created the report offline; a replay with the same key updates instead of duplicating. */
     clientKey: varchar("clientKey", { length: 36 }),
+    /** New on every save, finalize and reopen. A device's edit names the revision it started from; a different one means the report changed meanwhile. */
+    saveRev: varchar("saveRev", { length: 36 }),
     /** draft | submitted | approved | rejected */
     status: varchar("status", { length: 16 }).default("draft").notNull(),
     approvedBy: int("approvedBy"),

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { NewTicket } from "@/features/tm/NewTicket";
 import { isStage } from "@shared/stages";
@@ -93,7 +93,7 @@ export function ReportEditor({
         <ErrorState error={{ message: "Report belongs to another job." }} />
       ) : (
         <ReportForm
-          key={`${reportId ?? localKey ?? "new"}-${q.data?.report.updatedAt?.toISOString() ?? ""}-${queued ? "q" : ""}`}
+          key={`${reportId ?? localKey ?? "new"}-${q.data?.report.saveRev ?? ""}-${queued ? "q" : ""}`}
           projectId={projectId}
           data={q.data}
           queued={queued ? { input: queued.input as DailySaveInput, status: queued.status, error: queued.error } : null}
@@ -142,6 +142,8 @@ function ReportForm({
   const editable = data ? data.canEdit : canCreate;
   const sync = useSyncState();
   const [clientKey] = useState(() => localKey ?? (report ? reportKey(report.id) : newClientKey()));
+  // The revision this form is editing from: the stored one, then each save this form makes.
+  const baseRev = useRef<string | null>(report?.saveRev ?? null);
   const [ticketFor, setTicketFor] = useState(false);
   const [, navigate] = useLocation();
   const [head, setHead] = useState({
@@ -224,7 +226,7 @@ function ReportForm({
       );
     const result = await saveDaily(
       { projectId, ...head, crew, equipment, progress },
-      { base: report ? { id: report.id, updatedAt: report.updatedAt } : null, clientKey, label: `Daily report ${head.reportDate}` }
+      { base: report ? { id: report.id, rev: baseRev.current } : null, clientKey, label: `Daily report ${head.reportDate}` }
     );
     if (result.queued) {
       if (!report) onSavedLocal(result.clientKey);
@@ -236,6 +238,7 @@ function ReportForm({
             : "Saved on this device. It will sync when you're back online."
       );
     }
+    baseRev.current = result.rev;
     onSaved(result.id);
     if (andFinalize) {
       // A sequence starting with its ready-to-erect gate open needs a reason; withGate asks and retries.

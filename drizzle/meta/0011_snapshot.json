@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "5c471bf9-654c-4f11-8f7e-621c8444677d",
+  "id": "5ae52e1c-db64-48ff-b4b6-2d398276ea64",
   "prevId": "30d95c94-bfe9-4fbd-bce2-505cfb962810",
   "tables": {
     "activities": {
@@ -1404,6 +1404,13 @@
         },
         "clientKey": {
           "name": "clientKey",
+          "type": "varchar(36)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "saveRev": {
+          "name": "saveRev",
           "type": "varchar(36)",
           "primaryKey": false,
           "notNull": false,

@@ -196,7 +196,10 @@ export const dailyReportsRouter = router({
         weatherDelay: z.enum(["none", "partial", "full"]).nullable().optional(),
         /** Offline replay: idempotency key for a new report, and the version the edit started from. */
         clientKey: z.string().uuid().optional(),
-        baseUpdatedAt: z.date().nullable().optional(),
+        /** This save's revision (a device sends a fresh one per save, so a resend of the same save is recognized). */
+        saveRev: z.string().uuid().optional(),
+        /** The revision the edit started from; present (even null) means "refuse if the report changed since". */
+        baseRev: z.string().uuid().nullable().optional(),
         crew: z.array(crewLine).max(200),
         equipment: z.array(equipLine).max(50),
         progress: z.array(progressLine).max(100),
@@ -223,24 +226,27 @@ export const dailyReportsRouter = router({
           bad("Progress lines must reference sequences on this job");
         }
       }
-      const { clientKey, baseUpdatedAt, ...fields } = head;
+      const { clientKey, saveRev: sentRev, baseRev, ...fields } = head;
       const [existing] = id
         ? await d.select().from(dailyReports).where(eq(dailyReports.id, id)).limit(1)
         : clientKey
           ? await d.select().from(dailyReports).where(eq(dailyReports.clientKey, clientKey)).limit(1)
           : [];
-      const decision = saveDecision({ existing: existing ?? null, input: { id, projectId: input.projectId, clientKey, baseUpdatedAt } });
+      const decision = saveDecision({ existing: existing ?? null, input: { id, projectId: input.projectId, clientKey, saveRev: sentRev, baseRev } });
       if ("error" in decision) {
         if (decision.error === "conflict") throw new TRPCError({ code: "CONFLICT", message: SAVE_ERROR_MESSAGE.conflict });
         if (decision.error === "missing") notFound("Daily report");
         bad(SAVE_ERROR_MESSAGE[decision.error]);
       }
+      // This exact save already landed (its answer was lost): report success without writing it again.
+      if (decision.action === "done") return { id: decision.id, saveRev: sentRev! };
+      const saveRev = sentRev ?? randomUUID();
       let reportId = decision.action === "update" ? decision.id : undefined;
       if (reportId) {
         const id = reportId;
         await d
           .update(dailyReports)
-          .set({ ...fields, status: "draft", rejectReason: null })
+          .set({ ...fields, saveRev, status: "draft", rejectReason: null })
           .where(eq(dailyReports.id, id));
         await d.delete(dailyReportCrew).where(eq(dailyReportCrew.reportId, id));
         await d
@@ -255,6 +261,7 @@ export const dailyReportsRouter = router({
           .values({
             ...fields,
             clientKey: clientKey ?? null,
+            saveRev,
             foremanId: fields.foremanId ?? ctx.user.id,
             createdBy: ctx.user.id,
           })
@@ -320,7 +327,7 @@ export const dailyReportsRouter = router({
         projectId: input.projectId,
         reportDate: input.reportDate,
       });
-      return { id: rid };
+      return { id: rid, saveRev };
     }),
 
   /** Finalizing posts crew hours as time entries, equipment cost, and erected tons/pieces to sequences. */
@@ -367,7 +374,7 @@ export const dailyReportsRouter = router({
       const posted = await d.transaction(async tx => {
         const claimed = await tx
           .update(dailyReports)
-          .set({ status: "final", approvedBy: ctx.user.id, approvedAt: now })
+          .set({ status: "final", approvedBy: ctx.user.id, approvedAt: now, saveRev: randomUUID() })
           .where(and(eq(dailyReports.id, r.id), eq(dailyReports.status, "draft")));
         if (affected(claimed) !== 1) bad("Report is already final");
         if (overrides.length)
@@ -455,7 +462,7 @@ export const dailyReportsRouter = router({
       await d.transaction(async tx => {
         const claimed = await tx
           .update(dailyReports)
-          .set({ status: "draft", approvedBy: null, approvedAt: null })
+          .set({ status: "draft", approvedBy: null, approvedAt: null, saveRev: randomUUID() })
           .where(and(eq(dailyReports.id, r.id), eq(dailyReports.status, "final")));
         if (affected(claimed) !== 1) bad("Only final reports can be reopened");
         const postedTime = await tx
