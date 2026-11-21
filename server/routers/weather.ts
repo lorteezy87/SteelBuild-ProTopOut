@@ -127,25 +127,29 @@ export const weatherRouter = router({
     const flagged: { id: number; projectId: number; label: string; date: string }[] = [];
     const noLocation: number[] = [];
     const unavailable: number[] = [];
-    for (const p of rows) {
-      if (p.latitude == null || p.longitude == null) {
-        noLocation.push(p.id);
-        continue;
-      }
-      try {
-        const point = (await pointFor(p))!;
-        const periods = await hourly(point);
-        const today = todayIn(point.timeZone);
-        for (let i = 0; i <= 3; i++) {
-          const s = summarizeForecast(periods, addDays(today, i));
-          const f = s ? weatherFlags(s, t) : [];
-          if (s && f.length) flagged.push({ id: p.id * 10 + i, projectId: p.id, label: `${s.conditions ?? "Forecast"} — ${f.join(" · ")}`, date: s.day });
+    // One NWS round trip per job, all at once: a slow job doesn't hold up the rest.
+    await Promise.all(
+      rows.map(async p => {
+        if (p.latitude == null || p.longitude == null) {
+          noLocation.push(p.id);
+          return;
         }
-      } catch (e) {
-        if (e instanceof WeatherUnavailable) unavailable.push(p.id);
-        else throw e;
-      }
-    }
+        try {
+          const point = (await pointFor(p))!;
+          const periods = await hourly(point);
+          const today = todayIn(point.timeZone);
+          for (let i = 0; i <= 3; i++) {
+            const s = summarizeForecast(periods, addDays(today, i));
+            const f = s ? weatherFlags(s, t) : [];
+            if (s && f.length) flagged.push({ id: p.id * 10 + i, projectId: p.id, label: `${s.conditions ?? "Forecast"} — ${f.join(" · ")}`, date: s.day });
+          }
+        } catch (e) {
+          if (e instanceof WeatherUnavailable) unavailable.push(p.id);
+          else throw e;
+        }
+      })
+    );
+    flagged.sort((a, b) => a.date.localeCompare(b.date) || a.projectId - b.projectId);
     return { flagged, noLocation, unavailable };
   }),
 
@@ -168,11 +172,8 @@ export const weatherRouter = router({
     if (p.latitude != null && p.longitude != null) {
       const today = todayIn(p.nwsTimeZone || "America/Phoenix");
       const missing = [...new Set(reports.filter(r => (r.weatherDelay === "full" || r.weatherDelay === "partial") && !byDay.has(r.reportDate) && classifyDay(r.reportDate, today) === "observed").map(r => r.reportDate))];
-      for (const day of missing.slice(0, 7)) {
-        const w = await weatherForDay(input.projectId, day);
-        if (w.status === "unavailable") break;
-        if (w.summary) byDay.set(day, w.summary);
-      }
+      const got = await Promise.all(missing.slice(0, 7).map(async day => [day, await weatherForDay(input.projectId, day)] as const));
+      for (const [day, w] of got) if (w.summary) byDay.set(day, w.summary);
     }
     const rows = reports.map(r => {
       const s = byDay.get(r.reportDate) ?? null;

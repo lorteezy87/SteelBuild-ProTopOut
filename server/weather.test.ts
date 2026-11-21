@@ -19,7 +19,7 @@ const obs = (timestamp: string, o: Partial<{ c: number | null; wind: number | nu
   precipitationLastHour: o.precipMm === undefined ? undefined : { unitCode: "wmoUnit:mm", value: o.precipMm },
 });
 
-const base: DaySummary = { day: "2026-11-20", source: "observed", highF: 70, lowF: 50, maxWindMph: 10, maxGustMph: null, precipIn: null, precipChancePct: null, conditions: "Clear", observationCount: 5 };
+const base: DaySummary = { day: "2026-11-20", source: "observed", highF: 70, lowF: 50, maxWindMph: 10, maxGustMph: null, precipIn: null, precipPartial: false, precipChancePct: null, conditions: "Clear", observationCount: 5 };
 
 describe("observed day summary", () => {
   it("converts NWS units to °F, mph and inches", () => {
@@ -40,6 +40,21 @@ describe("observed day summary", () => {
     const s = summarizeObservations([obs("2026-11-20T19:00:00+00:00"), obs("2026-11-20T20:00:00+00:00", { precipMm: null })], "2026-11-20", "America/Phoenix");
     expect(s.precipIn).toBeNull();
     expect(summarizeObservations([obs("2026-11-20T19:00:00+00:00", { precipMm: 0 })], "2026-11-20", "America/Phoenix").precipIn).toBe(0);
+  });
+  it("special reports inside an hour repeat the running total: counted once per hour, not summed", () => {
+    // Hourly reports at :53; a SPECI at 15:20 carries rain since 14:53, which the 15:53 report includes again.
+    const s = summarizeObservations(
+      [obs("2026-11-20T14:53:00+00:00", { precipMm: 0 }), obs("2026-11-20T15:20:00+00:00", { precipMm: 2 }), obs("2026-11-20T15:40:00+00:00", { precipMm: 3 }), obs("2026-11-20T15:53:00+00:00", { precipMm: 4 }), obs("2026-11-20T16:53:00+00:00", { precipMm: 1 })],
+      "2026-11-20",
+      "America/Phoenix"
+    );
+    expect(s.precipIn).toBe(0.2); // 4 mm + 1 mm = 5 mm
+    expect(s.precipPartial).toBe(false);
+  });
+  it("hours with no reading make the total partial — never a clean 'dry'", () => {
+    const s = summarizeObservations([obs("2026-11-20T14:53:00+00:00", { precipMm: 0 }), obs("2026-11-20T15:53:00+00:00")], "2026-11-20", "America/Phoenix");
+    expect(s).toMatchObject({ precipIn: 0, precipPartial: true });
+    expect(weatherText({ ...s, conditions: "Clear" }).weather).toMatch(/precip 0\.00 in \(some hours not reported\)/);
   });
   it("a day with no observations is all unknown", () => {
     const s = summarizeObservations([], "2026-11-20", "America/Phoenix");
@@ -94,7 +109,17 @@ describe("report text and counts", () => {
     expect(weatherText({ ...base, maxGustMph: 31, precipIn: 0.2 })).toEqual({ weather: "Clear · wind 10 mph, gusts 31 mph · precip 0.20 in", temperature: "50–70 °F" });
     expect(weatherText({ ...base, conditions: null, highF: null, lowF: null, maxWindMph: null })).toEqual({ weather: "Conditions not reported", temperature: "" });
   });
-  it("counts full and partial days and keeps unrecorded apart", () => {
-    expect(weatherDayCount([{ weatherDelay: "full" }, { weatherDelay: "partial" }, { weatherDelay: "none" }, { weatherDelay: null }, { weatherDelay: "full" }])).toEqual({ full: 2, partial: 1, none: 1, unrecorded: 1 });
+  it("counts days, not reports: a day is full if any report says so, unrecorded only if no report made a call", () => {
+    expect(
+      weatherDayCount([
+        { reportDate: "2026-11-01", weatherDelay: "full" },
+        { reportDate: "2026-11-01", weatherDelay: "partial" },
+        { reportDate: "2026-11-02", weatherDelay: "partial" },
+        { reportDate: "2026-11-02", weatherDelay: "partial" },
+        { reportDate: "2026-11-03", weatherDelay: "none" },
+        { reportDate: "2026-11-03", weatherDelay: null },
+        { reportDate: "2026-11-04", weatherDelay: null },
+      ])
+    ).toEqual({ full: 1, partial: 1, none: 1, unrecorded: 1 });
   });
 });

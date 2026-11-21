@@ -1,5 +1,5 @@
 import { CloudSun } from "lucide-react";
-import { WEATHER_DELAY, weatherText, type WeatherDelay } from "@shared/weather";
+import { precipLabel, WEATHER_DELAY, weatherText, type WeatherDelay } from "@shared/weather";
 import { SimpleSelect } from "@/components/brand/Controls";
 import { Field, Panel } from "@/components/brand/Layout";
 import { Pill } from "@/components/brand/Status";
@@ -45,7 +45,7 @@ export function WeatherPanel({
           </div>
           <div className="num text-xs text-muted-foreground">
             High {unit(s.highF, " °F")} · Low {unit(s.lowF, " °F")} · Wind {unit(s.maxWindMph, " mph")} · Gusts {unit(s.maxGustMph, " mph")} ·{" "}
-            {s.source === "forecast" ? `Precip chance ${unit(s.precipChancePct, "%")}` : `Precip ${s.precipIn == null ? "not reported" : `${s.precipIn.toFixed(2)} in`}`}
+            {s.source === "forecast" ? `Precip chance ${unit(s.precipChancePct, "%")}` : `Precip ${precipLabel(s)}`}
           </div>
           {editable && (
             <Button size="sm" variant="outline" onClick={() => onFill(weatherText(s))}>

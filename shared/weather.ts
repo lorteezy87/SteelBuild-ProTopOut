@@ -14,6 +14,8 @@ export type DaySummary = {
   maxGustMph: number | null;
   /** Observed rainfall; null = no gauge reading, never assumed dry. Forecasts give a chance instead. */
   precipIn: number | null;
+  /** Some hours had no rain reading: precipIn is a floor ("at least"), not the day's total. */
+  precipPartial: boolean;
   precipChancePct: number | null;
   conditions: string | null;
   observationCount: number;
@@ -100,11 +102,33 @@ const minOf = (xs: (number | null)[]) => {
 };
 const round = (n: number | null, f: (n: number) => number) => (n == null ? null : f(n));
 
+/**
+ * Rain by reporting hour. A station's routine report (usually at :53) carries rain since the previous one;
+ * special reports in between carry the running total for the same hour. So readings are grouped by the
+ * routine report that closes their hour and the hour's largest reading is taken — never summed within it.
+ */
+function hourlyPrecip(obs: NwsObservation[]): { total: number | null; partial: boolean } {
+  if (!obs.length) return { total: null, partial: false };
+  const minutes = obs.map(o => new Date(o.timestamp).getUTCMinutes());
+  const routine = Number(mode(minutes.map(String)) ?? 53);
+  const shift = (routine + 1) * 60_000;
+  const hours = new Map<number, number | null>();
+  for (const o of obs) {
+    const key = Math.floor((Date.parse(o.timestamp) - shift) / 3_600_000);
+    const v = toIn(o.precipitationLastHour);
+    const prev = hours.get(key);
+    hours.set(key, v == null ? (prev ?? null) : Math.max(prev ?? 0, v));
+  }
+  const known = [...hours.values()].filter((v): v is number => v != null);
+  if (!known.length) return { total: null, partial: false };
+  return { total: r2(known.reduce((a, b) => a + b, 0)), partial: known.length < hours.size };
+}
+
 /** Station observations for one local day at the site. */
 export function summarizeObservations(obs: NwsObservation[], day: string, timeZone: string): DaySummary {
   const mine = obs.filter(o => o.timestamp && localDay(o.timestamp, timeZone) === day);
   const temps = mine.map(o => toF(o.temperature));
-  const precip = mine.map(o => toIn(o.precipitationLastHour)).filter((x): x is number => x != null);
+  const precip = hourlyPrecip(mine);
   return {
     day,
     source: "observed",
@@ -112,7 +136,8 @@ export function summarizeObservations(obs: NwsObservation[], day: string, timeZo
     lowF: round(minOf(temps), r0),
     maxWindMph: round(maxOf(mine.map(o => toMph(o.windSpeed))), r0),
     maxGustMph: round(maxOf(mine.map(o => toMph(o.windGust))), r0),
-    precipIn: precip.length ? r2(precip.reduce((s, x) => s + x, 0)) : null,
+    precipIn: precip.total,
+    precipPartial: precip.partial,
     precipChancePct: null,
     conditions: mode(mine.map(o => o.textDescription)),
     observationCount: mine.length,
@@ -139,6 +164,7 @@ export function summarizeForecast(periods: NwsForecastPeriod[], day: string): Da
     maxWindMph: round(maxOf(mine.map(p => mphText(p.windSpeed))), r0),
     maxGustMph: round(maxOf(mine.map(p => mphText(p.windGust))), r0),
     precipIn: null,
+    precipPartial: false,
     precipChancePct: maxOf(mine.map(p => num(p.probabilityOfPrecipitation))),
     conditions: mode(mine.map(p => p.shortForecast)),
     observationCount: mine.length,
@@ -162,20 +188,30 @@ export function weatherText(s: DaySummary): { weather: string; temperature: stri
   if (s.conditions) parts.push(s.conditions);
   const wind = [s.maxWindMph != null ? `wind ${s.maxWindMph} mph` : null, s.maxGustMph != null ? `gusts ${s.maxGustMph} mph` : null].filter(Boolean).join(", ");
   if (wind) parts.push(wind);
-  if (s.precipIn != null) parts.push(`precip ${s.precipIn.toFixed(2)} in`);
+  if (s.precipIn != null) parts.push(`precip ${s.precipIn.toFixed(2)} in${s.precipPartial ? " (some hours not reported)" : ""}`);
   else if (s.precipChancePct != null) parts.push(`${s.precipChancePct}% chance of precip`);
   const weather = (parts.length ? parts.join(" · ") : "Conditions not reported").slice(0, 128);
   const temperature = s.lowF != null && s.highF != null ? `${s.lowF}–${s.highF} °F` : s.highF != null ? `${s.highF} °F` : "";
   return { weather, temperature };
 }
 
-/** Weather-delay days on a set of reports. Reports nobody marked stay "unrecorded", not "none". */
-export function weatherDayCount(reports: { weatherDelay: string | null }[]) {
-  const out = { full: 0, partial: 0, none: 0, unrecorded: 0 };
+const DELAY_RANK: Record<string, number> = { full: 3, partial: 2, none: 1 };
+
+/** Each date's weather call across its reports (two crews on one rain day are one day): the worst call made, or null. */
+export function weatherDayCalls(reports: { reportDate: string; weatherDelay: string | null }[]): Map<string, WeatherDelay | null> {
+  const days = new Map<string, WeatherDelay | null>();
   for (const r of reports) {
-    if (r.weatherDelay === "full" || r.weatherDelay === "partial" || r.weatherDelay === "none") out[r.weatherDelay]++;
-    else out.unrecorded++;
+    const cur = days.get(r.reportDate) ?? null;
+    const v = r.weatherDelay && DELAY_RANK[r.weatherDelay] ? (r.weatherDelay as WeatherDelay) : null;
+    days.set(r.reportDate, v && (!cur || DELAY_RANK[v] > DELAY_RANK[cur]) ? v : cur);
   }
+  return days;
+}
+
+/** Weather-delay days (dates, not reports). A date nobody made a call on stays "unrecorded", not "none". */
+export function weatherDayCount(reports: { reportDate: string; weatherDelay: string | null }[]) {
+  const out = { full: 0, partial: 0, none: 0, unrecorded: 0 };
+  for (const v of weatherDayCalls(reports).values()) out[v ?? "unrecorded"]++;
   return out;
 }
 
@@ -194,4 +230,10 @@ export function classifyDay(date: string, today: string): "observed" | "today" |
   if (date === today) return "today";
   if (date < today) return date >= addDays(today, -NWS_HISTORY_DAYS) ? "observed" : "too_old";
   return date <= addDays(today, NWS_FORECAST_DAYS) ? "forecast" : "too_far";
+}
+
+/** Observed rain for display: unknown stays "not reported"; a partial reading is a floor. */
+export function precipLabel(s: Pick<DaySummary, "precipIn" | "precipPartial">): string {
+  if (s.precipIn == null) return "not reported";
+  return s.precipPartial ? `at least ${s.precipIn.toFixed(2)} in (some hours not reported)` : `${s.precipIn.toFixed(2)} in`;
 }

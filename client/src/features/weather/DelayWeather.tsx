@@ -1,3 +1,4 @@
+import { precipLabel } from "@shared/weather";
 import { Panel } from "@/components/brand/Layout";
 import { Pill } from "@/components/brand/Status";
 import { fmtDate } from "@/lib/format";
@@ -28,16 +29,20 @@ export function DelayWeather({ projectId, eventDate }: { projectId: number; even
             ))}
           </div>
           <div className="num text-xs text-muted-foreground">
-            {s.lowF ?? "?"}–{s.highF ?? "?"} °F · wind {s.maxWindMph ?? "?"} mph · gusts {s.maxGustMph ?? "?"} mph · precip {s.precipIn == null ? "not reported" : `${s.precipIn.toFixed(2)} in`}
+            {s.lowF ?? "?"}–{s.highF ?? "?"} °F · wind {s.maxWindMph ?? "?"} mph · gusts {s.maxGustMph ?? "?"} mph · precip {precipLabel(s)}
           </div>
         </>
       )}
       {valid && (
         <p className="text-xs">
           Daily report:{" "}
-          {!reports.length
-            ? "none for this date"
-            : reports.map(r => (r.weatherDelay === "full" ? "full day lost to weather" : r.weatherDelay === "partial" ? "partial day lost to weather" : r.weatherDelay === "none" ? "no weather delay" : "weather delay not recorded")).join("; ")}
+          {!reg.data
+            ? reg.error || reg.fetchStatus === "paused"
+              ? "couldn't be checked (needs a connection)"
+              : "checking…"
+            : !reports.length
+              ? "none for this date"
+              : reports.map(r => (r.weatherDelay === "full" ? "full day lost to weather" : r.weatherDelay === "partial" ? "partial day lost to weather" : r.weatherDelay === "none" ? "no weather delay" : "weather delay not recorded")).join("; ")}
         </p>
       )}
     </Panel>

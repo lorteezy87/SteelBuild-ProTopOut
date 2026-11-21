@@ -47,8 +47,9 @@ queryClient.getMutationCache().subscribe(event => {
 
 const trpcClient = trpc.createClient({ links: trpcLinks() });
 
+// The build id in the URL makes each deploy install a fresh worker with that build's files.
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
-  window.addEventListener("load", () => void navigator.serviceWorker.register("/sw.js").catch(e => console.warn("[offline] service worker", e)));
+  window.addEventListener("load", () => void navigator.serviceWorker.register(`/sw.js?v=${__BUILD_ID__}`).catch(e => console.warn("[offline] service worker", e)));
 }
 startSync(queryClient);
 

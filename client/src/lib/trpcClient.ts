@@ -1,5 +1,5 @@
 import { onlineManager } from "@tanstack/react-query";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink, httpLink, splitLink } from "@trpc/client";
 import superjson from "superjson";
 import type { AppRouter } from "../../../server/routers";
 
@@ -27,18 +27,24 @@ function markUnreachable() {
   }, 10_000);
 }
 
+async function fetchOrMarkOffline(input: RequestInfo | URL, init?: RequestInit) {
+  try {
+    return await globalThis.fetch(input, { ...(init ?? {}), credentials: "include" });
+  } catch (e) {
+    if (!(init?.signal as AbortSignal | undefined)?.aborted) markUnreachable();
+    throw e;
+  }
+}
+
+/**
+ * Weather calls wait on the National Weather Service, so they go on their own requests: a batch answers only
+ * when every call in it is done, and a slow NWS must not hold up the report's sequences or the report list.
+ */
 export const trpcLinks = () => [
-  httpBatchLink({
-    url: "/api/trpc",
-    transformer: superjson,
-    async fetch(input, init) {
-      try {
-        return await globalThis.fetch(input, { ...(init ?? {}), credentials: "include" });
-      } catch (e) {
-        if (!(init?.signal as AbortSignal | undefined)?.aborted) markUnreachable();
-        throw e;
-      }
-    },
+  splitLink({
+    condition: op => op.path.startsWith("weather."),
+    true: httpLink({ url: "/api/trpc", transformer: superjson, fetch: fetchOrMarkOffline }),
+    false: httpBatchLink({ url: "/api/trpc", transformer: superjson, fetch: fetchOrMarkOffline }),
   }),
 ];
 

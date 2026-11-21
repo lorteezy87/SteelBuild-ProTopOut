@@ -117,17 +117,25 @@ const dumpOutbox = p =>
   const list1 = (await must("daily.list", { projectId: job.id }, "GET")).filter(r => r.reportDate === yesterday);
   ok(a.id === b.id && list1.length === 1, `same clientKey → same report (${a.id}, ${b.id}; ${list1.length} on the day)`);
 
-  // 5. An edit from an old copy is a conflict; from the current copy, or with no base, it saves.
-  const cur = await must("daily.get", { id: a.id }, "GET");
-  const stale = await call("daily.save", { ...base, id: a.id, baseUpdatedAt: new Date(Date.parse(cur.report.updatedAt) - 60_000).toISOString() }, "POST", ["baseUpdatedAt"]);
-  ok(!stale.ok && stale.code === "CONFLICT", `edit from an older copy refused as CONFLICT (${stale.code}: ${stale.error})`);
-  const fresh = await call("daily.save", { ...base, id: a.id, baseUpdatedAt: cur.report.updatedAt }, "POST", ["baseUpdatedAt"]);
-  ok(fresh.ok, `edit from the current copy saves (${fresh.error ?? "ok"})`);
-  ok((await call("daily.save", { ...base, id: a.id, workPerformed: "Keep mine" })).ok, "no base version overwrites (keep mine)");
+  // 5. Save revisions: an edit from an older copy is a conflict — even when the other device changed only crew
+  //    lines — while a resend of a save that already landed succeeds, and no base revision overwrites.
+  const rev = () => crypto.randomUUID();
+  const r0 = (await must("daily.get", { id: a.id }, "GET")).report.saveRev;
+  ok(typeof r0 === "string", `the report carries a save revision (${r0})`);
+  const crewOnly = await must("daily.save", { ...base, id: a.id, saveRev: rev(), baseRev: r0, crew: [{ userId: (await must("ref.all", undefined, "GET")).me.id, stHours: 8, otHours: 0 }] });
+  const stale = await call("daily.save", { ...base, id: a.id, saveRev: rev(), baseRev: r0 });
+  ok(!stale.ok && stale.code === "CONFLICT", `an edit from the copy before a crew-only change is refused as CONFLICT (${stale.code})`);
+  const lost = rev();
+  const first = await must("daily.save", { ...base, id: a.id, saveRev: lost, baseRev: crewOnly.saveRev, workPerformed: "Answer lost" });
+  const resend = await call("daily.save", { ...base, id: a.id, saveRev: lost, baseRev: crewOnly.saveRev, workPerformed: "Answer lost" });
+  ok(resend.ok && resend.data.id === a.id && first.saveRev === lost, `resending a save that already landed succeeds, not a false conflict (${resend.error ?? "ok"})`);
+  ok((await call("daily.save", { ...base, id: a.id, saveRev: rev(), workPerformed: "Keep mine" })).ok, "no base revision overwrites (keep mine)");
+  // A second crew's report on the same rain day is one weather day, not two.
+  await must("daily.save", { ...base, workPerformed: "Second crew", weatherDelay: "partial" });
 
   // 6. Weather-day register and Today outlook.
   const reg = await must("weather.register", { projectId: job.id }, "GET");
-  ok(reg.counts.full === 1 && reg.allowed === 10 && reg.rows.find(r => r.id === a.id)?.summary?.maxGustMph === 35, `register: ${JSON.stringify(reg.counts)}, allowed ${reg.allowed}, conditions stored`);
+  ok(reg.counts.full === 1 && reg.allowed === 10 && reg.rows.find(r => r.id === a.id)?.summary?.maxGustMph === 35, `register counts days, not reports (two reports on one rain day = 1 full): ${JSON.stringify(reg.counts)}, allowed ${reg.allowed}, conditions stored`);
   const out = await must("weather.outlook", { projectIds: [job.id, bare.id] }, "GET");
   ok(out.flagged.some(f => f.projectId === job.id) && out.noLocation.includes(bare.id), `Today outlook flags the windy forecast and lists the job with no location (${out.flagged.length} flagged)`);
 
@@ -233,7 +241,7 @@ const dumpOutbox = p =>
             const r = indexedDB.open("topout-offline");
             r.onsuccess = () => {
               const q = r.result.transaction("outbox").objectStore("outbox").getAll();
-              q.onsuccess = () => res(JSON.stringify(q.result.map(i => ({ id: i.id, status: i.status, error: i.error, attempts: i.attempts, base: i.input.baseUpdatedAt }))));
+              q.onsuccess = () => res(JSON.stringify(q.result.map(i => ({ id: i.id, status: i.status, error: i.error, attempts: i.attempts, base: i.input.baseRev }))));
             };
           })
       )
@@ -247,6 +255,19 @@ const dumpOutbox = p =>
   await t.getByRole("button", { name: "Keep mine" }).last().click(); // confirm
   await t.getByText("Nothing waiting").first().waitFor({ timeout: 30000 }).catch(() => {});
   ok((await must("daily.get", { id: rid }, "GET")).report.workPerformed === "Tablet: hung joists bay 3 and 4", "Keep mine: the tablet's copy replaced the desktop's");
+
+  ok(await t.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.active?.scriptURL.includes("/sw.js?v=")), "the service worker is registered per build (a deploy installs the new app)");
+
+  // 10b. A slow weather service doesn't hold up the report list.
+  await nwsMode("slow");
+  const slowJob = await must("projects.create", { code: `P4S-${Date.now() % 100000}`, name: "Slow NWS", state: "active", template: "blank", startDate: today, latitude: 35.1, longitude: -111.6 });
+  await must("daily.save", { projectId: slowJob.id, reportDate: plusDays(today, -2), crew: [], equipment: [], progress: [], weatherDelay: "full" });
+  const t0slow = Date.now();
+  await page.goto(`${BASE}/jobs/${slowJob.id}/daily`, { waitUntil: "domcontentloaded" });
+  const slowLabel = new Date(`${plusDays(today, -2)}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  const listFast = await page.locator("table.tp-table").first().getByText(slowLabel, { exact: true }).first().waitFor({ timeout: 5000 }).then(() => true, () => false);
+  ok(listFast, `with NWS slow, the report list still shows promptly (${Date.now() - t0slow} ms)`);
+  await nwsMode("ok");
 
   // 11. Screens render: weather panel, register, settings, Today, job form.
   const visible = async (p, path, text) => {

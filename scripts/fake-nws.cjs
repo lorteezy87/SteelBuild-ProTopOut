@@ -1,6 +1,6 @@
 /* Stand-in for api.weather.gov in end-to-end runs: node scripts/fake-nws.cjs 9200
  * Phoenix-like site (America/Phoenix, UTC-7). Every day: 9 hourly observations 14:00Z–22:00Z, temps 15→31 °C,
- * wind 16 km/h, gust 56 km/h at 20:00Z (35 mph), 3 mm rain at 18:00Z. POST /__mode {"mode":"error"|"ok"} switches to 500s. */
+ * wind 16 km/h, gust 56 km/h at 20:00Z (35 mph), 3 mm rain at 18:00Z. POST /__mode {"mode":"error"|"slow"|"ok"}: 500s, or 500s after 7 s. */
 const http = require("http");
 const port = Number(process.argv[2] || 9200);
 let mode = "ok";
@@ -23,6 +23,7 @@ http
       return;
     }
     if (mode === "error") return json(res, 500, { title: "Unexpected Problem" });
+    if (mode === "slow") return setTimeout(() => json(res, 500, { title: "Slow" }), 7000);
     if (u.pathname.startsWith("/points/"))
       return json(res, 200, {
         properties: { timeZone: "America/Phoenix", forecastHourly: `${base}/gridpoints/PSR/1,1/forecast/hourly`, observationStations: `${base}/gridpoints/PSR/1,1/stations` },

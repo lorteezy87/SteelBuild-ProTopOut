@@ -1,4 +1,4 @@
-import { WEATHER_DELAY, type WeatherDelay } from "@shared/weather";
+import { precipLabel, WEATHER_DELAY, type WeatherDelay } from "@shared/weather";
 import { ErrorState, Loading, Panel } from "@/components/brand/Layout";
 import { Pill } from "@/components/brand/Status";
 import { fmtDate } from "@/lib/format";
@@ -50,7 +50,7 @@ export function WeatherDays({ projectId, onOpen }: { projectId: number; onOpen: 
                   </td>
                   <td className="num text-xs">
                     {r.summary
-                      ? `${r.summary.conditions ?? "—"} · ${r.summary.lowF ?? "?"}–${r.summary.highF ?? "?"} °F · gusts ${r.summary.maxGustMph ?? "?"} mph · precip ${r.summary.precipIn == null ? "?" : r.summary.precipIn.toFixed(2)} in`
+                      ? `${r.summary.conditions ?? "—"} · ${r.summary.lowF ?? "?"}–${r.summary.highF ?? "?"} °F · gusts ${r.summary.maxGustMph ?? "?"} mph · precip ${precipLabel(r.summary)}`
                       : "Not stored"}
                   </td>
                   <td className="text-xs">{r.flags.join("; ") || (r.summary ? "None" : "—")}</td>
