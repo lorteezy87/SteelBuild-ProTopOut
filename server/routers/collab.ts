@@ -142,6 +142,8 @@ export const collabRouter = router({
         caption: zText(500).nullable().optional(),
         takenOn: zDay.nullable().optional(),
         sequenceTaskId: zId.nullable().optional(),
+        /** Offline replay key: a second send with the same key returns the first upload. */
+        clientKey: z.string().uuid().optional(),
         file: z.object({ fileName: zText(255).min(1), mimeType: zText(128), base64: z.string().min(1) }),
       })
     )
@@ -156,7 +158,17 @@ export const collabRouter = router({
       if (buf.length > MAX_FILE_BYTES) bad("File is larger than 25 MB");
       const d = await db();
       let docId = input.documentId;
-      if (docId) {
+      if (!docId && input.clientKey) {
+        const [prior] = await d.select({ id: documents.id, projectId: documents.projectId }).from(documents).where(eq(documents.clientKey, input.clientKey)).limit(1);
+        if (prior) {
+          if (prior.projectId !== input.projectId) bad("Document not found on this job");
+          const [v] = await d.select({ id: documentVersions.id }).from(documentVersions).where(eq(documentVersions.documentId, prior.id)).limit(1);
+          if (v) return { id: prior.id };
+          // The first send made the record but not the file: finish it with this one.
+          docId = prior.id;
+        }
+      }
+      if (docId && docId === input.documentId) {
         const [doc] = await d.select().from(documents).where(eq(documents.id, docId)).limit(1);
         if (!doc || doc.projectId !== input.projectId) bad("Document not found on this job");
         const dup = await d
@@ -165,7 +177,7 @@ export const collabRouter = router({
           .where(and(eq(documentVersions.documentId, docId), eq(documentVersions.revision, input.revision)))
           .limit(1);
         if (dup.length) bad(`Revision ${input.revision} already exists — use the next revision`);
-      } else {
+      } else if (!docId) {
         if (!input.name) bad("Enter a document name");
         [{ id: docId }] = await d
           .insert(documents)
@@ -179,6 +191,7 @@ export const collabRouter = router({
             caption: input.caption ?? null,
             takenOn: input.takenOn ?? null,
             sequenceTaskId: input.sequenceTaskId ?? null,
+            clientKey: input.clientKey ?? null,
             currentRevision: input.revision,
             createdBy: ctx.user.id,
           })

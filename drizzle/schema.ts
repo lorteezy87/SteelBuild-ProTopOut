@@ -712,6 +712,8 @@ export const dailyReports = mysqlTable(
     delayNotes: text("delayNotes"),
     /** none | partial | full; null = not recorded (never read as "no delay"). */
     weatherDelay: varchar("weatherDelay", { length: 8 }),
+    /** Set by a device that created the report offline; a replay with the same key updates instead of duplicating. */
+    clientKey: varchar("clientKey", { length: 36 }),
     /** draft | submitted | approved | rejected */
     status: varchar("status", { length: 16 }).default("draft").notNull(),
     approvedBy: int("approvedBy"),
@@ -721,7 +723,7 @@ export const dailyReports = mysqlTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  t => [index("dr_project").on(t.projectId, t.reportDate)]
+  t => [index("dr_project").on(t.projectId, t.reportDate), uniqueIndex("dr_client_key").on(t.clientKey)]
 );
 
 export const dailyReportCrew = mysqlTable(
@@ -1114,12 +1116,14 @@ export const documents = mysqlTable(
     caption: varchar("caption", { length: 500 }),
     takenOn: day("takenOn"),
     sequenceTaskId: int("sequenceTaskId"),
+    /** Offline upload replay key: a second send returns the document the first one made. */
+    clientKey: varchar("clientKey", { length: 36 }),
     isDeleted: boolean("isDeleted").default(false).notNull(),
     createdBy: int("createdBy"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  t => [index("doc_project").on(t.projectId)]
+  t => [index("doc_project").on(t.projectId), uniqueIndex("doc_client_key").on(t.clientKey)]
 );
 
 /** NWS weather for a job's day, summarized in the site's time zone. Observed days are kept; forecasts are refreshed. */

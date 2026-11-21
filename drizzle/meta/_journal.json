@@ -78,6 +78,13 @@
       "when": 1795227648187,
       "tag": "0010_weather",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1795227940377,
+      "tag": "0011_client_keys",
+      "breakpoints": true
     }
   ]
 }
