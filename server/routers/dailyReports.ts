@@ -190,6 +190,8 @@ export const dailyReportsRouter = router({
         workPerformed: z.string().max(20000).nullable().optional(),
         safetyNotes: z.string().max(20000).nullable().optional(),
         delayNotes: z.string().max(20000).nullable().optional(),
+        /** The PM's call; null/omitted = not recorded. */
+        weatherDelay: z.enum(["none", "partial", "full"]).nullable().optional(),
         crew: z.array(crewLine).max(200),
         equipment: z.array(equipLine).max(50),
         progress: z.array(progressLine).max(100),

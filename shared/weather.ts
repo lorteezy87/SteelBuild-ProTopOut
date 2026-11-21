@@ -178,3 +178,20 @@ export function weatherDayCount(reports: { weatherDelay: string | null }[]) {
   }
   return out;
 }
+
+/** NWS keeps about a week of station observations and forecasts about a week ahead. */
+export const NWS_HISTORY_DAYS = 7;
+export const NWS_FORECAST_DAYS = 7;
+
+const addDays = (d: string, n: number) => {
+  const t = new Date(`${d}T00:00:00Z`);
+  t.setUTCDate(t.getUTCDate() + n);
+  return t.toISOString().slice(0, 10);
+};
+
+/** What NWS can tell us about a day, relative to the site's today. */
+export function classifyDay(date: string, today: string): "observed" | "today" | "forecast" | "too_old" | "too_far" {
+  if (date === today) return "today";
+  if (date < today) return date >= addDays(today, -NWS_HISTORY_DAYS) ? "observed" : "too_old";
+  return date <= addDays(today, NWS_FORECAST_DAYS) ? "forecast" : "too_far";
+}
