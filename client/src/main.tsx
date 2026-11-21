@@ -1,13 +1,17 @@
 import { trpc } from "@/lib/trpc";
+import { trpcLinks } from "@/lib/trpcClient";
 import { UNAUTHED_ERR_MSG } from '@shared/const';
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink, TRPCClientError } from "@trpc/client";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
-import superjson from "superjson";
 import App from "./App";
+import { idbPersister, PERSIST_MAX_AGE, shouldPersistQuery } from "./features/offline/persist";
+import { startSync } from "./features/offline/sync";
 import "./index.css";
 
-const queryClient = new QueryClient();
+// Kept as long as the on-device copy, so data cached for offline use isn't dropped from memory first.
+const queryClient = new QueryClient({ defaultOptions: { queries: { gcTime: PERSIST_MAX_AGE } } });
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
@@ -37,25 +41,25 @@ queryClient.getMutationCache().subscribe(event => {
   }
 });
 
-const trpcClient = trpc.createClient({
-  links: [
-    httpBatchLink({
-      url: "/api/trpc",
-      transformer: superjson,
-      fetch(input, init) {
-        return globalThis.fetch(input, {
-          ...(init ?? {}),
-          credentials: "include",
-        });
-      },
-    }),
-  ],
-});
+const trpcClient = trpc.createClient({ links: trpcLinks() });
+
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => void navigator.serviceWorker.register("/sw.js").catch(e => console.warn("[offline] service worker", e)));
+}
+startSync(queryClient);
 
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: idbPersister,
+        maxAge: PERSIST_MAX_AGE,
+        buster: __BUILD_ID__,
+        dehydrateOptions: { shouldDehydrateQuery: q => shouldPersistQuery(q.queryKey, q.state.status) },
+      }}
+    >
       <App />
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </trpc.Provider>
 );
