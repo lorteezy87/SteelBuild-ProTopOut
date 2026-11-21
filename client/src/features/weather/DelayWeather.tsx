@@ -17,7 +17,7 @@ export function DelayWeather({ projectId, eventDate }: { projectId: number; even
       ) : w.isLoading ? (
         <p className="text-xs text-muted-foreground">Looking up weather…</p>
       ) : !s ? (
-        <p className="text-xs text-muted-foreground">{w.error ? "Weather lookup needs a connection." : (w.data?.reason ?? "No weather for this day.")}</p>
+        <p className="text-xs text-muted-foreground">{w.error || w.fetchStatus === "paused" ? "Weather lookup needs a connection." : (w.data?.reason ?? "No weather for this day.")}</p>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">

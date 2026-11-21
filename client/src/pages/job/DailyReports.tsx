@@ -41,7 +41,12 @@ export default function DailyReports() {
   // Once a report made on this device syncs, its page moves to the stored report.
   useEffect(() => {
     if (!localKey || !localGone) return;
-    void outboxStore.getMap(localKey).then(rid => navigate(rid ? `${base}/${rid}` : base, { replace: true }));
+    // Check the stored outbox, not this page's possibly not-yet-loaded view of it.
+    void (async () => {
+      if ((await outboxStore.all()).some(i => i.clientKey === localKey)) return;
+      const rid = await outboxStore.getMap(localKey);
+      navigate(rid ? `${base}/${rid}` : base, { replace: true });
+    })();
   }, [localKey, localGone, base, navigate]);
   return (
     <>

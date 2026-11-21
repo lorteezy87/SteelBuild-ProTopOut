@@ -1,7 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { trpcLinks } from "@/lib/trpcClient";
 import { UNAUTHED_ERR_MSG } from '@shared/const';
-import { QueryClient } from "@tanstack/react-query";
+import { onlineManager, QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
@@ -9,6 +9,10 @@ import App from "./App";
 import { idbPersister, PERSIST_MAX_AGE, shouldPersistQuery } from "./features/offline/persist";
 import { startSync } from "./features/offline/sync";
 import "./index.css";
+
+// React Query assumes "online" until an event says otherwise; a page reloaded with no signal must start offline,
+// so cached queries pause and keep their data instead of failing with "Failed to fetch".
+onlineManager.setOnline(navigator.onLine);
 
 // Kept as long as the on-device copy, so data cached for offline use isn't dropped from memory first.
 const queryClient = new QueryClient({ defaultOptions: { queries: { gcTime: PERSIST_MAX_AGE } } });

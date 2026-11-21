@@ -3,7 +3,7 @@
  * is back. Online saves go straight to the server; a save with no answer (no signal, dropped connection)
  * is kept on the device and sent later. A two-device conflict is held for the PM.
  */
-import type { QueryClient } from "@tanstack/react-query";
+import { onlineManager, type QueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { vanillaTrpc } from "@/lib/trpcClient";
 import { idbStore, onOutboxChange } from "./idbStore";
@@ -22,7 +22,8 @@ let needsSignIn = false;
 const statusListeners = new Set<() => void>();
 const notify = () => statusListeners.forEach(f => f());
 
-const isOffline = () => typeof navigator !== "undefined" && navigator.onLine === false;
+/** No signal: the device says so, or the last request never got an answer (see trpcClient). */
+const isOffline = () => (typeof navigator !== "undefined" && navigator.onLine === false) || !onlineManager.isOnline();
 
 export type SaveResult = { id: number; queued: false } | { queued: true; clientKey: string; conflict: boolean };
 
@@ -113,10 +114,19 @@ export function startSync(client: QueryClient) {
   qc = client;
   if (typeof window === "undefined") return;
   window.addEventListener("online", () => {
+    onlineManager.setOnline(true);
     notify();
     void syncNow();
   });
-  window.addEventListener("offline", notify);
+  window.addEventListener("offline", () => {
+    onlineManager.setOnline(false);
+    notify();
+  });
+  // Back from a dead zone (health check answered, or the device reports online).
+  onlineManager.subscribe(online => {
+    notify();
+    if (online) void syncNow();
+  });
   onOutboxChange(notify);
   setInterval(() => void syncNow(), 30_000);
   setTimeout(() => void syncNow(), 1500);
@@ -135,14 +145,20 @@ export const retry = async (id: string) => {
 export type SyncState = { items: OutboxItem[]; online: boolean; syncing: boolean; needsSignIn: boolean };
 
 /** Live view of the outbox for the sync badge, the Sync drawer and the daily report list. */
+/** Last outbox read, so a component mounted mid-session starts from it instead of briefly showing "nothing waiting". */
+let lastItems: OutboxItem[] = [];
+
 export function useSyncState(): SyncState {
-  const [state, setState] = useState<SyncState>({ items: [], online: !isOffline(), syncing: running, needsSignIn });
+  const [state, setState] = useState<SyncState>({ items: lastItems, online: !isOffline(), syncing: running, needsSignIn });
   useEffect(() => {
     let alive = true;
     const refresh = () =>
       void outboxStore
         .all()
-        .then(items => alive && setState({ items, online: !isOffline(), syncing: running, needsSignIn }))
+        .then(items => {
+          lastItems = items;
+          if (alive) setState({ items, online: !isOffline(), syncing: running, needsSignIn });
+        })
         .catch(() => alive && setState(s => ({ ...s, online: !isOffline(), syncing: running })));
     refresh();
     statusListeners.add(refresh);

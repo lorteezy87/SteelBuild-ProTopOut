@@ -29,7 +29,7 @@ export function WeatherPanel({
     <Panel title="Weather (National Weather Service)" bodyClassName="space-y-3 p-3">
       {q.isLoading ? (
         <p className="text-xs text-muted-foreground">Looking up weather…</p>
-      ) : q.error ? (
+      ) : q.error || (!q.data && q.fetchStatus === "paused") ? (
         <p className="text-xs text-muted-foreground">Weather lookup needs a connection. Enter conditions by hand.</p>
       ) : !s ? (
         <p className="text-xs text-muted-foreground">{q.data?.reason ?? "No weather for this day."}</p>
