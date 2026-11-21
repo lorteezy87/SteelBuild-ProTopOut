@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import { GATE_LOOKAHEAD_DAYS, todaySummary } from "@shared/today";
 import { gateStatusFor } from "../services/gates";
 
@@ -8,7 +8,7 @@ const addCalendarDays = (day: string, n: number) => {
   return d.toISOString().slice(0, 10);
 };
 import { isBallInCourt } from "@shared/ballInCourt";
-import { deliveries, projects, tasks, wfApps, wfItems, wfStates } from "../../drizzle/schema";
+import { certifications, deliveries, equipmentRentals, projects, tasks, users, wfApps, wfItems, wfStates } from "../../drizzle/schema";
 import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
 import { orgToday } from "../services/calendars";
@@ -21,8 +21,16 @@ export const todayRouter = router({
     const today = await orgToday();
     const active = await d.select({ id: projects.id, code: projects.code, name: projects.name }).from(projects).where(eq(projects.state, "active"));
     const ids = active.map(p => p.id);
-    if (!ids.length) return { today, jobs: [], ...todaySummary({ today, sequences: [], deliveries: [], logs: [] }) };
-    const [seqs, loads, logs] = await Promise.all([
+    // Certifications belong to crew, not jobs, so they show even with no active job.
+    const certs = (
+      await d
+        .select({ id: certifications.id, userId: certifications.userId, name: users.name, certType: certifications.certType, expiresOn: certifications.expiresOn })
+        .from(certifications)
+        .innerJoin(users, eq(users.id, certifications.userId))
+        .where(eq(users.isActive, true))
+    ).map(c => ({ ...c, name: c.name ?? `#${c.userId}` }));
+    if (!ids.length) return { today, jobs: [], ...todaySummary({ today, sequences: [], deliveries: [], logs: [], certs }) };
+    const [seqs, loads, logs, rentals] = await Promise.all([
       d
         .select({ id: tasks.id, projectId: tasks.projectId, name: tasks.name, scheduleHealth: tasks.scheduleHealth, projectedFinish: tasks.projectedFinish, status: tasks.status, startDate: tasks.startDate, isSummary: tasks.isSummary })
         .from(tasks)
@@ -37,6 +45,7 @@ export const todayRouter = router({
         .innerJoin(wfApps, eq(wfApps.id, wfItems.appId))
         .innerJoin(wfStates, eq(wfStates.id, wfItems.stateId))
         .where(and(inArray(wfItems.projectId, ids), ne(wfStates.category, "end"))),
+      d.select().from(equipmentRentals).where(and(inArray(equipmentRentals.projectId, ids), isNull(equipmentRentals.offRentDate))),
     ]);
     // Only sequences about to start need their gate computed.
     const horizon = addCalendarDays(today, GATE_LOOKAHEAD_DAYS);
@@ -44,6 +53,8 @@ export const todayRouter = router({
     const gates = await gateStatusFor(candidates.map(s => s.id));
     const summary = todaySummary({
       today,
+      certs,
+      rentals,
       sequences: seqs,
       gates: candidates.map(s => ({ id: s.id, projectId: s.projectId, name: s.name, status: s.status, startDate: s.startDate, gate: gates.get(s.id) ?? "unknown" })),
       deliveries: loads,

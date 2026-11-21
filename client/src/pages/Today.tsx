@@ -1,11 +1,11 @@
 import { Link } from "wouter";
-import { AlertTriangle, ClipboardList, Hourglass, ShieldAlert, Truck } from "lucide-react";
+import { AlertTriangle, BadgeCheck, ClipboardList, PhoneCall, Hourglass, ShieldAlert, Truck } from "lucide-react";
 import type { ReactNode } from "react";
 import { ErrorState, Kpi, Loading, PageHeader, Panel } from "@/components/brand/Layout";
 import { fmtDate } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
 
-type Row = { id: number; projectId: number; label: string; date: string | null };
+type Row = { id: number; projectId: number | null; label: string; date: string | null; status?: string };
 
 function TodayPanel({
   title,
@@ -14,13 +14,18 @@ function TodayPanel({
   jobLabel,
   href,
   dateLabel,
+  dateText,
+  empty,
 }: {
   title: string;
   icon: ReactNode;
   rows: Row[];
   jobLabel: (projectId: number) => string;
   href: (r: Row) => string;
-  dateLabel: string;
+  dateLabel: string | ((r: Row) => string);
+  /** Replaces the date line, e.g. a status that carries its own date. */
+  dateText?: (r: Row) => string;
+  empty?: string;
 }) {
   return (
     <Panel
@@ -35,22 +40,22 @@ function TodayPanel({
       {rows.length ? (
         <ul className="divide-y divide-[var(--tp-row-rule,var(--tp-rule))]">
           {rows.map(r => (
-            <li key={`${r.projectId}-${r.id}`}>
+            <li key={`${r.projectId ?? "crew"}-${r.id}`}>
               <Link href={href(r)} className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--tp-bone)]">
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium text-[var(--tp-ink)]">{r.label}</div>
-                  <div className="truncate text-xs text-muted-foreground">{jobLabel(r.projectId)}</div>
+                  {r.projectId != null && <div className="truncate text-xs text-muted-foreground">{jobLabel(r.projectId)}</div>}
                 </div>
                 <div className="shrink-0 text-right">
-                  <div className="num text-[13px]">{r.date ? fmtDate(r.date) : "No date"}</div>
-                  <div className="text-[11px] text-muted-foreground">{dateLabel}</div>
+                  <div className="num text-[13px]">{dateText ? dateText(r) : r.date ? fmtDate(r.date) : "No date"}</div>
+                  <div className="text-[11px] text-muted-foreground">{typeof dateLabel === "function" ? dateLabel(r) : dateLabel}</div>
                 </div>
               </Link>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="px-4 py-6 text-center text-sm text-muted-foreground">Nothing needs you here.</p>
+        <p className="px-4 py-6 text-center text-sm text-muted-foreground">{empty ?? "Nothing needs you here."}</p>
       )}
     </Panel>
   );
@@ -66,14 +71,16 @@ export default function Today() {
   const jobLabel = (id: number) => jobs.get(id) ?? `Job ${id}`;
   return (
     <>
-      <PageHeader eyebrow={`Today · ${fmtDate(d.today)}`} title="What needs you" subtitle="Across every active job: slipping sequences, loads coming in, items in your court, notice deadlines and sequences not ready to erect." />
+      <PageHeader eyebrow={`Today · ${fmtDate(d.today)}`} title="What needs you" subtitle="Across every active job: slipping sequences, loads coming in, items in your court, notice deadlines, sequences not ready to erect, certifications coming due and rentals to call off." />
       <div className="space-y-5 p-6">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
           <Kpi label="Sequences at risk" value={d.sequencesAtRisk.length} />
           <Kpi label="Loads due in 7 days" value={d.loadsDue7.length} />
           <Kpi label="Logs needing action" value={d.logsNeedingAction.length} />
           <Kpi label="Notice deadlines" value={d.noticeDeadlines.length} />
           <Kpi label="Not ready to erect" value={d.sequencesNotReady.length} />
+          <Kpi label="Certifications due" value={d.certsDue.length} />
+          <Kpi label="Rentals to call off" value={d.rentalsToCallOff.length} />
         </div>
         <div className="grid gap-5 lg:grid-cols-2">
           <TodayPanel
@@ -115,6 +122,25 @@ export default function Today() {
             jobLabel={jobLabel}
             href={r => `/jobs/${r.projectId}/tasks`}
             dateLabel="Planned start"
+          />
+          <TodayPanel
+            title="Certifications due"
+            icon={<BadgeCheck className="size-4 text-[var(--tp-amber)]" />}
+            rows={d.certsDue.map(c => ({ ...c, projectId: null }))}
+            jobLabel={jobLabel}
+            href={() => "/admin/certifications"}
+            dateLabel={r => (r.status === "expired" ? "Expired" : r.status === "unknown" ? "Enter the expiry date" : "Expires")}
+            dateText={r => (r.status === "unknown" ? "Expiry unknown" : fmtDate(r.date))}
+            empty="No certifications expired, expiring within 30 days, or missing an expiry date."
+          />
+          <TodayPanel
+            title="Rentals to call off"
+            icon={<PhoneCall className="size-4 text-[var(--tp-amber)]" />}
+            rows={d.rentalsToCallOff}
+            jobLabel={jobLabel}
+            href={r => `/jobs/${r.projectId}/rentals`}
+            dateLabel={r => (r.status === "overdue" ? "Overdue — still on rent" : r.status === "call_off_now" ? "Call off today" : "Call off by")}
+            empty="No rentals due to be called off in the next few days."
           />
         </div>
       </div>

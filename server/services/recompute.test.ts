@@ -63,3 +63,20 @@ describe("frozen baseline EVA", () => {
     expect(frozenBaselineEva(eva)).toBe(eva);
   });
 });
+
+import { rentalCosts } from "./recompute";
+describe("rentalCosts", () => {
+  const base = { dayRate: null, weekRate: null, monthRate: null, plannedOffRentDate: null, callOffNoticeDays: 1, calledOffOn: null, deliveryCharge: null, pickupCharge: null };
+  it("costs a rented crane once and counts unpriced rentals", () => {
+    const rentals = [
+      { ...base, id: 1, equipmentId: 4, onRentDate: "2026-11-01", offRentDate: "2026-11-08", weekRate: 7000 },
+      { ...base, id: 2, equipmentId: null, onRentDate: "2026-11-01", offRentDate: null },
+    ];
+    const rows = [
+      { equipmentId: 4, cost: 1200, reportDate: "2026-11-03" },
+      { equipmentId: 4, cost: 1200, reportDate: "2026-11-09" },
+      { equipmentId: 5, cost: 300, reportDate: "2026-11-03" },
+    ];
+    expect(rentalCosts(rentals, rows, "2026-11-20")).toEqual({ equipmentCost: 1500, coveredCost: 1200, rentalCost: 7000, rentalsUnpriced: 1 });
+  });
+});

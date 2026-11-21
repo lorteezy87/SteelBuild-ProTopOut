@@ -2,14 +2,15 @@ import { and, asc, desc, eq, gte, inArray, lte, ne } from "drizzle-orm";
 import { z } from "zod";
 import { BALL_IN_COURT_LABELS, isBallInCourt } from "@shared/ballInCourt";
 import { lookahead, plusDays, weekStartOf, weeklyTons } from "@shared/lookahead";
-import { dailyReportProgress, dailyReports, deliveries, documentVersions, documents, tasks, wfApps, wfItems, wfStates } from "../../drizzle/schema";
+import { dailyReportProgress, dailyReports, deliveries, tasks, wfApps, wfItems, wfStates } from "../../drizzle/schema";
+import { gcReportPhoto } from "@shared/photos";
+import { jobPhotos } from "./photos";
 import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
 import { requireJobModule } from "../security/guard";
 import { itemLabel } from "../services/wf";
 import { getProjectOr404, zDay, zId } from "./_util";
 
-const PHOTO = /\.(jpe?g|png|heic|webp)$/i;
 const MAX_PHOTOS = 12;
 
 async function scheduleRows(projectId: number) {
@@ -99,20 +100,12 @@ export const gcReportRouter = router({
       return x != null && x >= a && x <= b;
     };
     const loadRow = (l: (typeof loads)[number]) => ({ id: l.id, loadNumber: l.loadNumber, description: l.description, status: l.status, date: loadDate(l), tons: l.tons, pieces: l.pieces, sequenceTaskId: l.sequenceTaskId });
-    const photos = finalIds.length
-      ? (
-          await d
-            .select({ id: documents.id, name: documents.name, entityId: documents.entityId, url: documentVersions.url, fileName: documentVersions.fileName, mimeType: documentVersions.mimeType, versionId: documentVersions.id })
-            .from(documents)
-            .innerJoin(documentVersions, eq(documentVersions.documentId, documents.id))
-            .where(and(eq(documents.projectId, input.projectId), eq(documents.entityType, "dailyReport"), inArray(documents.entityId, finalIds), eq(documents.isDeleted, false)))
-            .orderBy(desc(documentVersions.id))
-        )
-          .filter((p, i, all) => all.findIndex(x => x.id === p.id) === i) // latest version per document
-          .filter(p => (p.mimeType ?? "").startsWith("image/") || PHOTO.test(p.fileName) || PHOTO.test(p.name))
-          .slice(0, MAX_PHOTOS)
-          .map(p => ({ id: p.id, name: p.name, url: p.url, reportDate: finals.find(f => f.id === p.entityId)?.reportDate ?? null }))
-      : [];
+    // Job photos taken in the week plus that week's final reports — never photos on logs (incidents, punch, backcharges).
+    const photos = (await jobPhotos(input.projectId))
+      .filter(p => gcReportPhoto(p, { weekStart, weekEnd, finalReportIds: finalIds }))
+      .sort((a, b) => a.day.localeCompare(b.day) || a.id - b.id)
+      .slice(0, MAX_PHOTOS)
+      .map(p => ({ id: p.id, name: p.caption || p.name, url: p.url, reportDate: p.day, estimated: p.estimated }));
     return {
       job: { id: job.id, code: job.code, name: job.name },
       weekStart,

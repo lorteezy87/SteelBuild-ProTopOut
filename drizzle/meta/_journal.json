@@ -36,6 +36,41 @@
       "when": 1795197366574,
       "tag": "0004_tm_tickets",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1795207063360,
+      "tag": "0005_qc_logs",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1795207345662,
+      "tag": "0006_safety",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1795207576571,
+      "tag": "0007_certifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1795207881453,
+      "tag": "0008_equipment_rentals",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1795208113277,
+      "tag": "0009_photo_log",
+      "breakpoints": true
     }
   ]
 }

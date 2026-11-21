@@ -9,6 +9,8 @@ const money = (n: number) => fmtMoney(n, { cents: true });
 /** Printable T&M ticket: work, lines by kind, markup, total and the GC's on-screen signature. */
 export default function TmTicket({ params }: { params: { ticketId: string } }) {
   const q = trpc.tm.get.useQuery({ id: Number(params.ticketId) });
+  const projectId = q.data?.ticket.projectId ?? 0;
+  const photos = trpc.photos.list.useQuery({ projectId, entityType: "tmTicket", entityId: Number(params.ticketId) }, { enabled: !!projectId });
   if (q.isLoading) return <Loading label="Loading ticket…" />;
   if (q.error || !q.data) return <ErrorState error={q.error ?? new Error("Ticket not found")} />;
   const { ticket: t, lines, totals, co } = q.data;
@@ -64,6 +66,19 @@ export default function TmTicket({ params }: { params: { ticketId: string } }) {
         </tbody>
       </table>
       <p className="mt-3 text-[10px] text-neutral-600">Signature acknowledges the labor, equipment and material listed were used on the work described. Pricing per contract and the linked change order.</p>
+      {(photos.data ?? []).length > 0 && (
+        <div className="avoid-break">
+          <h2>Photos</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {(photos.data ?? []).slice(0, 6).map(p => (
+              <figure key={p.id}>
+                <img src={p.url} alt={p.caption || p.name} className="h-36 w-full border object-cover" />
+                <figcaption className="text-[10px]">{p.estimated ? "uploaded " : ""}{fmtDate(p.day)} · {p.caption || p.name}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      )}
     </PrintShell>
   );
 }

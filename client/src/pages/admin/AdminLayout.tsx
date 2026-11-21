@@ -13,12 +13,14 @@ import Calendars from "@/features/admin/Calendars";
 import Companies from "@/features/admin/Companies";
 import Equipment from "@/features/admin/Equipment";
 import Cranes from "@/features/settings/Cranes";
+import Certifications from "@/features/settings/Certifications";
 import Codes from "@/features/admin/Codes";
 import CustomFields from "@/features/admin/CustomFields";
 import Workflows from "@/features/admin/Workflows";
 import Settings from "@/features/admin/Settings";
 const sections = [
   { key: "users", label: "Crew", group: "People & rates", component: Crew },
+  { key: "certifications", label: "Certifications", group: "People & rates", component: Certifications },
   {
     key: "job-roles",
     label: "Classifications & rates",

@@ -12,6 +12,11 @@ import { gatesRouter } from "./routers/gates";
 import { cranesRouter } from "./routers/cranes";
 import { tmRouter } from "./routers/tm";
 import { gcReportRouter } from "./routers/gcReport";
+import { qcRouter } from "./routers/qc";
+import { safetyRouter } from "./routers/safety";
+import { certsRouter } from "./routers/certs";
+import { rentalsRouter } from "./routers/rentals";
+import { photosRouter } from "./routers/photos";
 import { dashboardRouter } from "./routers/dashboard";
 import { deliveriesRouter } from "./routers/deliveries";
 import { drawingsRouter } from "./routers/drawings";
@@ -55,6 +60,11 @@ export const appRouter = router({
   cranes: cranesRouter,
   tm: tmRouter,
   gcReport: gcReportRouter,
+  qc: qcRouter,
+  safety: safetyRouter,
+  certs: certsRouter,
+  rentals: rentalsRouter,
+  photos: photosRouter,
   resources: resourcesRouter,
   time: timeRouter,
   expenses: expensesRouter,

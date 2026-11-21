@@ -19,6 +19,7 @@ import { errMsg, fmtDate, fmtDateTime, fmtHours, fmtTons } from "@/lib/format";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { ReportAttachments } from "./ReportAttachments";
+import { RecordPhotos } from "@/features/photos/RecordPhotos";
 import {
   ReportLines,
   type CrewLine,
@@ -343,6 +344,7 @@ function ReportForm({
         onCrew={setCrew}
         onEquipment={setEquipment}
         onProgress={setProgress}
+        certGaps={data?.certGaps}
       />
       <fieldset disabled={!editable || busy} className="space-y-3">
         <Field label="Work performed">
@@ -376,11 +378,15 @@ function ReportForm({
       </fieldset>
       {report ? (
         <>
-          <Panel title="Photos & attachments" bodyClassName="p-3">
+          <Panel title="Photos" bodyClassName="p-3">
+            <RecordPhotos projectId={projectId} entityType="dailyReport" entityId={report.id} canUpload={canUpload} />
+          </Panel>
+          <Panel title="Attachments" bodyClassName="p-3">
             <ReportAttachments
               projectId={projectId}
               reportId={report.id}
               canUpload={canUpload}
+              excludePhotos
             />
           </Panel>
         </>

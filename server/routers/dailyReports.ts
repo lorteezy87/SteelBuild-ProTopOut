@@ -66,6 +66,7 @@ async function loadReport(id: number) {
 
 import { assertFinalizable, assertReopenable, crewTimeLines, progressByTask, reopenStartReset } from "@shared/dailyPosting";
 import { crewInsertValues } from "../services/crew";
+import { certGapsFor } from "../services/certs";
 import { rateFor } from "../services/rates";
 import { STAGE_KEYS, stageColumns, type Stage } from "@shared/stages";
 import { plannedRateByDay, productionSeries } from "@shared/production";
@@ -169,6 +170,7 @@ export const dailyReportsRouter = router({
         crew,
         equipment: equip.map(e => ({ ...e, cost: fin ? e.cost : null })),
         progress,
+        certGaps: await certGapsFor(crew, r.reportDate),
         canApprove: await hasPriv(ctx, "dailyreport.approve", r.projectId),
         canEdit:
           (await hasPriv(ctx, "dailyreport.create", r.projectId)) &&

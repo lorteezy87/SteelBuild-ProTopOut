@@ -42,3 +42,14 @@ export function defined<T extends Record<string, unknown>>(obj: T): Partial<T> {
 export function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
+
+/**
+ * Every field optional for an update input, with defaults removed: a default belongs to create only,
+ * or an update that leaves the field out would silently reset it (e.g. wipe a JHA's steps).
+ */
+type Partialized<T extends Record<string, z.ZodTypeAny>> = { [K in keyof T]: T[K] extends z.ZodDefault<infer I extends z.ZodTypeAny> ? z.ZodOptional<I> : z.ZodOptional<T[K]> };
+export function partialFields<T extends Record<string, z.ZodTypeAny>>(fields: T): Partialized<T> {
+  return Object.fromEntries(
+    Object.entries(fields).map(([k, v]) => [k, (v instanceof z.ZodDefault ? (v.unwrap() as z.ZodTypeAny) : v).optional()])
+  ) as Partialized<T>;
+}

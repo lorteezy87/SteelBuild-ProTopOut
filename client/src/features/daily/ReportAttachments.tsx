@@ -6,15 +6,19 @@ import { Input } from "@/components/ui/input";
 import { ErrorState, Loading } from "@/components/brand/Layout";
 import { errMsg, fileToBase64, fmtDateTime } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
+import { isPhoto } from "@shared/photos";
 
 export function ReportAttachments({
   projectId,
   reportId,
   canUpload,
+  excludePhotos,
 }: {
   projectId: number;
   reportId: number;
   canUpload: boolean;
+  /** Photos show in the Photos strip instead. */
+  excludePhotos?: boolean;
 }) {
   const input = { projectId, entityType: "dailyReport", entityId: reportId };
   const q = trpc.collab.documents.useQuery(input);
@@ -49,17 +53,18 @@ export function ReportAttachments({
       setBusy(false);
     }
   };
+  const docs = (q.data ?? []).filter(doc => !excludePhotos || !isPhoto(doc.latest?.mimeType ?? null, doc.latest?.fileName ?? doc.name));
   return (
     <div className="space-y-3">
       {q.isLoading ? (
         <Loading />
       ) : q.error ? (
         <ErrorState error={q.error} />
-      ) : !q.data?.length ? (
-        <p className="text-muted-foreground">No photos or attachments.</p>
+      ) : !docs.length ? (
+        <p className="text-muted-foreground">{excludePhotos ? "No attachments." : "No photos or attachments."}</p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          {q.data.map(doc => (
+          {docs.map(doc => (
             <a
               key={doc.id}
               href={doc.latest?.url ?? undefined}
@@ -93,7 +98,7 @@ export function ReportAttachments({
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" asChild disabled={busy}>
             <label htmlFor={`report-files-${reportId}`}>
-              {busy ? "Uploading…" : "Add photos / attachments"}
+              {busy ? "Uploading…" : excludePhotos ? "Add attachments" : "Add photos / attachments"}
             </label>
           </Button>
           <Input

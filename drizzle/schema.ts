@@ -63,6 +63,8 @@ export const jobRoles = mysqlTable("job_roles", {
   name: varchar("name", { length: 128 }).notNull(),
   costRate: double("costRate").default(0).notNull(),
   billRate: double("billRate").default(0).notNull(),
+  /** Certification types (shared/certs.ts) a crew member in this classification must hold. */
+  requiredCerts: json("requiredCerts").$type<string[]>(),
   isActive: boolean("isActive").default(true).notNull(),
 });
 
@@ -422,6 +424,193 @@ export const tmTicketLines = mysqlTable(
     otRate: double("otRate"),
   },
   t => [index("tml_ticket").on(t.ticketId)]
+);
+
+/* ------------------------------------------------------------------ */
+/* QC logs (Phase 3) — rules in shared/qc.ts                           */
+/* ------------------------------------------------------------------ */
+
+export const qcBoltLogs = mysqlTable(
+  "qc_bolt_logs",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    taskId: int("taskId"),
+    logDate: day("logDate").notNull(),
+    location: varchar("location", { length: 200 }).notNull(),
+    grade: varchar("grade", { length: 16 }).notNull(),
+    method: varchar("method", { length: 24 }).notNull(),
+    lotNumber: varchar("lotNumber", { length: 64 }),
+    boltCount: int("boltCount"),
+    inspectorName: varchar("inspectorName", { length: 120 }),
+    /** pending | pass | fail */
+    result: varchar("result", { length: 8 }).default("pending").notNull(),
+    notes: text("notes"),
+    /** Punch item created from this entry. 0 while it is being created. */
+    punchItemId: int("punchItemId"),
+    createdAt: createdAt(),
+  },
+  t => [index("qcb_project_task").on(t.projectId, t.taskId)]
+);
+
+export const qcWeldLogs = mysqlTable(
+  "qc_weld_logs",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    taskId: int("taskId"),
+    logDate: day("logDate").notNull(),
+    location: varchar("location", { length: 200 }).notNull(),
+    welderUserId: int("welderUserId"),
+    welderName: varchar("welderName", { length: 120 }),
+    wps: varchar("wps", { length: 64 }),
+    process: varchar("process", { length: 8 }).notNull(),
+    weldSize: varchar("weldSize", { length: 32 }),
+    ndt: varchar("ndt", { length: 8 }).default("none").notNull(),
+    inspectorName: varchar("inspectorName", { length: 120 }),
+    result: varchar("result", { length: 8 }).default("pending").notNull(),
+    notes: text("notes"),
+    punchItemId: int("punchItemId"),
+    createdAt: createdAt(),
+  },
+  t => [index("qcw_project_task").on(t.projectId, t.taskId)]
+);
+
+export const specialInspections = mysqlTable(
+  "special_inspections",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    taskId: int("taskId"),
+    type: varchar("type", { length: 16 }).notNull(),
+    agency: varchar("agency", { length: 120 }),
+    requestedDate: day("requestedDate"),
+    scheduledDate: day("scheduledDate"),
+    inspectedDate: day("inspectedDate"),
+    /** requested | scheduled | passed | failed | na */
+    result: varchar("result", { length: 12 }).default("requested").notNull(),
+    reportNumber: varchar("reportNumber", { length: 64 }),
+    notes: text("notes"),
+    punchItemId: int("punchItemId"),
+    createdAt: createdAt(),
+  },
+  t => [index("si_project_task").on(t.projectId, t.taskId)]
+);
+
+/* ------------------------------------------------------------------ */
+/* Safety (Phase 3) — rules in shared/safety.ts                        */
+/* ------------------------------------------------------------------ */
+
+export type SafetyStep = { step: string; hazards: string; controls: string };
+export type SafetyAttendee = { userId: number | null; name: string };
+
+export const jhas = mysqlTable(
+  "jhas",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    taskId: int("taskId"),
+    title: varchar("title", { length: 200 }).notNull(),
+    /** draft | active | archived */
+    status: varchar("status", { length: 12 }).default("draft").notNull(),
+    steps: json("steps").$type<SafetyStep[]>().notNull(),
+    ppe: json("ppe").$type<string[]>().notNull(),
+    competentPerson: varchar("competentPerson", { length: 120 }),
+    reviewedOn: day("reviewedOn"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("jha_project").on(t.projectId)]
+);
+
+export const preTaskPlans = mysqlTable(
+  "pre_task_plans",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    planDate: day("planDate").notNull(),
+    foremanId: int("foremanId"),
+    taskId: int("taskId"),
+    jhaId: int("jhaId"),
+    workDescription: text("workDescription"),
+    steps: json("steps").$type<SafetyStep[]>().notNull(),
+    ppe: json("ppe").$type<string[]>().notNull(),
+    attendees: json("attendees").$type<SafetyAttendee[]>().notNull(),
+    createdAt: createdAt(),
+  },
+  t => [index("ptp_project").on(t.projectId, t.planDate)]
+);
+
+export const toolboxTalks = mysqlTable(
+  "toolbox_talks",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    talkDate: day("talkDate").notNull(),
+    topic: varchar("topic", { length: 200 }).notNull(),
+    presenter: varchar("presenter", { length: 120 }),
+    notes: text("notes"),
+    attendees: json("attendees").$type<SafetyAttendee[]>().notNull(),
+    createdAt: createdAt(),
+  },
+  t => [index("tbt_project").on(t.projectId, t.talkDate)]
+);
+
+/* ------------------------------------------------------------------ */
+/* Crew certifications (Phase 3) — rules in shared/certs.ts            */
+/* ------------------------------------------------------------------ */
+
+export const certifications = mysqlTable(
+  "certifications",
+  {
+    id: id(),
+    userId: int("userId").notNull(),
+    certType: varchar("certType", { length: 32 }).notNull(),
+    certNumber: varchar("certNumber", { length: 64 }),
+    issuer: varchar("issuer", { length: 120 }),
+    issuedOn: day("issuedOn"),
+    expiresOn: day("expiresOn"),
+    fileKey: varchar("fileKey", { length: 500 }),
+    fileUrl: varchar("fileUrl", { length: 1000 }),
+    fileName: varchar("fileName", { length: 255 }),
+    notes: varchar("notes", { length: 500 }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("cert_user").on(t.userId)]
+);
+
+/* ------------------------------------------------------------------ */
+/* Equipment rentals (Phase 3) — rules in shared/rentals.ts            */
+/* ------------------------------------------------------------------ */
+
+export const equipmentRentals = mysqlTable(
+  "equipment_rentals",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    /** Equipment library row, when this rental appears on daily reports. */
+    equipmentId: int("equipmentId"),
+    description: varchar("description", { length: 200 }).notNull(),
+    vendorCompanyId: int("vendorCompanyId"),
+    vendorName: varchar("vendorName", { length: 120 }),
+    poNumber: varchar("poNumber", { length: 64 }),
+    onRentDate: day("onRentDate").notNull(),
+    offRentDate: day("offRentDate"),
+    plannedOffRentDate: day("plannedOffRentDate"),
+    callOffNoticeDays: int("callOffNoticeDays").default(1).notNull(),
+    calledOffOn: day("calledOffOn"),
+    callOffConfirmation: varchar("callOffConfirmation", { length: 64 }),
+    dayRate: double("dayRate"),
+    weekRate: double("weekRate"),
+    monthRate: double("monthRate"),
+    deliveryCharge: double("deliveryCharge"),
+    pickupCharge: double("pickupCharge"),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  t => [index("rent_project").on(t.projectId)]
 );
 
 export type BaselineTaskSnapshot = {
@@ -910,12 +1099,29 @@ export const documents = mysqlTable(
     category: varchar("category", { length: 32 }).default("other").notNull(),
     sheetNumber: varchar("sheetNumber", { length: 64 }),
     currentRevision: varchar("currentRevision", { length: 16 }),
+    /** Photo log (Phase 3): caption, the day it was taken (NULL = not entered), and its sequence. */
+    caption: varchar("caption", { length: 500 }),
+    takenOn: day("takenOn"),
+    sequenceTaskId: int("sequenceTaskId"),
     isDeleted: boolean("isDeleted").default(false).notNull(),
     createdBy: int("createdBy"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   t => [index("doc_project").on(t.projectId)]
+);
+
+/** A photo attached to another record from the photo log (its owner stays documents.entityType/entityId). */
+export const photoLinks = mysqlTable(
+  "photo_links",
+  {
+    id: id(),
+    documentId: int("documentId").notNull(),
+    entityType: varchar("entityType", { length: 32 }).notNull(),
+    entityId: int("entityId").notNull(),
+    createdAt: createdAt(),
+  },
+  t => [uniqueIndex("pl_doc_entity").on(t.documentId, t.entityType, t.entityId), index("pl_entity").on(t.entityType, t.entityId)]
 );
 
 export const documentVersions = mysqlTable(
