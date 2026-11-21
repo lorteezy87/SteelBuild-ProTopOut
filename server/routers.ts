@@ -17,6 +17,7 @@ import { safetyRouter } from "./routers/safety";
 import { certsRouter } from "./routers/certs";
 import { rentalsRouter } from "./routers/rentals";
 import { photosRouter } from "./routers/photos";
+import { weatherRouter } from "./routers/weather";
 import { dashboardRouter } from "./routers/dashboard";
 import { deliveriesRouter } from "./routers/deliveries";
 import { drawingsRouter } from "./routers/drawings";
@@ -65,6 +66,7 @@ export const appRouter = router({
   certs: certsRouter,
   rentals: rentalsRouter,
   photos: photosRouter,
+  weather: weatherRouter,
   resources: resourcesRouter,
   time: timeRouter,
   expenses: expensesRouter,

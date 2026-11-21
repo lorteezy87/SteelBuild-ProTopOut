@@ -26,7 +26,9 @@ import {
 } from "../security/guard";
 import { emit, logActivity, notify } from "../services/events";
 import { recomputeProject } from "../services/recompute";
-import { bad, getProjectOr404, round2, zDay, zId, zText } from "./_util";
+import { bad, getProjectOr404, notFound, round2, zDay, zId, zText } from "./_util";
+import { TRPCError } from "@trpc/server";
+import { SAVE_ERROR_MESSAGE, saveDecision } from "@shared/offline";
 import { assertTimeUnlocked, getTimeLock } from "./time";
 
 const crewLine = z.object({
@@ -190,6 +192,14 @@ export const dailyReportsRouter = router({
         workPerformed: z.string().max(20000).nullable().optional(),
         safetyNotes: z.string().max(20000).nullable().optional(),
         delayNotes: z.string().max(20000).nullable().optional(),
+        /** The PM's call; null/omitted = not recorded. */
+        weatherDelay: z.enum(["none", "partial", "full"]).nullable().optional(),
+        /** Offline replay: idempotency key for a new report, and the version the edit started from. */
+        clientKey: z.string().uuid().optional(),
+        /** This save's revision (a device sends a fresh one per save, so a resend of the same save is recognized). */
+        saveRev: z.string().uuid().optional(),
+        /** The revision the edit started from; present (even null) means "refuse if the report changed since". */
+        baseRev: z.string().uuid().nullable().optional(),
         crew: z.array(crewLine).max(200),
         equipment: z.array(equipLine).max(50),
         progress: z.array(progressLine).max(100),
@@ -216,16 +226,27 @@ export const dailyReportsRouter = router({
           bad("Progress lines must reference sequences on this job");
         }
       }
-      let reportId = id;
-      if (id) {
-        const r = await loadReport(id);
-        if (r.projectId !== input.projectId)
-          bad("Report belongs to another job");
-        if (r.status !== "draft")
-          bad("Only draft reports can be edited");
+      const { clientKey, saveRev: sentRev, baseRev, ...fields } = head;
+      const [existing] = id
+        ? await d.select().from(dailyReports).where(eq(dailyReports.id, id)).limit(1)
+        : clientKey
+          ? await d.select().from(dailyReports).where(eq(dailyReports.clientKey, clientKey)).limit(1)
+          : [];
+      const decision = saveDecision({ existing: existing ?? null, input: { id, projectId: input.projectId, clientKey, saveRev: sentRev, baseRev } });
+      if ("error" in decision) {
+        if (decision.error === "conflict") throw new TRPCError({ code: "CONFLICT", message: SAVE_ERROR_MESSAGE.conflict });
+        if (decision.error === "missing") notFound("Daily report");
+        bad(SAVE_ERROR_MESSAGE[decision.error]);
+      }
+      // This exact save already landed (its answer was lost): report success without writing it again.
+      if (decision.action === "done") return { id: decision.id, saveRev: sentRev! };
+      const saveRev = sentRev ?? randomUUID();
+      let reportId = decision.action === "update" ? decision.id : undefined;
+      if (reportId) {
+        const id = reportId;
         await d
           .update(dailyReports)
-          .set({ ...head, status: "draft", rejectReason: null })
+          .set({ ...fields, saveRev, status: "draft", rejectReason: null })
           .where(eq(dailyReports.id, id));
         await d.delete(dailyReportCrew).where(eq(dailyReportCrew.reportId, id));
         await d
@@ -238,8 +259,10 @@ export const dailyReportsRouter = router({
         [{ id: reportId }] = await d
           .insert(dailyReports)
           .values({
-            ...head,
-            foremanId: head.foremanId ?? ctx.user.id,
+            ...fields,
+            clientKey: clientKey ?? null,
+            saveRev,
+            foremanId: fields.foremanId ?? ctx.user.id,
             createdBy: ctx.user.id,
           })
           .$returningId();
@@ -290,7 +313,8 @@ export const dailyReportsRouter = router({
             }))
           );
       }
-      if (!id)
+      const created = decision.action === "insert";
+      if (created)
         await logActivity(ctx, {
           projectId: input.projectId,
           entityType: "dailyReport",
@@ -298,12 +322,12 @@ export const dailyReportsRouter = router({
           action: "create",
           summary: `started daily report for ${input.reportDate}`,
         });
-      await emit(ctx, "dailyReport", id ? "update" : "add", {
+      await emit(ctx, "dailyReport", created ? "add" : "update", {
         id: rid,
         projectId: input.projectId,
         reportDate: input.reportDate,
       });
-      return { id: rid };
+      return { id: rid, saveRev };
     }),
 
   /** Finalizing posts crew hours as time entries, equipment cost, and erected tons/pieces to sequences. */
@@ -350,7 +374,7 @@ export const dailyReportsRouter = router({
       const posted = await d.transaction(async tx => {
         const claimed = await tx
           .update(dailyReports)
-          .set({ status: "final", approvedBy: ctx.user.id, approvedAt: now })
+          .set({ status: "final", approvedBy: ctx.user.id, approvedAt: now, saveRev: randomUUID() })
           .where(and(eq(dailyReports.id, r.id), eq(dailyReports.status, "draft")));
         if (affected(claimed) !== 1) bad("Report is already final");
         if (overrides.length)
@@ -438,7 +462,7 @@ export const dailyReportsRouter = router({
       await d.transaction(async tx => {
         const claimed = await tx
           .update(dailyReports)
-          .set({ status: "draft", approvedBy: null, approvedAt: null })
+          .set({ status: "draft", approvedBy: null, approvedAt: null, saveRev: randomUUID() })
           .where(and(eq(dailyReports.id, r.id), eq(dailyReports.status, "final")));
         if (affected(claimed) !== 1) bad("Only final reports can be reopened");
         const postedTime = await tx

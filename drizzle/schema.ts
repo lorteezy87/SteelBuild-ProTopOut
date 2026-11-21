@@ -160,6 +160,15 @@ export const projects = mysqlTable(
     retainagePct: double("retainagePct").default(10).notNull(),
     noticeHours: int("noticeHours").default(72).notNull(),
     siteAddress: text("siteAddress"),
+    /** Site location for NWS weather (typed in or from the device). Null = no weather lookup. */
+    latitude: double("latitude"),
+    longitude: double("longitude"),
+    /** Weather days the contract allows; null = not stated. */
+    weatherDaysAllowed: int("weatherDaysAllowed"),
+    /** Cached NWS point lookup for the location above (cleared when it changes). */
+    nwsTimeZone: varchar("nwsTimeZone", { length: 64 }),
+    nwsStation: varchar("nwsStation", { length: 16 }),
+    nwsHourlyUrl: text("nwsHourlyUrl"),
     progressMethod: varchar("progressMethod", { length: 16 }).default("tonnage").notNull(),
     /** Which erection stage drives tonnage/pieces percent complete. */
     progressStage: varchar("progressStage", { length: 16 }).default("set").notNull(),
@@ -701,6 +710,12 @@ export const dailyReports = mysqlTable(
     workPerformed: text("workPerformed"),
     safetyNotes: text("safetyNotes"),
     delayNotes: text("delayNotes"),
+    /** none | partial | full; null = not recorded (never read as "no delay"). */
+    weatherDelay: varchar("weatherDelay", { length: 8 }),
+    /** Set by a device that created the report offline; a replay with the same key updates instead of duplicating. */
+    clientKey: varchar("clientKey", { length: 36 }),
+    /** New on every save, finalize and reopen. A device's edit names the revision it started from; a different one means the report changed meanwhile. */
+    saveRev: varchar("saveRev", { length: 36 }),
     /** draft | submitted | approved | rejected */
     status: varchar("status", { length: 16 }).default("draft").notNull(),
     approvedBy: int("approvedBy"),
@@ -710,7 +725,7 @@ export const dailyReports = mysqlTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  t => [index("dr_project").on(t.projectId, t.reportDate)]
+  t => [index("dr_project").on(t.projectId, t.reportDate), uniqueIndex("dr_client_key").on(t.clientKey)]
 );
 
 export const dailyReportCrew = mysqlTable(
@@ -1103,12 +1118,29 @@ export const documents = mysqlTable(
     caption: varchar("caption", { length: 500 }),
     takenOn: day("takenOn"),
     sequenceTaskId: int("sequenceTaskId"),
+    /** Offline upload replay key: a second send returns the document the first one made. */
+    clientKey: varchar("clientKey", { length: 36 }),
     isDeleted: boolean("isDeleted").default(false).notNull(),
     createdBy: int("createdBy"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  t => [index("doc_project").on(t.projectId)]
+  t => [index("doc_project").on(t.projectId), uniqueIndex("doc_client_key").on(t.clientKey)]
+);
+
+/** NWS weather for a job's day, summarized in the site's time zone. Observed days are kept; forecasts are refreshed. */
+export const weatherDays = mysqlTable(
+  "weather_days",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    day: day("day").notNull(),
+    /** observed | forecast */
+    source: varchar("source", { length: 16 }).notNull(),
+    summary: json("summary").$type<import("../shared/weather").DaySummary>().notNull(),
+    fetchedAt: timestamp("fetchedAt").defaultNow().notNull(),
+  },
+  t => [uniqueIndex("wd_project_day").on(t.projectId, t.day)]
 );
 
 /** A photo attached to another record from the photo log (its owner stays documents.entityType/entityId). */

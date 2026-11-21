@@ -70,6 +70,9 @@ const projectFields = z.object({
   retainagePct: z.number().min(0).max(100).optional(),
   noticeHours: z.number().int().min(1).max(24 * 60).optional(),
   siteAddress: z.string().max(2000).nullable().optional(),
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
+  weatherDaysAllowed: z.number().int().min(0).max(3650).nullable().optional(),
   progressMethod: enumOf(PROGRESS_METHODS).optional(),
   progressStage: z.enum(STAGE_KEYS as [Stage, ...Stage[]]).optional(),
   customFields: z.record(z.string(), z.unknown()).optional(),
@@ -333,6 +336,9 @@ export const projectsRouter = router({
       }
       const d = await db();
       const before = await getProjectOr404(id);
+      // A moved site needs a new NWS point; days already stored keep the conditions they were read with.
+      if (("latitude" in set && set.latitude !== before.latitude) || ("longitude" in set && set.longitude !== before.longitude))
+        Object.assign(set, { nwsTimeZone: null, nwsStation: null, nwsHourlyUrl: null });
       if (Object.keys(set).length) await d.update(projects).set(set).where(eq(projects.id, id));
       if (customFields) {
         await saveValues({

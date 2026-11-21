@@ -22,9 +22,9 @@ TopOut is one Node service plus a MySQL 8 database and a Cloudflare R2 bucket. R
 | `R2_SECRET_ACCESS_KEY` | from the R2 API token |
 | `R2_BUCKET` | the bucket name |
 
-`PORT` is set by Railway. Do **not** set `R2_ENDPOINT` in production (it exists for local testing).
+`PORT` is set by Railway. Do **not** set `R2_ENDPOINT` or `NWS_BASE_URL` in production (they exist for local testing). Weather needs no key: the server calls api.weather.gov directly.
 
-Updates: every deploy runs `drizzle-kit migrate` before the server starts, so new tables and columns (Phase 2 adds migrations 0001–0004, Phase 3 adds 0005–0009) apply automatically.
+Updates: every deploy runs `drizzle-kit migrate` before the server starts, so new tables and columns (Phase 2 adds migrations 0001–0004, Phase 3 adds 0005–0009, Phase 4 adds 0010–0011) apply automatically.
 
 ## 4. Domain
 App service → **Settings → Networking → Generate Domain** (or add a custom domain). HTTPS is required: the session cookie is `Secure`.
@@ -37,3 +37,6 @@ Set `OWNER_RESET_PASSWORD` to a new password (10+ characters) and redeploy. On s
 
 ## Files
 Drawings, documents, receipts and photos are stored in R2 and served at `/files/…` only to the signed-in owner, via 5-minute signed links.
+
+## Offline use (tablets)
+The app installs a service worker the first time it's opened over HTTPS, so open each tablet's browser on the app once while online and sign in. After a deploy, a device picks up the new version the next time it's online. Saves made offline on the old version still sync.

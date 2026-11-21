@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { NewTicket } from "@/features/tm/NewTicket";
 import { isStage } from "@shared/stages";
@@ -20,6 +20,9 @@ import { useRefData, type RouterOutputs } from "@/lib/ref";
 import { trpc } from "@/lib/trpc";
 import { ReportAttachments } from "./ReportAttachments";
 import { RecordPhotos } from "@/features/photos/RecordPhotos";
+import { saveDaily, newClientKey, useSyncState, type DailySaveInput } from "@/features/offline/sync";
+import { QueuedPhotos } from "@/features/offline/QueuedPhotos";
+import { WeatherPanel } from "@/features/weather/WeatherPanel";
 import {
   ReportLines,
   type CrewLine,
@@ -28,26 +31,39 @@ import {
 } from "./ReportLines";
 
 type ReportData = RouterOutputs["daily"]["get"];
+/** A save kept on this device instead of reaching the server: not an error, but the form must not close as if posted. */
+class SavedLocally extends Error {}
+
 export const reportTone = (status: string) =>
   status === "final" ? "green" : "gray";
+
+/** Outbox key of a report: its own clientKey while it only exists on this device, else one per stored report. */
+export const reportKey = (reportId: number) => `r${reportId}`;
 
 export function ReportEditor({
   projectId,
   reportId,
+  localKey = null,
   canCreate,
   canUpload,
   onClose,
   onSaved,
+  onSavedLocal,
   onChanged,
 }: {
   projectId: number;
   reportId: number | null;
+  /** clientKey of a report saved on this device that hasn't synced yet. */
+  localKey?: string | null;
   canCreate: boolean;
   canUpload: boolean;
   onClose: () => void;
   onSaved: (id: number) => void;
+  onSavedLocal: (clientKey: string) => void;
   onChanged: () => void;
 }) {
+  const sync = useSyncState();
+  const queued = sync.items.find(i => i.id === `daily:${localKey ?? (reportId ? reportKey(reportId) : "")}`);
   const q = trpc.daily.get.useQuery(
     { id: reportId ?? 0 },
     { enabled: !!reportId }
@@ -60,12 +76,16 @@ export function ReportEditor({
       title={
         reportId
           ? `Daily report · ${q.data ? fmtDate(q.data.report.reportDate) : "Loading…"}`
-          : "New daily field report"
+          : queued
+            ? `Daily report · ${fmtDate((queued.input as DailySaveInput).reportDate)} · on this device`
+            : "New daily field report"
       }
       eyebrow="Field record"
       onOpenChange={open => !open && onClose()}
     >
-      {reportId && q.isLoading ? (
+      {localKey && !queued ? (
+        <Loading />
+      ) : reportId && q.isLoading ? (
         <Loading />
       ) : q.error ? (
         <ErrorState error={q.error} />
@@ -73,9 +93,12 @@ export function ReportEditor({
         <ErrorState error={{ message: "Report belongs to another job." }} />
       ) : (
         <ReportForm
-          key={`${reportId ?? "new"}-${q.data?.report.updatedAt?.toISOString() ?? ""}`}
+          key={`${reportId ?? localKey ?? "new"}-${q.data?.report.saveRev ?? ""}-${queued ? "q" : ""}`}
           projectId={projectId}
           data={q.data}
+          queued={queued ? { input: queued.input as DailySaveInput, status: queued.status, error: queued.error } : null}
+          localKey={localKey}
+          onSavedLocal={onSavedLocal}
           canCreate={canCreate}
           canUpload={canUpload}
           onClose={onClose}
@@ -90,14 +113,21 @@ export function ReportEditor({
 function ReportForm({
   projectId,
   data,
+  queued,
+  localKey,
   canCreate,
   canUpload,
   onClose,
   onSaved,
+  onSavedLocal,
   onChanged,
 }: {
   projectId: number;
   data?: ReportData;
+  /** A copy saved on this device and not yet synced: the form opens from it, not from the server's. */
+  queued: { input: DailySaveInput; status: string; error: string | null } | null;
+  localKey: string | null;
+  onSavedLocal: (clientKey: string) => void;
   canCreate: boolean;
   canUpload: boolean;
   onClose: () => void;
@@ -108,20 +138,26 @@ function ReportForm({
   const taskQuery = trpc.tasks.list.useQuery({ projectId });
   const utils = trpc.useUtils();
   const report = data?.report;
+  const q0 = queued?.input;
   const editable = data ? data.canEdit : canCreate;
+  const sync = useSyncState();
+  const [clientKey] = useState(() => localKey ?? (report ? reportKey(report.id) : newClientKey()));
+  // The revision this form is editing from: the stored one, then each save this form makes.
+  const baseRev = useRef<string | null>(report?.saveRev ?? null);
   const [ticketFor, setTicketFor] = useState(false);
   const [, navigate] = useLocation();
   const [head, setHead] = useState({
-    reportDate: report?.reportDate ?? today,
-    foremanId: report?.foremanId ?? ref?.me.id ?? null,
-    weather: report?.weather ?? "",
-    temperature: report?.temperature ?? "",
-    workPerformed: report?.workPerformed ?? "",
-    safetyNotes: report?.safetyNotes ?? "",
-    delayNotes: report?.delayNotes ?? "",
+    reportDate: q0?.reportDate ?? report?.reportDate ?? today,
+    foremanId: (q0 ? q0.foremanId : report?.foremanId) ?? ref?.me.id ?? null,
+    weather: (q0 ? q0.weather : report?.weather) ?? "",
+    temperature: (q0 ? q0.temperature : report?.temperature) ?? "",
+    workPerformed: (q0 ? q0.workPerformed : report?.workPerformed) ?? "",
+    safetyNotes: (q0 ? q0.safetyNotes : report?.safetyNotes) ?? "",
+    delayNotes: (q0 ? q0.delayNotes : report?.delayNotes) ?? "",
+    weatherDelay: ((q0 ? q0.weatherDelay : report?.weatherDelay) ?? null) as "none" | "partial" | "full" | null,
   });
   const [crew, setCrew] = useState<CrewLine[]>(
-    (data?.crew ?? []).map(c => ({
+    q0 ? q0.crew.map(c => ({ ...c, jobRoleId: c.jobRoleId ?? null, taskId: c.taskId ?? null })) : (data?.crew ?? []).map(c => ({
       userId: c.userId ?? 0,
       jobRoleId: c.jobRoleId,
       taskId: c.taskId,
@@ -130,14 +166,14 @@ function ReportForm({
     }))
   );
   const [equipment, setEquipment] = useState<EquipmentLine[]>(
-    (data?.equipment ?? []).map(e => ({
+    q0 ? q0.equipment : (data?.equipment ?? []).map(e => ({
       equipmentId: e.equipmentId,
       operatingHours: e.operatingHours,
       standbyHours: e.standbyHours,
     }))
   );
   const [progress, setProgress] = useState<ProgressLine[]>(
-    (data?.progress ?? []).map(p => ({
+    q0 ? q0.progress.map(p => ({ ...p, note: p.note ?? null, stage: p.stage ?? "set" })) : (data?.progress ?? []).map(p => ({
       taskId: p.taskId,
       tons: p.tons,
       pieces: p.pieces,
@@ -146,7 +182,6 @@ function ReportForm({
     }))
   );
   const [busy, setBusy] = useState(false);
-  const save = trpc.daily.save.useMutation();
   const finalize = trpc.daily.finalize.useMutation();
   const reopen = trpc.daily.reopen.useMutation();
   const remove = trpc.daily.remove.useMutation();
@@ -173,7 +208,8 @@ function ReportForm({
       toast.success(message);
       if (close) onClose();
     } catch (error) {
-      toast.error(errMsg(error));
+      if (error instanceof SavedLocally) toast.warning(error.message);
+      else toast.error(errMsg(error));
     } finally {
       setBusy(false);
     }
@@ -188,14 +224,21 @@ function ReportForm({
       throw new Error(
         "Choose a person, equipment or sequence on every line, or remove empty lines."
       );
-    const result = await save.mutateAsync({
-      id: report?.id,
-      projectId,
-      ...head,
-      crew,
-      equipment,
-      progress,
-    });
+    const result = await saveDaily(
+      { projectId, ...head, crew, equipment, progress },
+      { base: report ? { id: report.id, rev: baseRev.current } : null, clientKey, label: `Daily report ${head.reportDate}` }
+    );
+    if (result.queued) {
+      if (!report) onSavedLocal(result.clientKey);
+      throw new SavedLocally(
+        result.conflict
+          ? "This report was changed on another device. Your copy is kept on this device — open Sync to choose which to keep."
+          : andFinalize
+            ? "Saved on this device. Finalizing needs a connection — finalize after it syncs."
+            : "Saved on this device. It will sync when you're back online."
+      );
+    }
+    baseRev.current = result.rev;
     onSaved(result.id);
     if (andFinalize) {
       // A sequence starting with its ready-to-erect gate open needs a reason; withGate asks and retries.
@@ -244,7 +287,7 @@ function ReportForm({
                 title="Finalize and post this report?"
                 body="Finalizing posts ST / OT crew hours to time entries, equipment cost to this job, and erected tons / pieces to sequences. Review the field lines first; you can reopen it later."
                 confirmLabel="Finalize & post"
-                disabled={busy}
+                disabled={busy || !sync.online}
                 onConfirm={() =>
                   void perform(() => saveReport(true), "Report finalized. Hours and progress posted.")
                 }
@@ -291,6 +334,15 @@ function ReportForm({
           )}
         </div>
       </div>
+      {queued && (
+        <div className="border border-[var(--tp-amber)] bg-[var(--tp-amber-soft)] px-3 py-2 text-xs">
+          {queued.status === "conflict"
+            ? `Not synced — ${queued.error ?? "changed on another device"} Open Sync in the top bar to keep yours or discard it.`
+            : queued.status === "failed"
+              ? `Not synced — the server refused it: ${queued.error}. Open Sync in the top bar.`
+              : "Saved on this device and waiting to sync. Keep editing — the latest copy is what syncs."}
+        </div>
+      )}
       <div
         className={`border border-[var(--tp-rule)] px-3 py-2 text-xs ${status === "final" ? "bg-[var(--tp-green-soft)]" : "bg-[var(--tp-bone)]"}`}
       >
@@ -333,6 +385,14 @@ function ReportForm({
           />
         </Field>
       </fieldset>
+      <WeatherPanel
+        projectId={projectId}
+        date={head.reportDate}
+        editable={editable && !busy}
+        weatherDelay={head.weatherDelay}
+        onWeatherDelay={v => setHead(h => ({ ...h, weatherDelay: v }))}
+        onFill={t => setHead(h => ({ ...h, weather: t.weather, temperature: t.temperature }))}
+      />
       {taskQuery.error && <ErrorState error={taskQuery.error} />}
       <ReportLines
         crew={crew}
@@ -390,6 +450,10 @@ function ReportForm({
             />
           </Panel>
         </>
+      ) : localKey ? (
+        <Panel title="Photos" bodyClassName="p-3">
+          <QueuedPhotos projectId={projectId} parentKey={localKey} canUpload={canUpload} />
+        </Panel>
       ) : (
         <p className="text-xs text-muted-foreground">
           Save the report to attach field photos.

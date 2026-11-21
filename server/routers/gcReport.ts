@@ -4,6 +4,7 @@ import { BALL_IN_COURT_LABELS, isBallInCourt } from "@shared/ballInCourt";
 import { lookahead, plusDays, weekStartOf, weeklyTons } from "@shared/lookahead";
 import { dailyReportProgress, dailyReports, deliveries, tasks, wfApps, wfItems, wfStates } from "../../drizzle/schema";
 import { gcReportPhoto } from "@shared/photos";
+import { weatherDayCalls, weatherDayCount } from "@shared/weather";
 import { jobPhotos } from "./photos";
 import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
@@ -71,9 +72,14 @@ export const gcReportRouter = router({
       .where(and(eq(tasks.projectId, input.projectId), eq(tasks.kind, "sequence"), eq(tasks.isSummary, false)))
       .orderBy(asc(tasks.sortOrder));
     const finals = await d
-      .select({ id: dailyReports.id, reportDate: dailyReports.reportDate })
+      .select({ id: dailyReports.id, reportDate: dailyReports.reportDate, weatherDelay: dailyReports.weatherDelay, weather: dailyReports.weather })
       .from(dailyReports)
       .where(and(eq(dailyReports.projectId, input.projectId), eq(dailyReports.status, "final"), gte(dailyReports.reportDate, weekStart), lte(dailyReports.reportDate, weekEnd)));
+    // Weather days the PM marked on final reports: this week, and the job's count through the week's end.
+    const toDate = await d
+      .select({ reportDate: dailyReports.reportDate, weatherDelay: dailyReports.weatherDelay })
+      .from(dailyReports)
+      .where(and(eq(dailyReports.projectId, input.projectId), eq(dailyReports.status, "final"), lte(dailyReports.reportDate, weekEnd)));
     const finalIds = finals.map(f => f.id);
     // Every posted set line from final reports up to the week's end: "to date" is as of that week, not as of today.
     const posted = await d
@@ -115,6 +121,15 @@ export const gcReportRouter = router({
       ...(await openLogs(input.projectId)),
       deliveries: { thisWeek: loads.filter(l => inRange(l, weekStart, weekEnd)).map(loadRow), nextWeek: loads.filter(l => inRange(l, nextMonday, plusDays(nextMonday, 6))).map(loadRow) },
       photos,
+      weather: {
+        // One line per date (several crews' reports on a rain day are one weather day).
+        days: [...weatherDayCalls(finals)]
+          .filter((e): e is [string, "full" | "partial"] => e[1] === "full" || e[1] === "partial")
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([date, delay]) => ({ date, delay, weather: finals.find(f => f.reportDate === date && f.weather)?.weather ?? null })),
+        toDate: weatherDayCount(toDate),
+        allowed: job.weatherDaysAllowed,
+      },
     };
   }),
 });

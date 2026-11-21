@@ -86,6 +86,24 @@ export default function GcWeekly({ params }: { params: { projectId: string; week
           )}
         </div>
       ))}
+      <h2>Weather days</h2>
+      {!r.weather.days.length ? (
+        <p className="italic text-neutral-600">No days lost to weather on this week's final reports.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Lost</th><th>Conditions recorded</th></tr>
+          </thead>
+          <tbody>
+            {r.weather.days.map(w => (
+              <tr key={w.date}><td>{fmtDate(w.date)}</td><td>{w.delay === "full" ? "Full day" : "Partial day"}</td><td>{w.weather ?? "—"}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <p className="text-[11px]">
+        Job to date: {r.weather.toDate.full} full, {r.weather.toDate.partial} partial{r.weather.allowed != null ? ` · ${r.weather.allowed} allowed by contract` : ""}.
+      </p>
       <h2>Photos</h2>
       {!r.photos.length ? (
         <p className="italic text-neutral-600">No photos in the photo log for this week.</p>

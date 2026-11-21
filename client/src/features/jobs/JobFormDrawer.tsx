@@ -47,6 +47,9 @@ type Draft = {
   retainagePct: number;
   noticeHours: number;
   siteAddress: string;
+  latitude: number | null;
+  longitude: number | null;
+  weatherDaysAllowed: number | null;
   progressMethod: string;
   progressStage: Stage;
 };
@@ -71,6 +74,9 @@ function initial(data?: JobData): Draft {
     retainagePct: p?.retainagePct ?? 10,
     noticeHours: p?.noticeHours ?? 72,
     siteAddress: p?.siteAddress ?? "",
+    latitude: p?.latitude ?? null,
+    longitude: p?.longitude ?? null,
+    weatherDaysAllowed: p?.weatherDaysAllowed ?? null,
     progressMethod: p?.progressMethod ?? "tonnage",
     progressStage: isStage(p?.progressStage) ? p.progressStage : "set",
   };
@@ -123,6 +129,10 @@ export function JobFormDrawer({
     if (!draft.name.trim()) return toast.error("Enter a job name.");
     if (draft.startDate && draft.deadline && draft.deadline < draft.startDate)
       return toast.error("Deadline is before the start date.");
+    if ((draft.latitude == null) !== (draft.longitude == null))
+      return toast.error("Enter both latitude and longitude, or neither.");
+    if ((draft.latitude != null && Math.abs(draft.latitude) > 90) || (draft.longitude != null && Math.abs(draft.longitude) > 180))
+      return toast.error("Latitude runs −90 to 90 and longitude −180 to 180.");
     setSaving(true);
     try {
       const { contractValue, budget, retainagePct, ...ordinary } = draft;
@@ -337,6 +347,36 @@ export function JobFormDrawer({
               rows={2}
               onChange={e => set("siteAddress", e.target.value)}
             />
+          </Field>
+          <Field label="Site latitude (for weather)">
+            <NumberInput min={-90} step={0.0001} value={draft.latitude} onChange={v => set("latitude", v ?? null)} placeholder="33.4484" />
+          </Field>
+          <Field label="Site longitude (for weather)">
+            <NumberInput min={-180} step={0.0001} value={draft.longitude} onChange={v => set("longitude", v ?? null)} placeholder="-112.0740" />
+          </Field>
+          <div className="sm:col-span-2 -mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                if (!("geolocation" in navigator)) return void toast.error("This device can't share its location.");
+                navigator.geolocation.getCurrentPosition(
+                  pos => {
+                    set("latitude", Math.round(pos.coords.latitude * 10000) / 10000);
+                    set("longitude", Math.round(pos.coords.longitude * 10000) / 10000);
+                  },
+                  () => toast.error("Location not available. Allow location access, or type the coordinates."),
+                  { enableHighAccuracy: true, timeout: 15000 }
+                );
+              }}
+            >
+              Use this device's location
+            </Button>
+            <span>Weather comes from the National Weather Service (US sites). Use it while standing on site, or copy the coordinates from a map.</span>
+          </div>
+          <Field label="Weather days allowed (contract)">
+            <NumberInput min={0} step={1} value={draft.weatherDaysAllowed} onChange={v => set("weatherDaysAllowed", v == null ? null : Math.round(v))} placeholder="Not stated" />
           </Field>
           <Field label="Scope / description" className="sm:col-span-2">
             <Textarea
