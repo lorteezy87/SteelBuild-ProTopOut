@@ -43,6 +43,12 @@ function Routes() {
         <Route path="/" component={Today} />
         <Route path="/portfolio" component={Portfolio} />
         <Route path="/jobs" component={Jobs} />
+        {/* Canonical job URLs: /j/{publicId}/{slug}/{tab}. /jobs/:id below is the older form and redirects here. */}
+        <Route path="/j/:pid">{p => <JobLayout params={p} />}</Route>
+        <Route path="/j/:pid/:slug">{p => <JobLayout params={p} />}</Route>
+        <Route path="/j/:pid/:slug/:tab">{p => <JobLayout params={p} />}</Route>
+        <Route path="/j/:pid/:slug/:tab/:a">{p => <JobLayout params={p} />}</Route>
+        <Route path="/j/:pid/:slug/:tab/:a/:b">{p => <JobLayout params={p} />}</Route>
         <Route path="/jobs/:id">{p => <JobLayout params={p} />}</Route>
         <Route path="/jobs/:id/:tab">{p => <JobLayout params={p} />}</Route>
         <Route path="/jobs/:id/:tab/:a">{p => <JobLayout params={p} />}</Route>

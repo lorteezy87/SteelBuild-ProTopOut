@@ -32,6 +32,9 @@ import { tasksRouter } from "./routers/tasks";
 import { todayRouter } from "./routers/today";
 import { timeRouter } from "./routers/time";
 import { wfRouter } from "./routers/wf";
+import { prefsRouter } from "./routers/prefs";
+import { shellRouter } from "./routers/shell";
+import { jobTabsRouter } from "./routers/jobTabs";
 
 export const appRouter = router({
   // All API routes live under /api/ so the gateway routes them correctly.
@@ -76,6 +79,9 @@ export const appRouter = router({
   reports: reportsRouter,
   collab: collabRouter,
   dashboard: dashboardRouter,
+  prefs: prefsRouter,
+  shell: shellRouter,
+  jobTabs: jobTabsRouter,
 });
 
 export type AppRouter = typeof appRouter;

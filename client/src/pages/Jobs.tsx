@@ -20,8 +20,10 @@ import {
 import { JobFormDrawer } from "@/features/jobs/JobFormDrawer";
 import { errMsg, fmtDateShort, fmtPct, fmtTons } from "@/lib/format";
 import { useRefData, type RouterOutputs } from "@/lib/ref";
+import { useViewPref } from "@/lib/viewPrefs";
 import { trpc } from "@/lib/trpc";
 import { PROJECT_STATES } from "@shared/domain";
+import { jobPath } from "@shared/jobUrl";
 
 type Job = RouterOutputs["projects"]["list"][number];
 type Sort =
@@ -41,23 +43,44 @@ type Sort =
   | "openLogs"
   | "delayedLogs"
   | "lateDeliveries";
+const SORTS = new Set<string>([
+  "code",
+  "name",
+  "projectType",
+  "state",
+  "manager",
+  "gc",
+  "fabricator",
+  "percentComplete",
+  "tons",
+  "scheduleHealth",
+  "costHealth",
+  "deadline",
+  "projectedFinish",
+  "openLogs",
+  "delayedLogs",
+  "lateDeliveries",
+] satisfies Sort[]);
+const JOBS_VIEW_DEFAULTS = {
+  states: ["active", "draft", "on_hold"] as string[],
+  sort: "code" as string,
+  descending: false,
+};
+
 export default function Jobs() {
-  const [states, setStates] = useState<string[]>([
-    "active",
-    "draft",
-    "on_hold",
-  ]);
+  // Filters and sort follow the user across devices (see lib/viewPrefs.ts).
+  const [view, setView, { ready: viewReady }] = useViewPref("jobs.list", "", JOBS_VIEW_DEFAULTS);
+  const states = view.states;
+  const sort = (SORTS.has(view.sort) ? view.sort : "code") as Sort;
+  const descending = view.descending;
+  const setStates = (fn: (s: string[]) => string[]) => setView(v => ({ states: fn(v.states) }));
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<Sort>("code");
-  const [descending, setDescending] = useState(false);
   const [creating, setCreating] = useState(false);
   const [, navigate] = useLocation();
   const { ref, userName, companyName, canGlobal } = useRefData();
   const utils = trpc.useUtils();
-  const q = trpc.projects.list.useQuery({
-    states,
-    search,
-  });
+  // Wait for the saved view so the list is not fetched once with defaults and again with the real filters.
+  const q = trpc.projects.list.useQuery({ states, search }, { enabled: viewReady });
   const reforecast = trpc.projects.reforecastMany.useMutation({
     onSuccess: r => {
       toast.success(`${r.reforecast} jobs reforecast.`);
@@ -94,8 +117,7 @@ export default function Jobs() {
       <button
         className="inline-flex items-center gap-1 whitespace-nowrap"
         onClick={() => {
-          setSort(key);
-          setDescending(key === sort ? !descending : false);
+          setView({ sort: key, descending: key === sort ? !descending : false });
         }}
       >
         {label}
@@ -168,7 +190,7 @@ export default function Jobs() {
           {rows.length} jobs
         </span>
       </div>
-      {q.isLoading ? (
+      {!viewReady || q.isLoading ? (
         <Loading label="Loading jobs…" />
       ) : q.error ? (
         <ErrorState error={q.error} />
@@ -206,9 +228,9 @@ export default function Jobs() {
                   key={j.id}
                   className="cursor-pointer"
                   tabIndex={0}
-                  onClick={() => navigate(`/jobs/${j.id}`)}
+                  onClick={() => navigate(jobPath(j))}
                   onKeyDown={e =>
-                    e.key === "Enter" && navigate(`/jobs/${j.id}`)
+                    e.key === "Enter" && navigate(jobPath(j))
                   }
                 >
                   <td className="num font-medium">{j.code}</td>

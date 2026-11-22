@@ -12,6 +12,7 @@ import {
   uniqueIndex,
   varchar,
 } from "drizzle-orm/mysql-core";
+import { newPublicId } from "../shared/jobUrl";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -140,6 +141,8 @@ export const projects = mysqlTable(
   "projects",
   {
     id: id(),
+    /** Short random token used in job URLs (/j/{publicId}/...). Never changes. See shared/jobUrl.ts. */
+    publicId: varchar("publicId", { length: 12 }).notNull().$defaultFn(newPublicId),
     code: varchar("code", { length: 32 }),
     name: varchar("name", { length: 255 }).notNull(),
     description: text("description"),
@@ -186,7 +189,45 @@ export const projects = mysqlTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  t => []
+  t => [uniqueIndex("projects_public_id").on(t.publicId)]
+);
+
+/**
+ * Per-job tab customization: order, custom label and hidden flag for each tab in the
+ * registry (shared/jobTabs.ts). A job with no rows shows the registry defaults.
+ */
+export const jobTabs = mysqlTable(
+  "job_tabs",
+  {
+    id: id(),
+    projectId: int("projectId").notNull(),
+    /** Registry key: overview | schedule | tasks | ... */
+    key: varchar("key", { length: 32 }).notNull(),
+    /** Custom label; null = use the registry default. */
+    label: varchar("label", { length: 64 }),
+    position: int("position").notNull(),
+    hidden: boolean("hidden").default(false).notNull(),
+    updatedAt: updatedAt(),
+  },
+  t => [uniqueIndex("job_tabs_project_key").on(t.projectId, t.key)]
+);
+
+/**
+ * Per-user view state (filters, sort, layout) stored server-side so it follows the user
+ * across devices. Addressed by scope + scopeId; see shared/viewPrefs.ts.
+ */
+export const userViewPrefs = mysqlTable(
+  "user_view_prefs",
+  {
+    id: id(),
+    userId: int("userId").notNull(),
+    scope: varchar("scope", { length: 64 }).notNull(),
+    /** Record the pref belongs to (a job id, a report id); empty string for app-wide screens. */
+    scopeId: varchar("scopeId", { length: 64 }).default("").notNull(),
+    value: json("value").notNull(),
+    updatedAt: updatedAt(),
+  },
+  t => [uniqueIndex("uvp_user_scope").on(t.userId, t.scope, t.scopeId)]
 );
 
 export const projectCompanies = mysqlTable(
