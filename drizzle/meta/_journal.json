@@ -85,6 +85,13 @@
       "when": 1795229694254,
       "tag": "0011_client_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1795373193842,
+      "tag": "0012_workel_patterns",
+      "breakpoints": true
     }
   ]
 }

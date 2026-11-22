@@ -1,7 +1,8 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, like, sql } from "drizzle-orm";
 import { z } from "zod";
 import { STAGE_KEYS, type Stage } from "@shared/stages";
+import { isPublicId } from "@shared/jobUrl";
 import { CONTRACT_TYPES, PROGRESS_METHODS, PROJECT_STATES, PROJECT_COMPANY_ROLES } from "@shared/domain";
 import {
   activities,
@@ -35,6 +36,8 @@ import {
   drawingTitleBlocks,
   modelJobs,
   modelReads,
+  jobTabs,
+  userViewPrefs,
 } from "../../drizzle/schema";
 import { protectedProcedure, router } from "../_core/trpc";
 import { db } from "../db";
@@ -47,7 +50,7 @@ import { emit, follow, logActivity } from "../services/events";
 import { evaPlan, frozenBaselineEva, projectCosts, recomputeProject, recomputeWithDownstream } from "../services/recompute";
 import { applyErectionTemplate } from "../services/templates";
 import { refreshItemsForProject } from "../services/wf";
-import { bad, defined, getProjectOr404, zDayOpt, zId, zText } from "./_util";
+import { bad, defined, getProjectOr404, notFound, zDayOpt, zId, zText } from "./_util";
 
 const enumOf = <T extends Record<string, string>>(o: T) => z.enum(Object.keys(o) as [string, ...string[]]);
 
@@ -195,6 +198,18 @@ export const projectsRouter = router({
         };
       });
     }),
+
+  /**
+   * Resolve the short id in a job URL (/j/{publicId}/...) to the job's row id.
+   * Answers NOT_FOUND both for an unknown id and for a job the caller cannot see,
+   * so the URL cannot be used to probe which jobs exist.
+   */
+  locate: protectedProcedure.input(z.object({ publicId: z.string().refine(isPublicId, "Invalid job link") })).query(async ({ ctx, input }) => {
+    const d = await db();
+    const [row] = await d.select({ id: projects.id }).from(projects).where(eq(projects.publicId, input.publicId)).limit(1);
+    if (!row || !(await hasPriv(ctx, "project.view", row.id))) notFound("Job");
+    return { id: row.id };
+  }),
 
   get: protectedProcedure.input(z.object({ id: zId })).query(async ({ ctx, input }) => {
     await requirePriv(ctx, "project.view", input.id);
@@ -424,6 +439,9 @@ export const projectsRouter = router({
     await d.delete(drawingSets).where(eq(drawingSets.projectId, p.id));
     await d.delete(activities).where(eq(activities.projectId, p.id));
     await d.delete(projectCompanies).where(eq(projectCompanies.projectId, p.id));
+    await d.delete(jobTabs).where(eq(jobTabs.projectId, p.id));
+    // Per-job view state (scope "job.*", scopeId = job id) has nothing left to describe.
+    await d.delete(userViewPrefs).where(and(like(userViewPrefs.scope, "job.%"), eq(userViewPrefs.scopeId, String(p.id))));
     await deleteValues("project", [p.id]);
     await d.delete(projects).where(eq(projects.id, p.id));
     await emit(ctx, "project", "delete", { id: p.id, code: p.code });

@@ -50,19 +50,24 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { BrandGlyph, Wordmark } from "../brand/Status";
+import { jobPath } from "@shared/jobUrl";
+import { EMPTY_SHELL_COUNTS, NAV_BADGE_HINT, badgeText, navBadges } from "@shared/shell";
 import { GateReasonHost } from "@/features/tasks/gatePrompt";
 
 type NavItem = { href: string; label: string; icon: ReactNode; match?: (path: string) => boolean; badge?: number };
 
 function useNav(): { section: string; items: NavItem[] }[] {
-  return useMemo(
+  // Badge numbers come from their own cheap query so the rail never waits on page data.
+  const counts = trpc.shell.counts.useQuery(undefined, { staleTime: 60_000, refetchInterval: 5 * 60_000, retry: false });
+  const badges = useMemo(() => navBadges(counts.data ?? EMPTY_SHELL_COUNTS), [counts.data]);
+  const sections = useMemo(
     () => [
       {
         section: "Operations",
         items: [
           { href: "/", label: "Today", icon: <CalendarCheck className="size-4" />, match: (p: string) => p === "/" },
           { href: "/portfolio", label: "Portfolio", icon: <Gauge className="size-4" /> },
-          { href: "/jobs", label: "Jobs", icon: <Briefcase className="size-4" />, match: (p: string) => p.startsWith("/jobs") },
+          { href: "/jobs", label: "Jobs", icon: <Briefcase className="size-4" />, match: (p: string) => p.startsWith("/jobs") || p.startsWith("/j/") },
           { href: "/logs", label: "Logs", icon: <FileStack className="size-4" />, match: (p: string) => p.startsWith("/logs") },
           { href: "/bids", label: "Bids", icon: <Target className="size-4" />, match: (p: string) => p.startsWith("/bids") },
           { href: "/resources", label: "Crew & equipment", icon: <Users className="size-4" /> },
@@ -88,6 +93,10 @@ function useNav(): { section: string; items: NavItem[] }[] {
       },
     ],
     []
+  );
+  return useMemo(
+    () => sections.map(sec => ({ ...sec, items: sec.items.map((it): NavItem => (badges[it.href] ? { ...it, badge: badges[it.href] } : it)) })),
+    [sections, badges]
   );
 }
 
@@ -126,7 +135,13 @@ function Rail({ onNavigate }: { onNavigate?: () => void }) {
                   <span className={cn("[&_svg]:size-[17px]", active ? "text-[var(--tp-brand)]" : "text-[var(--tp-sidebar-muted)]")}>{it.icon}</span>
                   {it.label}
                   {it.badge ? (
-                    <span className="num ml-auto min-w-5 rounded-full bg-[var(--tp-brand)] px-1.5 text-center text-[11px] font-semibold leading-[18px] text-[var(--tp-graphite)]">{it.badge}</span>
+                    <span
+                      title={NAV_BADGE_HINT[it.href]?.(it.badge)}
+                      aria-label={NAV_BADGE_HINT[it.href]?.(it.badge)}
+                      className="num ml-auto min-w-5 rounded-full bg-[var(--tp-brand)] px-1.5 text-center text-[11px] font-semibold leading-[18px] text-[var(--tp-graphite)]"
+                    >
+                      {badgeText(it.badge)}
+                    </span>
                   ) : null}
                 </Link>
               );
@@ -167,7 +182,7 @@ function BottomNav({ onMenu }: { onMenu: () => void }) {
             <span className="[&_svg]:size-5">{it.icon}</span>
             {it.label}
             {it.badge ? (
-              <span className="num absolute right-[22%] top-1.5 min-w-4 rounded-full bg-[var(--tp-red-fill)] px-1 text-center text-[10px] leading-4 text-white">{it.badge}</span>
+              <span aria-label={NAV_BADGE_HINT[it.href]?.(it.badge)} className="num absolute right-[22%] top-1.5 min-w-4 rounded-full bg-[var(--tp-red-fill)] px-1 text-center text-[10px] leading-4 text-white">{badgeText(it.badge)}</span>
             ) : null}
           </Link>
         );
@@ -222,7 +237,7 @@ function GlobalSearch() {
           {(jobs.data ?? []).length > 0 && (
             <CommandGroup heading="Jobs">
               {(jobs.data ?? []).slice(0, 8).map(j => (
-                <CommandItem key={`j${j.id}`} value={`job-${j.id}`} onSelect={() => go(`/jobs/${j.id}`)}>
+                <CommandItem key={`j${j.id}`} value={`job-${j.id}`} onSelect={() => go(jobPath(j))}>
                   <span className="num w-16 text-[12px] text-muted-foreground">{j.code}</span>
                   {j.name}
                 </CommandItem>
